@@ -1,0 +1,41 @@
+import { useMemo } from 'react';
+import { ExternalLink, Play, RotateCcw, Check } from 'lucide-react';
+import { childrenOf, isComputed, nodePath } from './operandModel.js';
+import { Issues } from './ui.jsx';
+import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues, simulationValueErrors } from './simulationModel.js';
+
+const display = (value) => typeof value === 'string' ? JSON.stringify(value) : String(value);
+function Trace({ events, t }) {
+  const visible = events.flatMap((event) => event.kind === 'branch' && event.unconditional ? event.children ?? [] : [event]);
+  return <ol className="simulation-trace">{visible.map((event, index) => {
+    const heading = event.kind === 'branch' ? event.isElse ? t('simulationElse') : `${t('branchLabel', { count: event.index })}: ${event.label}` : event.kind === 'step' ? t('taskStep', { count: event.index }) : ['task', 'macro', 'builtin'].includes(event.kind) ? t('simulationExecuting', { name: event.label }) : event.label;
+    const status = event.skipped || event.kind === 'skipped' ? t('simulationSkipped') : typeof event.result === 'boolean' && !event.isElse ? String(event.result) : event.kind === 'builtin' && Object.hasOwn(event, 'after') ? `${event.target}: ${display(event.before)} → ${display(event.after)}` : Object.hasOwn(event, 'value') ? display(event.value) : event.empty ? t('simulationEmptyMacro') : '';
+    const body = <><span>{heading}</span>{status && <strong className={event.result === true ? 'simulation-true' : ''}>{status}</strong>}</>;
+    return <li key={index}>{event.children?.length ? <details open><summary>{body}</summary><Trace events={event.children} t={t} /></details> : <div className="simulation-trace-line">{body}</div>}{event.unmodeled && <p className="field-hint">{t('simulationUnmodeledTask')}</p>}</li>;
+  })}</ol>;
+}
+
+export default function SimulationEditor({ draft, session, onSessionChange, onOpenSlot, t }) {
+  const current = session ?? {}, initial = useMemo(() => simulationInitialValues(draft), [draft]);
+  const values = useMemo(() => Object.fromEntries(Object.keys(initial).map((id) => [id, Object.hasOwn(current.values ?? {}, id) ? current.values[id] : initial[id]])), [initial, current.values]);
+  const selected = draft.slots.find((slot) => slot.id === current.slotId) ?? draft.slots[0];
+  const slotChoices = draft.slots.filter((slot) => slot.id === selected?.id || slot.name.toLocaleLowerCase().includes((current.slotSearch ?? '').toLocaleLowerCase()));
+  const result = current.result, mobilePanel = current.panel ?? 'inputs', resultTab = current.resultTab ?? 'trace';
+  const valueErrors = useMemo(() => simulationValueErrors(draft, values), [draft, values]);
+  const computed = useMemo(() => evaluateSimulationExpressions(draft, values), [draft, values]);
+  function updateValue(id, value) { onSessionChange({ values: { ...values, [id]: value }, result: null }); }
+  function run() { onSessionChange({ slotId: selected?.id, values, result: simulateSlot(draft, selected?.id, values, initial, t), panel: 'results' }); }
+  function tree(parent, scope) {
+    return childrenOf(draft.operandNodes, parent, scope).map(([id, node]) => node.node_type === 'group' ? <details open className="simulation-variable-group" key={id}><summary>{node.display_name}</summary>{tree(id, scope)}</details> : <label className="simulation-variable" key={id}><span title={nodePath(draft.operandNodes, id)}>{node.display_name}{node.read_only && <small>{t('readOnly')}</small>}</span>{node.value_type === 'boolean' ? <select aria-label={nodePath(draft.operandNodes, id)} value={String(values[id])} onChange={(e) => updateValue(id, e.target.value === 'true')}><option value="false">false</option><option value="true">true</option></select> : <input aria-label={nodePath(draft.operandNodes, id)} type={node.value_type === 'number' ? 'number' : 'text'} step={node.value_type === 'number' ? 'any' : undefined} aria-invalid={valueErrors.some((error) => error.path === `/values/${id}`)} value={typeof values[id] === node.value_type && !Number.isNaN(values[id]) ? values[id] : ''} onChange={(e) => updateValue(id, node.value_type === 'number' ? e.target.value === '' ? NaN : e.target.valueAsNumber : e.target.value)} />}</label>);
+  }
+  return <main className="simulation-editor">
+    <div className="simulation-toolbar"><label>{t('simulationSlot')}<div className="simulation-slot-controls"><input type="search" aria-label={t('simulationSearchSlots')} placeholder={t('simulationSearchSlots')} value={current.slotSearch ?? ''} onChange={(e) => onSessionChange({ slotSearch: e.target.value })} /><select aria-label={t('simulationSlot')} value={selected?.id ?? ''} onChange={(e) => onSessionChange({ slotId: e.target.value, slotSearch: '', result: null })}><option value="" disabled>{t('simulationChooseSlot')}</option>{slotChoices.map((slot) => <option key={slot.id} value={slot.id}>{slot.name}</option>)}</select></div></label>{selected && <button className="icon-button" title={t('openSlotEditor')} aria-label={t('openSlotEditor')} onClick={() => onOpenSlot(selected)}><ExternalLink size={16} /></button>}<button className="button primary" disabled={!selected || !!valueErrors.length} onClick={run}><Play size={16} />{t('simulationRun')}</button><button className="button secondary" onClick={() => onSessionChange({ values: structuredClone(initial), result: null, panel: 'inputs' })}><RotateCcw size={16} />{t('simulationReset')}</button><button className="button secondary" disabled={!result || !!result.errors.length} onClick={() => onSessionChange({ values: structuredClone(result.state), result: null, panel: 'inputs' })}><Check size={16} />{t('simulationApply')}</button></div>
+    <div className="simulation-mobile-tabs" role="tablist" aria-label={t('simulationWorkspace')}>{['inputs', 'results'].map((panel) => <button role="tab" key={panel} aria-selected={mobilePanel === panel} onClick={() => onSessionChange({ panel })}>{t(panel === 'inputs' ? 'simulationInputs' : 'simulationResults')}</button>)}</div>
+    <div className="simulation-columns"><section className={`simulation-inputs simulation-pane ${mobilePanel === 'inputs' ? 'mobile-active' : ''}`}><h2>{t('simulationInputs')}</h2><p className="field-hint">{t('simulationInputHint')}</p>{!!valueErrors.length && <Issues errors={valueErrors} t={t} />}{['environment', 'application'].map((scope) => <section key={scope}><h3>{t(scope === 'environment' ? 'environmentVariables' : 'applicationVariables')}</h3>{tree(null, scope)}</section>)}
+      <section><h3>{t('expressions')}</h3>{Object.entries(draft.operandNodes).filter(([, node]) => isComputed(node)).map(([id, node]) => <div className="simulation-computed" key={id}><span>{node.display_name}</span><output aria-label={node.display_name}>{computed[id]?.error ? t(computed[id].error.key, { field: computed[id].error.field }) : display(computed[id]?.value)}</output></div>)}</section>
+      <p className="field-hint">{t('simulationBaselineHint')}</p></section>
+      <section className={`simulation-results simulation-pane ${mobilePanel === 'results' ? 'mobile-active' : ''}`}><h2>{t('simulationResults')}</h2><div role="tablist" aria-label={t('simulationResultTabs')}>{['trace', 'changes'].map((tab) => <button className="button secondary" role="tab" key={tab} aria-selected={resultTab === tab} onClick={() => onSessionChange({ resultTab: tab })}>{t(tab === 'trace' ? 'simulationTrace' : 'simulationChanges')}</button>)}</div>
+        {!result ? <p className="field-hint">{t('simulationReady')}</p> : <><p role="status">{t(result.errors.length ? 'simulationFailed' : 'simulationFinished', { count: result.calls.length })}</p>{result.unmodeled && <p className="shared-warning">{t('simulationAssumption')}</p>}{!!result.errors.length && <Issues errors={result.errors} t={t} />}{resultTab === 'trace' ? <Trace events={result.trace} t={t} /> : result.changes.length ? <table className="simulation-change-table"><thead><tr><th>{t('nodeName')}</th><th>{t('simulationBefore')}</th><th>{t('simulationAfter')}</th></tr></thead><tbody>{result.changes.map((change) => <tr key={change.id}><td>{change.name}</td><td>{display(change.before)}</td><td>{display(change.after)}</td></tr>)}</tbody></table> : <p>{t('simulationNoChanges')}</p>}</>}
+      </section></div>
+  </main>;
+}

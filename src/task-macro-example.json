@@ -1,0 +1,543 @@
+{
+  "project": {
+    "schema_version": "dev",
+    "name": "Character Schedule",
+    "settings": {
+      "slots_per_day": 6
+    }
+  },
+  "slots": {
+    "b3459c1a-6767-49bc-b54d-cdb4ea75738f": {
+      "display_name": "通勤",
+      "icon": "commute",
+      "branches": [
+        {
+          "condition": {
+            "kind": "group",
+            "mode": "ANY",
+            "items": [
+              {
+                "kind": "comparison",
+                "operand_a": {
+                  "type": "expression_macro_reference",
+                  "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a001"
+                },
+                "comparator": ">",
+                "operand_b": {
+                  "type": "constant",
+                  "value": 10
+                }
+              },
+              {
+                "kind": "comparison",
+                "operand_a": {
+                  "type": "expression_macro_reference",
+                  "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a002"
+                },
+                "comparator": "<",
+                "operand_b": {
+                  "type": "constant",
+                  "value": 3
+                }
+              }
+            ]
+          },
+          "task": {
+            "task_macro_id": "9888ef5e-48e8-5f81-a52a-2b4bffa1c58e",
+            "arguments": {
+              "42e456da-1c01-525b-acbe-d25340a1bdbc": {
+                "type": "constant",
+                "value": "Shop"
+              },
+              "87bf2099-4f43-5a93-95d8-f4c6a89483fe": {
+                "type": "expression",
+                "operator": "+",
+                "operand_a": {
+                  "type": "expression_macro_reference",
+                  "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a001"
+                },
+                "operand_b": {
+                  "type": "constant",
+                  "value": 2
+                }
+              },
+              "6c2f089a-5d40-51ff-9e43-086ff3488ecc": {
+                "type": "expression_macro_reference",
+                "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a003"
+              }
+            }
+          }
+        },
+        {
+          "condition": {
+            "kind": "comparison",
+            "operand_a": {
+              "type": "expression_macro_reference",
+              "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a003"
+            },
+            "comparator": "==",
+            "operand_b": {
+              "type": "constant",
+              "value": true
+            }
+          },
+          "task": {
+            "task_id": "671da4bc-a928-5208-a74e-470b3c0d029e",
+            "arguments": {}
+          }
+        },
+        {
+          "condition": null,
+          "task": {
+            "task_id": "7905cd6e-b9bf-5a9e-8784-6894a263213c",
+            "arguments": {}
+          }
+        }
+      ]
+    },
+    "4686d7b1-bbad-41a7-b477-f22bac71d4c8": {
+      "display_name": "工作",
+      "icon": "work",
+      "branches": [
+        {
+          "condition": null,
+          "task": {
+            "task_id": "ba6138cd-9cb7-5871-81a8-01a0012dc2ef",
+            "arguments": {}
+          }
+        }
+      ]
+    }
+  },
+  "day_schedules": {
+    "1c0cb4c5-366f-4f11-8d7c-fce90b4c8558": {
+      "display_name": "Workday",
+      "slot_ids": [
+        "b3459c1a-6767-49bc-b54d-cdb4ea75738f",
+        "4686d7b1-bbad-41a7-b477-f22bac71d4c8",
+        null,
+        null,
+        null,
+        null
+      ],
+      "icon": "tabler:calendar"
+    },
+    "1684c110-ff61-4d4b-911e-b7a188e2a328": {
+      "display_name": "Holiday",
+      "slot_ids": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "icon": "tabler:calendar"
+    },
+    "d2f91422-cfaa-412e-b167-5aeabefa7d42": {
+      "display_name": "wed custom",
+      "slot_ids": [
+        "4686d7b1-bbad-41a7-b477-f22bac71d4c8",
+        "4686d7b1-bbad-41a7-b477-f22bac71d4c8",
+        null,
+        null,
+        null,
+        null
+      ],
+      "scope": "week_private",
+      "owner": {
+        "week_schedule_id": "958deb75-432c-49e7-8ba6-0e4c52b795f1",
+        "weekday": "wed"
+      },
+      "icon": "tabler:calendar"
+    }
+  },
+  "week_schedules": {
+    "958deb75-432c-49e7-8ba6-0e4c52b795f1": {
+      "display_name": "Normal week",
+      "days": {
+        "mon": "1c0cb4c5-366f-4f11-8d7c-fce90b4c8558",
+        "tue": "1c0cb4c5-366f-4f11-8d7c-fce90b4c8558",
+        "wed": "d2f91422-cfaa-412e-b167-5aeabefa7d42",
+        "thu": "1c0cb4c5-366f-4f11-8d7c-fce90b4c8558",
+        "fri": "1c0cb4c5-366f-4f11-8d7c-fce90b4c8558",
+        "sat": null,
+        "sun": null
+      },
+      "icon": "tabler:calendar-week"
+    },
+    "ea082c59-6b62-4b5e-a7ff-e5158baf46ee": {
+      "display_name": "Rest week",
+      "days": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null,
+        "sun": null
+      },
+      "icon": "tabler:calendar-week"
+    }
+  },
+  "week_sequences": {
+    "4e6ad340-0c49-441d-a3f5-37a791704477": {
+      "display_name": "Stage 0",
+      "week_schedule_ids": [
+        "958deb75-432c-49e7-8ba6-0e4c52b795f1",
+        "ea082c59-6b62-4b5e-a7ff-e5158baf46ee",
+        "958deb75-432c-49e7-8ba6-0e4c52b795f1"
+      ],
+      "day_overrides": [
+        {
+          "week_number": 1,
+          "weekday": "mon",
+          "day_schedule_id": "1684c110-ff61-4d4b-911e-b7a188e2a328"
+        },
+        {
+          "week_number": 2,
+          "weekday": "fri",
+          "day_schedule_id": null
+        }
+      ],
+      "icon": "tabler:calendar-stats"
+    }
+  },
+  "operand_nodes": {
+    "550e8400-e29b-41d4-a716-446655440101": {
+      "display_name": "Character",
+      "node_type": "group",
+      "parent_id": null,
+      "order": 0
+    },
+    "07dbe80c-8ee8-5c0e-8243-caadbb76128d": {
+      "display_name": "weather",
+      "node_type": "value",
+      "value_type": "string",
+      "parent_id": "550e8400-e29b-41d4-a716-446655440101",
+      "order": 0,
+      "read_only": false
+    },
+    "39ca2ae3-7976-5120-ae8c-d0bd2430bfa5": {
+      "display_name": "energy",
+      "node_type": "value",
+      "value_type": "number",
+      "parent_id": "550e8400-e29b-41d4-a716-446655440101",
+      "order": 1,
+      "read_only": false
+    },
+    "e43b484a-d439-5183-a6d0-a599bcda5dec": {
+      "display_name": "mood",
+      "node_type": "value",
+      "value_type": "string",
+      "parent_id": "550e8400-e29b-41d4-a716-446655440101",
+      "order": 2,
+      "read_only": false
+    },
+    "9fd01a6f-b4fd-5945-a339-e253783c8746": {
+      "display_name": "fatigue",
+      "node_type": "value",
+      "value_type": "number",
+      "parent_id": "550e8400-e29b-41d4-a716-446655440101",
+      "order": 3,
+      "read_only": false
+    }
+  },
+  "tasks": {
+    "b24c3a27-e869-5058-8d00-a7f5634901a7": {
+      "display_name": "公車通勤",
+      "parameters": []
+    },
+    "671da4bc-a928-5208-a74e-470b3c0d029e": {
+      "display_name": "rest",
+      "parameters": []
+    },
+    "7905cd6e-b9bf-5a9e-8784-6894a263213c": {
+      "display_name": "walk_to_work",
+      "parameters": []
+    },
+    "ba6138cd-9cb7-5871-81a8-01a0012dc2ef": {
+      "display_name": "work",
+      "parameters": []
+    },
+    "164a4952-7501-5c30-8bd0-4744116fc9b7": {
+      "display_name": "Move",
+      "parameters": [
+        {
+          "id": "fdee6782-e19e-51cd-8004-d1cc60a49410",
+          "display_name": "Destination",
+          "type": "string"
+        },
+        {
+          "id": "6b3f073e-5752-5701-aef4-e8839796f416",
+          "display_name": "Speed",
+          "type": "number"
+        },
+        {
+          "id": "1939fb02-3551-5512-a4b1-62a9c15f859f",
+          "display_name": "Ready",
+          "type": "boolean"
+        }
+      ]
+    }
+  },
+  "task_macros": {
+    "29f73934-b7f0-55b1-b2e3-70f3b6a8caec": {
+      "display_name": "Shopping",
+      "parameters": [
+        {
+          "id": "0bceaebd-80de-50de-91db-ef26b5070d44",
+          "display_name": "Destination",
+          "type": "string"
+        },
+        {
+          "id": "9cf2ab26-340a-5fd0-b2a6-a06c0e5be895",
+          "display_name": "Speed",
+          "type": "number"
+        },
+        {
+          "id": "f6bd88fb-355e-57e4-b624-8583559a9ead",
+          "display_name": "Ready",
+          "type": "boolean"
+        }
+      ],
+      "steps": [
+        {
+          "id": "0524c08b-f10d-55b8-b679-4eb97d56bfa9",
+          "task": {
+            "task_id": "164a4952-7501-5c30-8bd0-4744116fc9b7",
+            "arguments": {
+              "fdee6782-e19e-51cd-8004-d1cc60a49410": {
+                "type": "parameter_reference",
+                "parameter_id": "0bceaebd-80de-50de-91db-ef26b5070d44"
+              },
+              "6b3f073e-5752-5701-aef4-e8839796f416": {
+                "type": "expression",
+                "operator": "+",
+                "operand_a": {
+                  "type": "parameter_reference",
+                  "parameter_id": "9cf2ab26-340a-5fd0-b2a6-a06c0e5be895"
+                },
+                "operand_b": {
+                  "type": "expression",
+                  "operator": "*",
+                  "operand_a": {
+                    "type": "expression_macro_reference",
+                    "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a001"
+                  },
+                  "operand_b": {
+                    "type": "constant",
+                    "value": 0.1
+                  }
+                }
+              },
+              "1939fb02-3551-5512-a4b1-62a9c15f859f": {
+                "type": "parameter_reference",
+                "parameter_id": "f6bd88fb-355e-57e4-b624-8583559a9ead"
+              }
+            }
+          }
+        },
+        {
+          "id": "e88826cd-7e53-5cd4-bb7a-ffe9bf34c28b",
+          "task": {
+            "task_id": "ba6138cd-9cb7-5871-81a8-01a0012dc2ef",
+            "arguments": {}
+          }
+        }
+      ],
+      "mode": "sequence"
+    },
+    "9888ef5e-48e8-5f81-a52a-2b4bffa1c58e": {
+      "mode": "branch",
+      "display_name": "Choose trip",
+      "parameters": [
+        {
+          "id": "42e456da-1c01-525b-acbe-d25340a1bdbc",
+          "display_name": "Destination",
+          "type": "string"
+        },
+        {
+          "id": "87bf2099-4f43-5a93-95d8-f4c6a89483fe",
+          "display_name": "Speed",
+          "type": "number"
+        },
+        {
+          "id": "6c2f089a-5d40-51ff-9e43-086ff3488ecc",
+          "display_name": "Ready",
+          "type": "boolean"
+        }
+      ],
+      "branches": [
+        {
+          "condition": {
+            "kind": "group",
+            "mode": "ANY",
+            "items": [
+              {
+                "kind": "comparison",
+                "operand_a": {
+                  "type": "parameter_reference",
+                  "parameter_id": "6c2f089a-5d40-51ff-9e43-086ff3488ecc"
+                },
+                "comparator": "==",
+                "operand_b": {
+                  "type": "constant",
+                  "value": true
+                }
+              },
+              {
+                "kind": "group",
+                "mode": "ALL",
+                "items": [
+                  {
+                    "kind": "comparison",
+                    "operand_a": {
+                      "type": "expression",
+                      "operator": "*",
+                      "operand_a": {
+                        "type": "parameter_reference",
+                        "parameter_id": "87bf2099-4f43-5a93-95d8-f4c6a89483fe"
+                      },
+                      "operand_b": {
+                        "type": "constant",
+                        "value": 2
+                      }
+                    },
+                    "comparator": ">",
+                    "operand_b": {
+                      "type": "constant",
+                      "value": 10
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "task": {
+            "task_macro_id": "29f73934-b7f0-55b1-b2e3-70f3b6a8caec",
+            "arguments": {
+              "0bceaebd-80de-50de-91db-ef26b5070d44": {
+                "type": "parameter_reference",
+                "parameter_id": "42e456da-1c01-525b-acbe-d25340a1bdbc"
+              },
+              "9cf2ab26-340a-5fd0-b2a6-a06c0e5be895": {
+                "type": "expression",
+                "operator": "*",
+                "operand_a": {
+                  "type": "parameter_reference",
+                  "parameter_id": "87bf2099-4f43-5a93-95d8-f4c6a89483fe"
+                },
+                "operand_b": {
+                  "type": "constant",
+                  "value": 0.8
+                }
+              },
+              "f6bd88fb-355e-57e4-b624-8583559a9ead": {
+                "type": "parameter_reference",
+                "parameter_id": "6c2f089a-5d40-51ff-9e43-086ff3488ecc"
+              }
+            }
+          }
+        },
+        {
+          "condition": null,
+          "task": {
+            "task_id": "164a4952-7501-5c30-8bd0-4744116fc9b7",
+            "arguments": {
+              "fdee6782-e19e-51cd-8004-d1cc60a49410": {
+                "type": "parameter_reference",
+                "parameter_id": "42e456da-1c01-525b-acbe-d25340a1bdbc"
+              },
+              "6b3f073e-5752-5701-aef4-e8839796f416": {
+                "type": "parameter_reference",
+                "parameter_id": "87bf2099-4f43-5a93-95d8-f4c6a89483fe"
+              },
+              "1939fb02-3551-5512-a4b1-62a9c15f859f": {
+                "type": "parameter_reference",
+                "parameter_id": "6c2f089a-5d40-51ff-9e43-086ff3488ecc"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "expression_macros": {
+    "f4120e67-9df0-4d30-8c47-d9d2d9b6a001": {
+      "display_name": "adjusted_energy",
+      "value_type": "number",
+      "definition": {
+        "kind": "number",
+        "expression": {
+          "type": "expression",
+          "operand_a": {
+            "type": "reference",
+            "reference_id": "39ca2ae3-7976-5120-ae8c-d0bd2430bfa5"
+          },
+          "operator": "+",
+          "operand_b": {
+            "type": "constant",
+            "value": 10
+          }
+        }
+      }
+    },
+    "f4120e67-9df0-4d30-8c47-d9d2d9b6a002": {
+      "display_name": "half_energy",
+      "value_type": "number",
+      "definition": {
+        "kind": "number",
+        "expression": {
+          "type": "expression",
+          "operand_a": {
+            "type": "expression_macro_reference",
+            "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a001"
+          },
+          "operator": "/",
+          "operand_b": {
+            "type": "constant",
+            "value": 2
+          }
+        }
+      }
+    },
+    "f4120e67-9df0-4d30-8c47-d9d2d9b6a003": {
+      "display_name": "can_act",
+      "value_type": "boolean",
+      "definition": {
+        "kind": "boolean",
+        "condition": {
+          "kind": "group",
+          "mode": "ANY",
+          "items": [
+            {
+              "kind": "comparison",
+              "operand_a": {
+                "type": "expression_macro_reference",
+                "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a001"
+              },
+              "comparator": ">",
+              "operand_b": {
+                "type": "constant",
+                "value": 10
+              }
+            },
+            {
+              "kind": "comparison",
+              "operand_a": {
+                "type": "expression_macro_reference",
+                "expression_macro_id": "f4120e67-9df0-4d30-8c47-d9d2d9b6a002"
+              },
+              "comparator": "<",
+              "operand_b": {
+                "type": "constant",
+                "value": 3
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
