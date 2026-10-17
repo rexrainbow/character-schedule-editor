@@ -12,7 +12,7 @@
 
 ## 檔案結構
 
-匯出檔名為 `character-schedule-environment.json`。獨立 [environment.schema.json](./src/environment.schema.json) 可透過 `npm.cmd run schema:environment` 重新產生。
+匯出檔名為 `character-schedule-environment.json`。獨立 [environment.schema.json](../src/environment.schema.json) 可透過 `npm.cmd run schema:environment` 重新產生。
 
 ```json
 {

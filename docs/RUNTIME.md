@@ -6,7 +6,7 @@ expression_macros.definition 也支援 `{kind: "branch", branches: [{condition, 
 
 使用者模式的「匯出執行資料／Export runtime data」產生 `character-schedule-runtime.json`，供 engine 載入執行。這不是可重新編輯的專案檔；可編輯資料請另外使用左側專案選單的「匯出專案」。
 
-獨立 JSON Schema 位於 [src/runtime.schema.json](./src/runtime.schema.json)，編譯器為 [src/runtimeModel.js](./src/runtimeModel.js)。Schema 可用 `npm.cmd run schema:runtime` 重新產生；產生器沿用專案的運算式與條件式定義，僅保留 runtime 用到的定義，不依賴外部 Schema 檔案。
+獨立 JSON Schema 位於 [src/runtime.schema.json](../src/runtime.schema.json)，編譯器為 [src/runtimeModel.js](../src/runtimeModel.js)。Schema 可用 `npm.cmd run schema:runtime` 重新產生；產生器沿用專案的運算式與條件式定義，僅保留 runtime 用到的定義，不依賴外部 Schema 檔案。
 
 ## 根結構
 
