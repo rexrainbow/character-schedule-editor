@@ -16,11 +16,15 @@ async function init(page, count = 6) {
   await expect(modal).toContainText('New project');
   await modal.getByRole('spinbutton', { name: 'Slots per day' }).fill(String(count));
   await modal.getByRole('button', { name: 'Create project', exact: true }).click();
+  await expect(page.getByRole('tab', { name: 'Slots', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await navigate(page, 'days');
 }
 async function importData(page, data = example) {
   await page.goto('/');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'project.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(data)) });
   await expect(page.getByRole('status')).toContainText('JSON imported successfully.');
+  await expect(page.getByRole('tab', { name: 'Slots', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await navigate(page, 'days');
 }
 async function exportData(page) {
   const pending = page.waitForEvent('download'); await exportProject(page);
@@ -38,6 +42,8 @@ test('empty startup settings, cancel, day CRUD and locked daily cell count', asy
   await expect(modal.getByRole('spinbutton', { name: 'Slots per day' })).toHaveValue('3');
   await modal.getByRole('button', { name: 'Create project', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'My characters' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Slots', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await navigate(page, 'days');
   await expect(page.getByRole('heading', { name: 'No day schedules yet' })).toBeVisible();
   await page.locator('.sidebar').getByRole('button', { name: 'Add day' }).click();
   await expect(page.locator('.day-cell')).toHaveCount(3);
@@ -158,6 +164,8 @@ test('system Chinese, persistent English override, mobile modal and long schedul
   await modal.getByRole('spinbutton', { name: '每日時段數' }).fill('1000');
   await modal.getByRole('button', { name: '建立專案', exact: true }).click();
   await page.getByRole('combobox', { name: '介面語言' }).selectOption('en');
+  await expect(page.getByRole('combobox', { name: 'Editor page', exact: true })).toHaveValue('slots');
+  await navigate(page, 'days');
   await defineSimpleTask(page);
   await page.locator('.sidebar').getByRole('button', { name: 'Add day' }).click();
   expect(await page.locator('.day-cell').count()).toBeLessThan(25);
