@@ -5,6 +5,8 @@ import { computedErrors, conditionErrors, treeErrors, documentNodes, serializeNo
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './slots.schema.json' with { type: 'json' };
 import { WEEKDAYS } from './scheduleConstants.js';
+import { dayAssignments, setDayAssignment, dayEventsFromData, dayEventsToData } from './dayEvents.js';
+import { eventGroupsFromData, eventGroupsToData, eventGroupErrors } from './sequenceEvents.js';
 import { taskDefinitionErrors, taskUseErrors } from './taskModel.js';
 
 const validate = new Ajv2020({ allErrors: true, strict: false, ownProperties: true }).compile(schema);
@@ -82,6 +84,12 @@ export function validateDocument(data) {
           errors.push({ path: `/day_schedules/${id}/slot_ids/${index}`, key: 'missingSlot' });
         }
       });
+      const eventRefs = [['day_start_slot_id', day.day_start_slot_id], ['day_end_slot_id', day.day_end_slot_id]];
+      if (Array.isArray(day.slot_events)) {
+        if (day.slot_events.length !== day.slot_ids.length) errors.push({ path: `/day_schedules/${id}/slot_events`, key: 'cellCountMismatch' });
+        day.slot_events.forEach((entry, index) => { for (const key of ['start_slot_id', 'end_slot_id']) eventRefs.push([`slot_events/${index}/${key}`, entry?.[key]]); });
+      }
+      for (const [path, slotId] of eventRefs) if (slotId !== undefined && slotId !== null && !Object.hasOwn(data.slots ?? {}, slotId)) errors.push({ path: `/day_schedules/${id}/${path}`, key: 'missingSlot' });
     }
   }
   const days = data?.day_schedules;
@@ -111,9 +119,16 @@ export function validateDocument(data) {
     }
   }
   const sequences = data?.week_sequences;
+  const eventGroupIds = new Set();
   if (sequences && typeof sequences === 'object' && !Array.isArray(sequences)) {
     for (const [id, sequence] of Object.entries(sequences)) {
       const weekIds = sequence?.week_schedule_ids;
+      if (Array.isArray(sequence?.event_groups) && Array.isArray(weekIds)) {
+        const groups = eventGroupsFromData(sequence.event_groups);
+        groups.forEach((group, index) => { if (eventGroupIds.has(group.id)) errors.push({ path: `/week_sequences/${id}/event_groups/${index}/id`, key: 'duplicateId' }); eventGroupIds.add(group.id); });
+        const eventDays = Object.entries(days ?? {}).map(([id, day]) => ({ id, scope: day?.scope }));
+        errors.push(...eventGroupErrors({ rows: weekIds, eventGroups: groups }, eventDays).map((error) => ({ ...error, path: `/week_sequences/${id}${error.path}` })));
+      }
       if (Array.isArray(weekIds) && weekIds.length === 1 && WEEKDAYS.indexOf(sequence.start_weekday ?? 'mon') > WEEKDAYS.indexOf(sequence.end_weekday ?? 'sun')) errors.push({ path: `/week_sequences/${id}/end_weekday`, key: 'invalidSequenceRange' });
       if (Array.isArray(weekIds)) weekIds.forEach((weekId, index) => {
         if (!weeks || !Object.hasOwn(weeks, weekId)) errors.push({ path: `/week_sequences/${id}/week_schedule_ids/${index}`, key: 'missingWeek' });
@@ -171,10 +186,12 @@ export function createProject() {
 export function projectToDraft(data) {
   return { ...(data.environment === undefined ? {} : { environment: clone(data.environment) }), ...(data.builtin_tasks === undefined ? {} : { builtinTasks: clone(data.builtin_tasks) }), project: clone(data.project), operandNodes: documentNodes(data), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, macro]) => macroFromData(id, macro)), tasks: Object.entries(data.tasks).map(([id, task]) => ({ ...clone(task), id })), slots: documentToDraft(data),
     days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slot_ids],
+      ...dayEventsFromData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) })),
     weeks: Object.entries(data.week_schedules ?? {}).map(([id, week]) => ({ id, name: week.display_name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) })),
     sequences: Object.entries(data.week_sequences ?? {}).map(([id, sequence]) => ({ id, name: sequence.display_name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats',
       ...(sequence.start_weekday === undefined ? {} : { startWeekday: sequence.start_weekday }), ...(sequence.end_weekday === undefined ? {} : { endWeekday: sequence.end_weekday }),
+      ...(sequence.event_groups === undefined ? {} : { eventGroups: eventGroupsFromData(sequence.event_groups) }),
       rows: sequence.week_schedule_ids.map((weekId, index) => ({ uid: uid(), weekId,
         overrides: Object.fromEntries(sequence.day_overrides.filter((item) => item.week_number === index + 1).map((item) => [item.weekday, item.day_schedule_id])) })) })) };
 }
@@ -189,11 +206,13 @@ export function compileProject(draft) {
   }
   const document = { ...(draft.environment === undefined ? {} : { environment: clone(draft.environment) }), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: clone(draft.builtinTasks) }), task_macros: Object.fromEntries((draft.taskMacros ?? []).map((macro) => [macro.id, macroToData(macro)])), tasks: Object.fromEntries((draft.tasks ?? []).map(({ id, ...task }) => [id, clone(task)])), ...serializeNodes(draft.operandNodes), project: clone(draft.project), slots: data.slots,
     day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slot_ids: [...day.slotIds],
+      ...dayEventsToData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) }])),
     week_schedules: Object.fromEntries((draft.weeks ?? []).map((week) => [week.id, { display_name: week.name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) }])),
     week_sequences: Object.fromEntries((draft.sequences ?? []).map((sequence) => [sequence.id, {
       display_name: sequence.name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats', week_schedule_ids: sequence.rows.map((row) => row.weekId),
       ...(sequence.startWeekday === undefined ? {} : { start_weekday: sequence.startWeekday }), ...(sequence.endWeekday === undefined ? {} : { end_weekday: sequence.endWeekday }),
+      ...(sequence.eventGroups === undefined ? {} : { event_groups: eventGroupsToData(sequence.eventGroups, draft.days) }),
       day_overrides: sequence.rows.flatMap((row, index) => WEEKDAYS.filter((weekday) => Object.hasOwn(row.overrides, weekday)).map((weekday) => ({ week_number: index + 1, weekday, day_schedule_id: row.overrides[weekday] }))),
     }])) };
   const sequenceIds = new Set();
@@ -215,24 +234,24 @@ export function createDay(draft, name) {
 }
 
 export function duplicateDay(draft, day) {
-  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slotIds] };
+  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slotIds], ...clone(dayEventsFromData(dayEventsToData(day))) };
 }
 
 export function referenceCount(draft, slotId) {
-  return draft.days.reduce((count, day) => count + day.slotIds.filter((id) => id === slotId).length, 0);
+  return draft.days.reduce((count, day) => count + dayAssignments(day).filter((entry) => entry.id === slotId).length, 0);
 }
 
 export function deleteSlotAndReferences(draft, slotId) {
   return { ...draft, slots: draft.slots.filter((slot) => slot.id !== slotId),
-    days: draft.days.map((day) => ({ ...day, slotIds: day.slotIds.map((id) => id === slotId ? null : id) })) };
+    days: draft.days.map((day) => dayAssignments(day).filter((entry) => entry.id === slotId).reduce((next, entry) => setDayAssignment(next, entry.target, null), day)) };
 }
 
 export function assignCell(draft, dayId, index, slotId) {
   if (slotId !== null && !draft.slots.some((slot) => slot.id === slotId)) throw new Error('Unknown slot');
   const day = draft.days.find((item) => item.id === dayId);
-  if (!day || index < 0 || index >= day.slotIds.length) throw new Error('Unknown cell');
+  if (!day) throw new Error('Unknown day');
   return { ...draft, days: draft.days.map((item) => item.id === dayId
-    ? { ...item, slotIds: item.slotIds.map((id, i) => i === index ? slotId : id) } : item) };
+    ? setDayAssignment(item, index, slotId) : item) };
 }
 
 export function applySlotEdit(draft, slot, dayId, index) {

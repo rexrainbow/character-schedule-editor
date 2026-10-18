@@ -2,13 +2,14 @@ import { clearEngineKey } from './engineKeyModel.js';
 import { clone, nextSlotId, uid } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { normalizeSequenceRange } from './sequenceRange.js';
+import { fitEventGroups, duplicateEventGroup } from './sequenceEvents.js';
 
 export function createSequence(draft, name) {
   return { id: nextSlotId(draft.sequences), name, icon: 'tabler:calendar-stats', startWeekday: 'mon', endWeekday: 'sun', rows: [] };
 }
 
 export function duplicateSequence(draft, sequence) {
-  return { ...clearEngineKey(sequence), id: nextSlotId(draft.sequences), name: `${sequence.name} (副本)`, rows: sequence.rows.map((row) => ({ ...clone(row), uid: uid() })) };
+  return { ...clearEngineKey(sequence), id: nextSlotId(draft.sequences), name: `${sequence.name} (副本)`, ...(sequence.eventGroups === undefined ? {} : { eventGroups: sequence.eventGroups.map((group) => duplicateEventGroup(group, draft.days, false)) }), rows: sequence.rows.map((row) => ({ ...clone(row), uid: uid() })) };
 }
 
 export function addSequenceRow(draft, sequence, weekId) {
@@ -36,7 +37,7 @@ export function duplicateSequenceRow(sequence, rowUid) {
 }
 
 export function removeSequenceRow(sequence, rowUid) {
-  return normalizeSequenceRange({ ...sequence, rows: sequence.rows.filter((row) => row.uid !== rowUid) });
+  return fitEventGroups(normalizeSequenceRange({ ...sequence, rows: sequence.rows.filter((row) => row.uid !== rowUid) }));
 }
 
 export function setSequenceOverride(draft, sequence, rowUid, weekday, choice) {

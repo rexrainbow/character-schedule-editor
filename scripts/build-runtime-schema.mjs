@@ -39,9 +39,14 @@ defs.environment_variable_tree.oneOf[0].properties.children = arr(ref('environme
 defs.environment_variable_tree.oneOf[1].required.push('engine_key');
 
 defs.runtime_day = entity({ slot_ids: arr({ oneOf: [ref('uuid'), { type: 'null' }] }) }, ['slot_ids']);
+for (const name of ['day_start_slot_id', 'day_end_slot_id', 'slot_events']) defs.runtime_day.properties[name] = structuredClone(source.$defs.day_schedule.properties[name]);
 const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 defs.runtime_week = entity({ days: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }, ref('runtime_day')] }]))) }, ['days']);
 defs.runtime_sequence = entity({ start_weekday: { enum: weekdays }, end_weekday: { enum: weekdays }, entries: arr(obj({ week_id: ref('uuid'), day_overrides: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }] }])), []) })) }, ['start_weekday', 'end_weekday', 'entries']);
+defs.runtime_sequence.properties.event_groups = structuredClone(source.$defs.week_sequence.properties.event_groups);
+defs.sequence_event_group.required.push('display_name');
+defs.sequence_event_group.properties.display_name.minLength = 1;
+defs.sequence_event_group.properties.engine_key = key;
 defs.variable_requirement = obj({ ...metadata, value_type: { enum: ['number', 'string', 'boolean'] }, read_only: { type: 'boolean' }, access: { enum: ['read', 'write', 'read_write'] } });
 defs.runtime_parameter_requirement = structuredClone(defs.task_parameter);
 delete defs.runtime_parameter_requirement.properties.id;
@@ -56,6 +61,9 @@ const schema = { $schema: source.$schema, title: 'Character Schedule Runtime Dat
   exports: { type: 'object', propertyNames: key, additionalProperties: obj({ kind: { enum: ['operands', 'expressions', 'taskMacros', 'slots', 'days', 'weeks', 'sequences'] }, id: ref('uuid') }) },
 }) };
 // Keep this standalone schema limited to definitions actually used by runtime data.
+schema.properties.exports.additionalProperties.properties.kind.enum.push('eventGroups');
+schema.properties.exports.additionalProperties.properties.sequence_id = ref('uuid');
+schema.properties.exports.additionalProperties.allOf = [{ if: { properties: { kind: { const: 'eventGroups' } } }, then: { required: ['sequence_id'] } }];
 const used = new Set();
 function visit(value) {
   if (!value || typeof value !== 'object') return;

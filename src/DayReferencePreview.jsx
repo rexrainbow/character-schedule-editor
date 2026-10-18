@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ExternalLink } from 'lucide-react';
 import SlotIcon from './SlotIcon.jsx';
+import { dayAssignments, assignmentLabel } from './dayEvents.js';
 
 export default function DayReferencePreview({ day, draft, week, weekday, overridden = false, label, onOpen, onOpenSlot, t, previewEnabled = true }) {
   const [position, setPosition] = useState(null);
@@ -43,7 +44,7 @@ export default function DayReferencePreview({ day, draft, week, weekday, overrid
     {position && createPortal(<section id={id} ref={panel} role="dialog" aria-modal="false" aria-label={t('dayPreview')} className="day-reference-preview" style={position} onPointerEnter={clearTimer} onPointerLeave={leave} onFocus={clearTimer} onBlur={leave}>
       <div className="entity-name">{day && <SlotIcon name={day.icon} />}<strong>{day?.name || label}</strong></div>
       <p className="field-hint">{overridden ? t(day ? 'previewOverrideSource' : 'previewEmptyOverride') : t('previewWeekSource', { name: week?.name || t('unassigned') })}</p>
-      {day ? <ol className="day-preview-slots">{day.slotIds.map((slotId, index) => { const slot = slots.get(slotId); return <li key={index}><span className="day-preview-index">{index + 1}</span>{slot && <SlotIcon name={slot.icon} />}<span className="day-preview-slot-name">{slot?.name || t('unassigned')}</span>{slot && onOpenSlot && <button className="icon-button day-preview-slot-open" title={t('openSlotEditor')} aria-label={t('openSlotFor', { count: index + 1, name: slot.name })} onClick={() => { setPosition(null); onOpenSlot(slot); }}><ExternalLink size={15} /></button>}</li>; })}</ol> : <p>{t('unassigned')}</p>}
+      {day ? <ol className="day-preview-slots">{dayAssignments(day).filter((entry) => typeof entry.target === 'number' || entry.id !== null).map((entry) => { const slot = slots.get(entry.id), main = typeof entry.target === 'number', label = assignmentLabel(entry.target, t); return <li key={entry.path} className={main ? '' : 'preview-event-row'}><span className="day-preview-index">{main ? entry.target + 1 : label}</span>{slot && <SlotIcon name={slot.icon} />}<span className="day-preview-slot-name">{slot?.name || t('unassigned')}</span>{slot && onOpenSlot && <button className="icon-button day-preview-slot-open" title={t('openSlotEditor')} aria-label={main ? t('openSlotFor', { count: entry.target + 1, name: slot.name }) : t('openEventSlot', { event: label, name: slot.name })} onClick={() => { setPosition(null); onOpenSlot(slot); }}><ExternalLink size={15} /></button>}</li>; })}</ol> : <p>{t('unassigned')}</p>}
       {day && <button className="button secondary" onClick={() => { setPosition(null); onOpen(day, week, weekday); }}><ExternalLink size={15} />{openLabel}</button>}
     </section>, document.body)}
   </div>;

@@ -6,6 +6,8 @@ import { compileProject } from './model.js';
 import { initialValue, variableScope, isComputed, childrenOf } from './operandModel.js';
 import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { WEEKDAYS } from './scheduleConstants.js';
+import { dayEventsToData } from './dayEvents.js';
+import { eventGroupsToData } from './sequenceEvents.js';
 
 const validate = new Ajv2020({ allErrors: true, strict: false }).compile(schema);
 const keyOf = (item) => item.engine_key?.trim() ?? '';
@@ -21,7 +23,7 @@ export function compileRuntime(draft, t = translator('en')) {
   const errors = [], nodes = draft.operandNodes, requirements = new Map(), tasks = new Map();
   const entries = engineKeyEntries(draft);
   const projectCollections = { builtinTasks: 'builtin_tasks', operands: 'operand_nodes', expressions: 'expression_macros', taskMacros: 'task_macros', days: 'day_schedules', weeks: 'week_schedules', sequences: 'week_sequences' };
-  for (const entry of entries) if (engineKeyConflicts(entries, entry.kind, entry.id, entry.key).length) errors.push({ path: `/${projectCollections[entry.kind] ?? entry.kind}/${entry.id}/engine_key`, key: 'runtimeDuplicateKey' });
+  for (const entry of entries) if (engineKeyConflicts(entries, entry.kind, entry.id, entry.key).length) errors.push({ path: entry.path ?? `/${projectCollections[entry.kind] ?? entry.kind}/${entry.id}/engine_key`, key: 'runtimeDuplicateKey' });
 
   function variable(id, access = 'read') {
     const node = nodes[id];
@@ -70,7 +72,7 @@ export function compileRuntime(draft, t = translator('en')) {
     return childrenOf(nodes, parent, scope).map(([id, node]) => ({ id, ...metadata(node), ...(node.node_type === 'group' ? { kind: 'group', children: tree(id, scope) } : { kind: 'value', value_type: node.value_type, read_only: node.read_only ?? false, initial_value: initialValue(node) }) }));
   }
   for (const [id, node] of Object.entries(nodes)) if (!isComputed(node) && node.node_type === 'value' && variableScope(node) === 'environment' && !keyOf(node)) errors.push({ path: `/operand_nodes/${id}/engine_key`, key: 'runtimeMissingKey' });
-  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds] });
+  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], ...dayEventsToData(item) });
   const data = {
     format_version: 1, display_name: draft.project.name,
     settings: { slots_per_day: draft.project.settings.slots_per_day },
@@ -85,7 +87,7 @@ export function compileRuntime(draft, t = translator('en')) {
       const id = week.days[weekday], item = draft.days.find((item) => item.id === id);
       return [weekday, item?.scope === 'week_private' ? day(item) : id];
     })) }])),
-    sequences: Object.fromEntries(draft.sequences.map((sequence) => [sequence.id, { ...metadata(sequence), start_weekday: sequence.startWeekday ?? 'mon', end_weekday: sequence.endWeekday ?? 'sun', entries: sequence.rows.map((row) => ({ week_id: row.weekId, day_overrides: { ...row.overrides } })) }])),
+    sequences: Object.fromEntries(draft.sequences.map((sequence) => [sequence.id, { ...metadata(sequence), start_weekday: sequence.startWeekday ?? 'mon', end_weekday: sequence.endWeekday ?? 'sun', ...(sequence.eventGroups === undefined ? {} : { event_groups: eventGroupsToData(sequence.eventGroups, draft.days, true) }), entries: sequence.rows.map((row) => ({ week_id: row.weekId, day_overrides: { ...row.overrides } })) }])),
     exports: {},
   };
   data.environment_requirements = { variables: [...requirements.values()], tasks: [...tasks.values()], ...(draft.environment ? { environment: structuredClone(draft.environment) } : {}) };
@@ -94,7 +96,7 @@ export function compileRuntime(draft, t = translator('en')) {
     if (!keyOf({ engine_key: entry.key })) continue;
     if (entry.kind === 'builtinTasks' || entry.kind === 'tasks' || entry.kind === 'operands' && variableScope(nodes[entry.id]) !== 'application') continue;
     if (entry.kind === 'days' && draft.days.find((day) => day.id === entry.id)?.scope === 'week_private') continue;
-    exportEntries.push([entry.key.trim(), { kind: entry.kind, id: entry.id }]);
+    exportEntries.push([entry.key.trim(), { kind: entry.kind, id: entry.id, ...(entry.kind === 'eventGroups' ? { sequence_id: entry.ownerId } : {}) }]);
   }
   data.exports = Object.fromEntries(exportEntries);
   if (!errors.length) errors.push(...validateRuntimeDocument(data));

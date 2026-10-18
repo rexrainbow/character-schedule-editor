@@ -1,5 +1,9 @@
 # Runtime data v1
 
+sequences 可包含 event_groups，保存事件組 UUID、共用日行程 UUID、固定周次／星期起訖、interval_days（0 單次）及整數 priority。Engine 在每個日內位置，以高優先權到 0、主日行程、負優先權的順序合併；相同值依陣列建立順序，不去重。序列執行範圍只裁切執行，不改變週期相位。格式及完整契約見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
+
+日行程及匿名內嵌日可含 day_start_slot_id、day_end_slot_id 及 slot_events，各值引用同一份 slots。事件不增加每日時段數，執行位置順序與空值規則見 [DAY_EVENTS.md](./DAY_EVENTS.md)。未指定主時段時仍可執行該時段事件；不存在日行程時沒有對應事件。
+
 每個 sequences 項目含 `start_weekday`／`end_weekday`（mon～sun），分別套用第一筆／最後一筆 entries，預設 mon／sun。有效日期包含兩端，engine 從開始日第一個時段執行至結束日最後一個時段；schedule.current_day 從開始日 1 起算，同一天不因時段推進而增加。entries 與 day_overrides 完整保留，不裁切範圍外資料。空序列沒有可執行日期；單筆 entries 的開始日必須早於或等於結束日。
 
 時段行程允許 `branches: []`，代表僅以 `display_name` 表示的活動，不包含任務動作。Runtime 可顯示活動名稱並完成；如需穩定連接程式功能，使用 `engine_key` 契約。非空分支仍須完整任務與唯一最後 ELSE。

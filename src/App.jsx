@@ -145,11 +145,17 @@ export default function App() {
     commit(deleteSlotAndReferences(draft, activeSlot.id)); setSelectedSlot(null);
   }
   function copyDay() { const day = duplicateDay(draft, activeDay); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); resetSearch(); }
-  function deleteDay() { if (window.confirm(t('deleteDayOverrideConfirm', { name: activeDay.name, count: dayReferenceCount(draft, activeDay.id), overrideCount: dayOverrideReferenceCount(draft, activeDay.id) }))) { commit(deleteSharedDay(draft, activeDay.id)); setSelectedDay(null); } }
+  function deleteDay() {
+    const eventCount = draft.sequences.reduce((sum, sequence) => sum + (sequence.eventGroups ?? []).filter((group) => group.dayId === activeDay.id).length, 0);
+    const message = t('deleteDayOverrideConfirm', { name: activeDay.name, count: dayReferenceCount(draft, activeDay.id), overrideCount: dayOverrideReferenceCount(draft, activeDay.id) }) + (eventCount ? `\n${t('eventDayDeleteWarning', { count: eventCount })}` : '');
+    if (window.confirm(message)) { commit(deleteSharedDay(draft, activeDay.id)); setSelectedDay(null); }
+  }
   function copyWeek() { const next = duplicateWeek(draft, activeWeek); commit(next); setSelectedWeek(next.weeks.at(-1).id); resetSearch(); }
   function removeWeek() {
-    if (window.confirm(t('deleteWeekSequenceConfirm', { name: activeWeek.name, count: weekSequenceReferenceCount(draft, activeWeek.id) }))) {
-      const next = deleteWeek(draft, activeWeek.id);
+    const next = deleteWeek(draft, activeWeek.id);
+    const eventCount = draft.sequences.reduce((sum, sequence, index) => sum + (sequence.eventGroups?.length ?? 0) - (next.sequences[index].eventGroups?.length ?? 0), 0);
+    const message = t('deleteWeekSequenceConfirm', { name: activeWeek.name, count: weekSequenceReferenceCount(draft, activeWeek.id) }) + (eventCount ? `\n${t('eventGroupsTrimConfirm', { count: eventCount })}` : '');
+    if (window.confirm(message)) {
       const adjusted = next.sequences.some((sequence, index) => sequence.endWeekday !== draft.sequences[index].endWeekday);
       commit(next); setSelectedWeek(null);
       if (adjusted) setNotice({ key: 'sequenceRangeAdjusted' });

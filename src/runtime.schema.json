@@ -132,10 +132,14 @@
               "slots",
               "days",
               "weeks",
-              "sequences"
+              "sequences",
+              "eventGroups"
             ]
           },
           "id": {
+            "$ref": "#/$defs/uuid"
+          },
+          "sequence_id": {
             "$ref": "#/$defs/uuid"
           }
         },
@@ -143,7 +147,23 @@
           "kind",
           "id"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "eventGroups"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sequence_id"
+              ]
+            }
+          }
+        ]
       }
     }
   },
@@ -1601,6 +1621,59 @@
               }
             ]
           }
+        },
+        "day_start_slot_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "day_end_slot_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slot_events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "start_slot_id",
+              "end_slot_id"
+            ],
+            "properties": {
+              "start_slot_id": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "end_slot_id": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "required": [
@@ -1858,6 +1931,12 @@
             ],
             "additionalProperties": false
           }
+        },
+        "event_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sequence_event_group"
+          }
         }
       },
       "required": [
@@ -1866,6 +1945,93 @@
         "end_weekday",
         "entries"
       ],
+      "additionalProperties": false
+    },
+    "sequence_event_group": {
+      "type": "object",
+      "required": [
+        "id",
+        "day_schedule_id",
+        "start",
+        "end",
+        "interval_days",
+        "priority",
+        "display_name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "day_schedule_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "start": {
+          "$ref": "#/$defs/sequence_event_date"
+        },
+        "end": {
+          "$ref": "#/$defs/sequence_event_date"
+        },
+        "interval_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "skip_weekdays": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "mon",
+              "tue",
+              "wed",
+              "thu",
+              "fri",
+              "sat",
+              "sun"
+            ]
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "sequence_event_date": {
+      "type": "object",
+      "required": [
+        "week_number",
+        "weekday"
+      ],
+      "properties": {
+        "week_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        }
+      },
       "additionalProperties": false
     }
   }
