@@ -29,7 +29,7 @@ import SequenceEditor from './SequenceEditor.jsx';
 import { createSequence, dayOverrideReferenceCount, duplicateSequence, weekSequenceReferenceCount } from './sequenceModel.js';
 import { createWeek, dayReferenceCount, deleteSharedDay, deleteWeek, duplicateWeek, sharedDays } from './weekModel.js';
 
-const MODE_PAGES = { user: ['slots', 'days', 'weeks', 'sequences', 'operands', 'expressions', 'taskMacros'], environment: ['operands', 'expressions', 'tasks'], simulation: ['simulation'] };
+const MODE_PAGES = { user: ['days', 'weeks', 'sequences', 'slots', 'operands', 'expressions', 'taskMacros'], environment: ['operands', 'expressions', 'tasks'], simulation: ['simulation'] };
 
 export default function App() {
   const [draft, setDraft] = useState(createProject);
@@ -37,7 +37,7 @@ export default function App() {
   const [initialized, setInitialized] = useState(false);
   const [settings, setSettings] = useState(null);
   const [mode, setMode] = useState('user');
-  const [modeTabs, setModeTabs] = useState({ user: 'slots', environment: 'operands', simulation: 'simulation' });
+  const [modeTabs, setModeTabs] = useState({ user: 'days', environment: 'operands', simulation: 'simulation' });
   const [simulation, setSimulation] = useState(null);
   const tab = modeTabs[mode];
   const setTab = (page) => setModeTabs((previous) => ({ ...previous, [mode]: page }));
@@ -48,7 +48,7 @@ export default function App() {
     const key = `${mode}:${page}`;
     return { view: editorViews[key], onViewChange: (update) => setEditorViews((previous) => ({ ...previous, [key]: update(previous[key] ?? {}) })) };
   }
-  function resetNavigation() { setMode('user'); setModeTabs({ user: 'slots', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); }
+  function resetNavigation() { setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); }
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);

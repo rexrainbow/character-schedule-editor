@@ -1,6 +1,7 @@
+import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, createSlot, compileProject, projectToDraft } from '../src/model.js';
+import { createProject, compileProject, projectToDraft } from '../src/model.js';
 import { createTaskMacro } from '../src/taskMacroModel.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
 
@@ -32,5 +33,5 @@ test('nonempty branch macros and slots still require a final ELSE and complete t
   assert.ok(compileProject(draft).errors.some((error) => error.key === 'elseLast'));
   branch.branches = [];
   const slot = createSlot([], 'Invalid slot'); slot.branches = []; draft.slots = [slot];
-  assert.ok(compileProject(draft).errors.length, 'slot branch rules remain nonempty');
+  assert.deepEqual(compileProject(draft).errors, [], 'named slots may have no branch rules');
 });

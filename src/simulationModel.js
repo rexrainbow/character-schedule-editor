@@ -168,7 +168,10 @@ export function simulateSlot(draft, slotId, values = simulationInitialValues(dra
   const input = structuredClone(values), errors = [...simulationValueErrors(draft, input), ...simulationValueErrors(draft, baseline).map((error) => ({ ...error, path: error.path.replace('/values/', '/initial_values/') }))];
   const engine = evaluator(draft, input, baseline, t), slot = draft.slots.find((item) => item.id === slotId);
   if (!slot) errors.push({ path: '/slot_id', key: 'simulationChooseSlot' });
-  if (!errors.length) try { engine.branches(slot.branches, { values: {}, parameters: [] }, `/slots/${slotId}/branches`, engine.trace, ['sequence', 'branch']); }
+  if (!errors.length) try {
+    if (Array.isArray(slot.branches) && slot.branches.length === 0) engine.trace.push({ kind: 'slot', label: slot.name, empty: true, path: `/slots/${slotId}`, children: [] });
+    else engine.branches(slot.branches, { values: {}, parameters: [] }, `/slots/${slotId}/branches`, engine.trace, ['sequence', 'branch']);
+  }
   catch (error) { errors.push({ path: error.path ?? '/', key: error.key ?? 'simulationError', field: error.field }); }
   return { slotId, trace: engine.trace, calls: engine.calls, state: engine.state, errors, unmodeled: engine.unmodeled, changes: Object.keys(input).filter((id) => !Object.is(input[id], engine.state[id])).map((id) => ({ id, name: nodePath(draft.operandNodes, id), before: input[id], after: engine.state[id] })) };
 }

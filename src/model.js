@@ -31,7 +31,7 @@ export function nextSlotId(slots) {
 }
 
 export function createSlot(slots, name) {
-  return { uid: uid(), id: nextSlotId(slots), name, icon: 'tabler:calendar-event', branches: [branchFromData({ condition: null })] };
+  return { uid: uid(), id: nextSlotId(slots), name, icon: 'tabler:calendar-event', branches: [] };
 }
 
 export function duplicateSlot(slots, slot) {
@@ -66,7 +66,7 @@ export function validateDocument(data) {
   if (data && typeof data.slots === 'object' && !Array.isArray(data.slots) && data.slots) {
     for (const [id, slot] of Object.entries(data.slots)) {
       const branches = slot?.branches;
-      if (Array.isArray(branches) && (branches.filter((b) => b?.condition === null).length !== 1 || branches.at(-1)?.condition !== null)) {
+      if (Array.isArray(branches) && branches.length > 0 && (branches.filter((b) => b?.condition === null).length !== 1 || branches.at(-1)?.condition !== null)) {
         errors.push({ path: `/slots/${id}/branches`, key: 'elseLast' });
       }
     }

@@ -14,6 +14,6 @@ export default function SlotEditor({ slot, onChange, onDuplicate, onDelete, onRe
       <div className="schedule-name"><label className="sr-only" htmlFor={`slot-name-${slot.uid}`}>{t('name')}</label><div className="name-with-icon"><IconField value={slot.icon} onChange={(icon) => patch({ icon })} t={t} /><input id={`slot-name-${slot.uid}`} aria-label={t('name')} aria-invalid={!slot.name.length} value={slot.name} onChange={(e) => patch({ name: e.target.value })} /><EngineKeyField kind="slots" item={slot} onChange={(engine_key) => patch({ engine_key })} t={t} /></div><FieldError show={!slot.name.length} t={t} /></div>
       {(onDuplicate || onDelete) && <ActionMenu label={t('slotActions')} items={[...(onDuplicate ? [{ label: t('duplicate'), icon: Copy, onClick: onDuplicate }] : []), ...(onDelete ? [{ label: t('deleteSlot'), icon: Trash2, danger: true, onClick: onDelete }] : [])]} />}
     </section>
-    <BranchRulesEditor branches={slot.branches} nodes={operandNodes} tasks={tasks} t={t} onChange={(branches) => patch({ branches })} />
+    <BranchRulesEditor allowEmpty emptyHint="emptySlotHint" branches={slot.branches} nodes={operandNodes} tasks={tasks} t={t} onChange={(branches) => patch({ branches })} />
   </div>;
 }

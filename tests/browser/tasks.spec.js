@@ -48,6 +48,7 @@ test('create task definitions and use required string, numeric expression and bo
   }
   await navigate(page, 'slots');
   await page.locator('.sidebar').getByRole('button', { name: 'Add slot', exact: true }).click();
+  await page.getByRole('button', { name: 'Add ELSE branch', exact: true }).click();
   await branch(page).getByRole('combobox', { name: 'Task', exact: true }).selectOption({ label: 'Move' });
   await exportProject(page);
   await expect(page.getByRole('status')).toContainText('Unable to export');

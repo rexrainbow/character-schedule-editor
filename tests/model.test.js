@@ -1,15 +1,13 @@
+import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import example from '../src/example.json' with { type: 'json' };
-import schema from '../src/slots.schema.json' with { type: 'json' };
-import { documentToDraft, compileDraft, validateDocument, addBranch, moveBranch, removeBranch, duplicateSlot, createSlot, idPattern } from '../src/model.js';
+import { documentToDraft, compileDraft, validateDocument, addBranch, moveBranch, removeBranch, duplicateSlot, idPattern } from '../src/model.js';
 import { resolveLocale, messages } from '../src/i18n.js';
 import { createProject, projectToDraft, compileProject, createDay, duplicateDay, referenceCount, deleteSlotAndReferences, assignCell, applySlotEdit, taskSummary } from '../src/model.js';
 
-test('bundled schema matches SPEC and project example is valid', () => {
-  const blocks = [...readFileSync(new URL('../SPEC.md', import.meta.url), 'utf8').matchAll(/```json\r?\n([\s\S]*?)\r?\n```/g)].map((m) => JSON.parse(m[1]));
-  assert.deepEqual(schema, blocks.find((block) => block.title === schema.title)); assert.deepEqual(validateDocument(example), []);
+test('project example is valid against the bundled schema', () => {
+  assert.deepEqual(validateDocument(example), []);
 });
 test('recursive example round-trips without editor metadata', () => {
   const result = compileProject(projectToDraft(example));

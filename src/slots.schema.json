@@ -320,23 +320,31 @@
         },
         "branches": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "$ref": "#/$defs/branch"
           },
-          "contains": {
-            "type": "object",
-            "required": [
-              "condition"
-            ],
-            "properties": {
-              "condition": {
-                "type": "null"
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
               }
             }
-          },
-          "minContains": 1,
-          "maxContains": 1
+          ]
         },
         "engine_key": {
           "type": "string",

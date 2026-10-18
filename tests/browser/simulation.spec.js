@@ -1,9 +1,10 @@
+import { createActionSlot as createSlot } from '../slotFixture.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { builtinVariableFixture } from '../builtinVariableFixture.js';
 import { referenceFixture } from '../referenceFixture.js';
 import { computedBranchFixture, numeric } from '../computedBranchFixture.js';
-import { compileProject, createSlot } from '../../src/model.js';
+import { compileProject } from '../../src/model.js';
 import { createProjectWithEnvironment } from '../../src/environmentModel.js';
 import { createTaskMacro } from '../../src/taskMacroModel.js';
 import { translator } from '../../src/i18n.js';

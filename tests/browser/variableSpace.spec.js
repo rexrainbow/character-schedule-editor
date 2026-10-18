@@ -59,6 +59,7 @@ test('assignment target selection excludes read-only/macros and shares numeric e
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   await load(page); await navigate(page, 'slots');
   await page.locator('.sidebar').getByRole('button', { name: 'Add slot', exact: true }).click();
+  await page.getByRole('button', { name: 'Add ELSE branch', exact: true }).click();
   await branch(page).getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:set_variable');
   await branch(page).getByRole('button', { name: 'Target variable', exact: true }).click();
   await dialog(page).getByRole('textbox', { name: 'Search variables', exact: true }).fill('energy');
@@ -83,6 +84,7 @@ test('assignment target selection excludes read-only/macros and shares numeric e
 test('incompatible target changes confirm value clearing and string/boolean types remain native', async ({ page }) => {
   await load(page); await navigate(page, 'slots');
   await page.locator('.sidebar').getByRole('button', { name: 'Add slot', exact: true }).click();
+  await page.getByRole('button', { name: 'Add ELSE branch', exact: true }).click();
   await branch(page).getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:set_variable');
   await target(page, branch(page), 'energy'); await constant(page, branch(page), '2', 'number');
   await target(page, branch(page), 'mood', false);

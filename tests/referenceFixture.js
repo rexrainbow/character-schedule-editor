@@ -1,4 +1,5 @@
-import { createProject, createSlot, createDay } from '../src/model.js';
+import { createActionSlot as createSlot } from './slotFixture.js';
+import { createProject, createDay } from '../src/model.js';
 import { addOperandNode } from '../src/operandModel.js';
 import { createTask, createParameter } from '../src/taskModel.js';
 import { createTaskMacro } from '../src/taskMacroModel.js';

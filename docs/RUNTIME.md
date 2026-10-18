@@ -1,5 +1,7 @@
 # Runtime data v1
 
+時段行程允許 `branches: []`，代表僅以 `display_name` 表示的活動，不包含任務動作。Runtime 可顯示活動名稱並完成；如需穩定連接程式功能，使用 `engine_key` 契約。非空分支仍須完整任務與唯一最後 ELSE。
+
 expression_macros.definition 也支援 `{kind: "branch", branches: [{condition, result}, ...]}`，result 是原本的 number／boolean 單一定義，所有分支結果須符合巨集 value_type。第一個條件符合者回傳其結果，唯一最後 ELSE 保證有回傳值；只有選中結果求值。條件及結果內的環境引用皆轉成 engine_key，詳見 [COMPUTED_BRANCHES.md](./COMPUTED_BRANCHES.md)。
 
 任務巨集可為空：`mode: "sequence", steps: []` 或 `mode: "branch", branches: []`。呼叫仍保留 task_macro_id 及依介面傳入的引數，巨集仍輸出 display_name、參數和選填 engine_key；不展開或加入假動作。Runtime 可於呼叫巨集時印出「正在執行：display_name」，空內容隨即完成並繼續後續執行。記錄名稱是 engine 的執行追蹤策略，編輯器只輸出資料。空巨集不增加環境任務依賴，宣告參數的型別及必填檢查仍有效。非空分支巨集仍須恰好有一個最後的 ELSE。

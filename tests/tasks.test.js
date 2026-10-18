@@ -1,7 +1,8 @@
+import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import example from '../src/computed-example.json' with { type: 'json' };
-import { compileProject, createProject, createSlot, projectToDraft, validateDocument } from '../src/model.js';
+import { compileProject, createProject, projectToDraft, validateDocument } from '../src/model.js';
 import { changeParameterType, createParameter, createTask, deleteParameter, deleteTask, duplicateTask, taskUses } from '../src/taskModel.js';
 import { applyComputedDefinition, changeOperandType, deleteOperandNode } from '../src/operandModel.js';
 
@@ -69,7 +70,7 @@ test('imports reject old task shapes, dangling tasks, duplicate parameter IDs an
     const bad = structuredClone(data); bad.tasks[task.id] = value; assert.ok(validateDocument(bad).length);
   }
 });
-test('blank projects allow no task definitions but a new slot requires a task', () => {
+test('blank projects allow no task definitions but an explicit slot branch requires a task', () => {
   const draft = createProject(); assert.deepEqual(compileProject(draft).errors, []);
   draft.slots.push(createSlot([], 'New')); assert.ok(compileProject(draft).errors.some((e) => e.key === 'chooseTask'));
 });

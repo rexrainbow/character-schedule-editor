@@ -1,6 +1,7 @@
+import { createActionSlot as createSlot } from './slotFixture.js';
 import { createProjectWithEnvironment } from '../src/environmentModel.js';
 import { addComputedNode, addOperandNode } from '../src/operandModel.js';
-import { createSlot } from '../src/model.js';
+import { } from '../src/model.js';
 export const constant = (value) => ({ type: 'constant', value });
 export const compare = (a, comparator, b) => ({ kind: 'comparison', operand_a: a, comparator, operand_b: b });
 export const numeric = (value) => ({ kind: 'number', expression: constant(value) });

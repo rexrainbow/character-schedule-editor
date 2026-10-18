@@ -4,12 +4,12 @@ import ConditionEditor from './ConditionEditor.jsx';
 import TaskUseEditor from './TaskUseEditor.jsx';
 import { IconButton } from './ui.jsx';
 
-export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch'], allowEmpty = false, renderResult, onAddBranch, t }) {
+export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch'], allowEmpty = false, emptyHint = 'emptyMacroHint', renderResult, onAddBranch, t }) {
   function patchBranch(index, values) { onChange(branches.map((branch, i) => i === index ? { ...branch, ...values } : branch)); }
   return (
     <section className="branch-section">
       <div className="section-heading branch-section-heading"><div><h2><GitBranch size={18} />{t('branches')}<span className="count">{branches.length}</span></h2><p>{t('rulesHint')}</p></div></div>
-      {allowEmpty && !branches.length && <p className="field-hint">{t('emptyMacroHint')}</p>}
+      {allowEmpty && !branches.length && <p className="field-hint">{t(emptyHint)}</p>}
       <div className="branch-list">{branches.map((branch, index) => {
         const isElse = branch.condition === null;
         return <article className={`branch-card ${isElse ? 'else-card' : ''}`} key={branch.uid} aria-label={t('branchLabel', { count: index + 1 })}>

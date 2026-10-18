@@ -195,6 +195,7 @@ test('variables created in a blank project reach standalone, day and week slot e
   await defineSimpleTask(page);
   await navigate(page, 'slots');
   await page.locator('.sidebar').getByRole('button', { name: 'Add slot', exact: true }).click();
+  await page.getByRole('button', { name: 'Add ELSE branch', exact: true }).click();
   await page.getByRole('button', { name: 'Add conditional branch', exact: true }).click();
   const first = page.getByRole('article', { name: 'Branch 1', exact: true });
   for (const select of await page.getByRole('combobox', { name: 'Task', exact: true }).all()) await selectFirstDefinedTask(select);

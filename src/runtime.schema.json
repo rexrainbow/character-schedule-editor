@@ -1569,8 +1569,7 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/runtime_branch"
-          },
-          "minItems": 1
+          }
         }
       },
       "required": [

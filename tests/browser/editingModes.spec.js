@@ -65,6 +65,7 @@ test('user task assignments can write writable environment values and read appli
   await page.getByRole('textbox', { name: 'Node name', exact: true }).fill('User counter');
   await navigate(page, 'slots');
   await page.locator('.sidebar').getByRole('button', { name: 'Add slot', exact: true }).click();
+  await page.getByRole('button', { name: 'Add ELSE branch', exact: true }).click();
   const branch = page.getByRole('article', { name: 'Branch 1', exact: true });
   await branch.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:set_variable');
   await branch.getByRole('button', { name: 'Target variable', exact: true }).click();
