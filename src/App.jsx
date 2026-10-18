@@ -1,3 +1,4 @@
+import { countDayReferences } from './sequenceEvents.js';
 import NewProjectDialog from './NewProjectDialog.jsx';
 import SimulationEditor from './SimulationEditor.jsx';
 import EnvironmentSettings from './EnvironmentSettings.jsx';
@@ -20,6 +21,8 @@ import { resolveLocale, translator } from './i18n.js';
 import { IconButton, Issues, SlotInfo } from './ui.jsx';
 import SlotEditor from './SlotEditor.jsx';
 import DayEditor from './DayEditor.jsx';
+import { DayTagFilter, DayTagChips } from './DayTags.jsx';
+import { matchesDayTag } from './dayTags.js';
 import ProjectSettings from './ProjectSettings.jsx';
 import SlotDialog from './SlotDialog.jsx';
 import WeekEditor from './WeekEditor.jsx';
@@ -48,7 +51,7 @@ export default function App() {
     const key = `${mode}:${page}`;
     return { view: editorViews[key], onViewChange: (update) => setEditorViews((previous) => ({ ...previous, [key]: update(previous[key] ?? {}) })) };
   }
-  function resetNavigation() { setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); }
+  function resetNavigation() { setDayTagFilter(''); setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); }
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -57,6 +60,7 @@ export default function App() {
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [weekHighlight, setWeekHighlight] = useState(null);
   const [selectedSequence, setSelectedSequence] = useState(null);
+  const [dayTagFilter, setDayTagFilter] = useState('');
   const [searches, setSearches] = useState({ slots: '', days: '', weeks: '', sequences: '' });
   const [cellDialog, setCellDialog] = useState(null);
   const [weekCellDialog, setWeekCellDialog] = useState(null);
@@ -79,7 +83,7 @@ export default function App() {
   const activeSequence = draft.sequences.find((sequence) => sequence.id === selectedSequence) ?? draft.sequences[0];
   const search = searches[tab] ?? '';
   const allItems = tab === 'slots' ? draft.slots : tab === 'days' ? publicDays : tab === 'weeks' ? draft.weeks : draft.sequences;
-  const items = allItems.filter((item) => item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  const items = allItems.filter((item) => item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (tab !== 'days' || matchesDayTag(item, dayTagFilter)));
   const activeItem = tab === 'slots' ? activeSlot : tab === 'days' ? activeDay : tab === 'weeks' ? activeWeek : activeSequence;
   const view = tab === 'slots' ? { search: 'search', add: 'addSlot', empty: 'noSlots', hint: 'noSlotsHint', noResults: 'noResults' }
     : tab === 'days' ? { search: 'searchDays', add: 'addDay', empty: 'noDays', hint: 'noDaysHint', noResults: 'noDayResults' }
@@ -110,7 +114,7 @@ export default function App() {
   }
   function returnToDay() {
     if (!returnDay) return;
-    setSelectedDay(returnDay.id);
+    setDayTagFilter(''); setSelectedDay(returnDay.id);
     setDayRestore({ ...dayReturn });
     setDayReturn(null);
     setMode('user');
@@ -126,7 +130,7 @@ export default function App() {
       setWeekHighlight({ weekId: week.id, weekday });
       setModeTabs((previous) => ({ ...previous, user: 'weeks' }));
     } else {
-      setSelectedDay(day.id);
+      setDayTagFilter(''); setSelectedDay(day.id);
       setSearches((previous) => ({ ...previous, days: '' }));
       setWeekHighlight(null);
       setModeTabs((previous) => ({ ...previous, user: 'days' }));
@@ -134,7 +138,7 @@ export default function App() {
   }
   function addItem() {
     if (tab === 'slots') { const slot = createSlot(draft.slots, t('newSlot')); commit({ ...draft, slots: [...draft.slots, slot] }); setSelectedSlot(slot.id); }
-    else if (tab === 'days') { const day = createDay(draft, t('newDay')); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); }
+    else if (tab === 'days') { setDayTagFilter(''); const day = createDay(draft, t('newDay')); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); }
     else if (tab === 'weeks') { const week = createWeek(draft, t('newWeek')); commit({ ...draft, weeks: [...draft.weeks, week] }); setSelectedWeek(week.id); }
     else { const sequence = createSequence(draft, t('newSequence')); commit({ ...draft, sequences: [...draft.sequences, sequence] }); setSelectedSequence(sequence.id); }
     resetSearch();
@@ -144,8 +148,10 @@ export default function App() {
     if (!window.confirm(t('deleteReferenced', { name: activeSlot.name, count: referenceCount(draft, activeSlot.id) }))) return;
     commit(deleteSlotAndReferences(draft, activeSlot.id)); setSelectedSlot(null);
   }
-  function copyDay() { const day = duplicateDay(draft, activeDay); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); resetSearch(); }
+  function copyDay() { setDayTagFilter(''); const day = duplicateDay(draft, activeDay); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); resetSearch(); }
   function deleteDay() {
+    const countRefs = countDayReferences(draft, activeDay.id);
+    if (countRefs.length) { window.alert(t('eventCountDayDeleteBlocked', { count: countRefs.length })); return; }
     const eventCount = draft.sequences.reduce((sum, sequence) => sum + (sequence.eventGroups ?? []).filter((group) => group.dayId === activeDay.id).length, 0);
     const message = t('deleteDayOverrideConfirm', { name: activeDay.name, count: dayReferenceCount(draft, activeDay.id), overrideCount: dayOverrideReferenceCount(draft, activeDay.id) }) + (eventCount ? `\n${t('eventDayDeleteWarning', { count: eventCount })}` : '');
     if (window.confirm(message)) { commit(deleteSharedDay(draft, activeDay.id)); setSelectedDay(null); }
@@ -228,12 +234,13 @@ export default function App() {
     {operationIssues.length > 0 && <details className="import-issues" open><summary>{t(notice?.issueTitle ?? 'errorsForExport')}</summary><Issues errors={operationIssues} t={t} /></details>}
     {initialized && mode === 'simulation' ? <SimulationEditor onOpenDay={openReferencedDay} onOpenSequence={(sequence) => { setMode('user'); setSelectedSequence(sequence.id); setSearches((previous) => ({ ...previous, sequences: '' })); setModeTabs((previous) => ({ ...previous, user: 'sequences' })); }} draft={draft} session={simulation} onSessionChange={(update) => setSimulation((previous) => ({ ...previous, ...update }))} onOpenSlot={openReferencedSlot} t={t} /> : initialized && tab === 'expressions' ? <ExpressionMacrosEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('expressions')} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized && tab === 'taskMacros' ? <TaskMacrosEditor {...editorView('taskMacros')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'tasks' ? <TasksEditor {...editorView('tasks')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'operands' ? <OperandsEditor {...editorView('operands')} scope={mode === 'environment' ? 'environment' : 'application'} key={mode} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized ? <div className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}><aside className="sidebar"><div className="sidebar-heading"><h2><Layers3 size={17} /><span title={t(tab)}>{t(tab)}</span></h2><span className="count">{allItems.length}</span><button type="button" className="icon-button sidebar-toggle" aria-label={t(sidebarCollapsed ? 'expandList' : 'collapseList')} title={t(sidebarCollapsed ? 'expandList' : 'collapseList')} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button></div>
       <label className="search-field"><Search size={16} /><input aria-label={t(view.search)} placeholder={t(view.search)} value={search} onChange={(e) => setSearches({ ...searches, [tab]: e.target.value })} /></label>
+      {tab === 'days' && <DayTagFilter days={publicDays} value={dayTagFilter} onChange={setDayTagFilter} t={t} />}
       <button className="button add-slot" onClick={addItem}><Plus size={16} />{t(view.add)}</button>
-      <div className="slot-list">{items.map((item) => <button key={item.id} className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => tab === 'slots' ? setSelectedSlot(item.id) : tab === 'days' ? setSelectedDay(item.id) : tab === 'weeks' ? setSelectedWeek(item.id) : setSelectedSequence(item.id)}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.engine_key} t={t} /></div></>}<ChevronRight size={16} /></button>)}
-        {!items.length && <div className="sidebar-empty"><Search size={24} /><strong>{t(search ? view.noResults : view.empty)}</strong></div>}
+      <div className="slot-list">{items.map((item) => <div key={item.id} className="schedule-list-entry"><button className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => tab === 'slots' ? setSelectedSlot(item.id) : tab === 'days' ? setSelectedDay(item.id) : tab === 'weeks' ? setSelectedWeek(item.id) : setSelectedSequence(item.id)}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.engine_key} t={t} /></div></>}<ChevronRight size={16} /></button>{tab === 'days' && <DayTagChips day={item} onFilter={setDayTagFilter} t={t} />}</div>)}
+        {!items.length && <div className="sidebar-empty"><Search size={24} /><strong>{t(search || tab === 'days' && dayTagFilter ? view.noResults : view.empty)}</strong></div>}
       </div></aside><main><div className={`editor-content editor-${tab}`}>
         {tab === 'slots' && activeSlot ? <SlotEditor onOpenMacro={(id) => { setMode('user'); setModeTabs((previous) => ({ ...previous, user: 'taskMacros' })); setEditorViews((previous) => ({ ...previous, 'user:taskMacros': { ...previous['user:taskMacros'], selected: id, search: '' } })); }} onReturnDay={returnDay ? returnToDay : undefined} returnDayName={returnDay?.name} tasks={draft.tasks} operandNodes={draft.operandNodes} slot={activeSlot} t={t} onChange={(slot) => commit({ ...draft, slots: draft.slots.map((item) => item.id === slot.id ? slot : item) })} onDuplicate={copySlot} onDelete={deleteSlot} />
-          : tab === 'days' && activeDay ? <DayEditor onOpenSlot={openReferencedSlot} restorePosition={dayRestore} day={activeDay} slots={draft.slots} t={t} onChange={(day) => commit({ ...draft, days: draft.days.map((item) => item.id === day.id ? day : item) })} onDuplicate={copyDay} onDelete={deleteDay} onCell={(index) => setCellDialog({ dayId: activeDay.id, index })} />
+          : tab === 'days' && activeDay ? <DayEditor days={publicDays} onOpenSlot={openReferencedSlot} restorePosition={dayRestore} day={activeDay} slots={draft.slots} t={t} onChange={(day) => commit({ ...draft, days: draft.days.map((item) => item.id === day.id ? day : item) })} onDuplicate={copyDay} onDelete={deleteDay} onCell={(index) => setCellDialog({ dayId: activeDay.id, index })} />
             : tab === 'weeks' && activeWeek ? <WeekEditor onOpenDay={openReferencedDay} highlight={weekHighlight} key={activeWeek.id} week={activeWeek} draft={draft} t={t} onChange={(week) => commit({ ...draft, weeks: draft.weeks.map((item) => item.id === week.id ? week : item) })} onDuplicate={copyWeek} onDelete={removeWeek} onDay={(weekday) => setDaySelector({ weekId: activeWeek.id, weekday })} onCell={(weekday, index) => setWeekCellDialog({ weekId: activeWeek.id, weekday, index })} />
               : tab === 'sequences' && activeSequence ? <SequenceEditor onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commit({ ...draft, sequences: draft.sequences.map((item) => item.id === sequence.id ? sequence : item) })} onDuplicate={copySequence} onDelete={removeSequence} />
               : <div className="empty-state"><Layers3 size={40} /><h2>{t(view.empty)}</h2><p>{t(view.hint)}</p><button className="button primary" onClick={addItem}><Plus size={16} />{t(view.add)}</button></div>}

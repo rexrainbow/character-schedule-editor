@@ -84,7 +84,7 @@ export function compileRuntime(draft, t = translator('en')) {
     return childrenOf(nodes, parent, scope).map(([id, node]) => ({ id, ...metadata(node), ...(node.node_type === 'group' ? { kind: 'group', children: tree(id, scope) } : { kind: 'value', value_type: node.value_type, read_only: node.read_only ?? false, initial_value: initialValue(node), ...numberBounds(node) }) }));
   }
   for (const [id, node] of Object.entries(nodes)) if (!isComputed(node) && node.node_type === 'value' && variableScope(node) === 'environment' && !keyOf(node)) errors.push({ path: `/operand_nodes/${id}/engine_key`, key: 'runtimeMissingKey' });
-  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], ...dayEventsToData(item) });
+  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], tags: [...(item.tags ?? [])], ...dayEventsToData(item) });
   const data = {
     format_version: 1, display_name: draft.project.name,
     settings: { slots_per_day: draft.project.settings.slots_per_day },

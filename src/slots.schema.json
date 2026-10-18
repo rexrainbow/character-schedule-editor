@@ -519,6 +519,16 @@
             },
             "additionalProperties": false
           }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+          },
+          "uniqueItems": true,
+          "description": "Editor-only labels. No leading or trailing whitespace. Not exported to runtime."
         }
       },
       "additionalProperties": false,
@@ -2208,21 +2218,58 @@
         "engine_key": {
           "type": "string"
         },
-        "skip_weekdays": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "enum": [
-              "mon",
-              "tue",
-              "wed",
-              "thu",
-              "fri",
-              "sat",
-              "sun"
-            ]
-          },
-          "default": []
+        "count_filter": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "all"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "day"
+                },
+                "day_schedule_id": {
+                  "$ref": "#/$defs/uuid"
+                }
+              },
+              "required": [
+                "kind",
+                "day_schedule_id"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "tag"
+                },
+                "tag": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+                }
+              },
+              "required": [
+                "kind",
+                "tag"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "default": {
+            "kind": "all"
+          }
         }
       },
       "additionalProperties": false

@@ -42,6 +42,7 @@ defs.environment_variable_tree.oneOf[0].properties.children = arr(ref('environme
 defs.environment_variable_tree.oneOf[1].required.push('engine_key');
 
 defs.runtime_day = entity({ slot_ids: arr({ oneOf: [ref('uuid'), { type: 'null' }] }) }, ['slot_ids']);
+defs.runtime_day.properties.tags = structuredClone(source.$defs.day_schedule.properties.tags);
 for (const name of ['day_start_slot_id', 'day_end_slot_id', 'slot_events']) defs.runtime_day.properties[name] = structuredClone(source.$defs.day_schedule.properties[name]);
 const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 defs.runtime_week = entity({ days: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }, ref('runtime_day')] }]))) }, ['days']);

@@ -182,7 +182,7 @@ export function createProject() {
 
 export function projectToDraft(data) {
   return { ...(data.environment === undefined ? {} : { environment: clone(data.environment) }), ...(data.builtin_tasks === undefined ? {} : { builtinTasks: clone(data.builtin_tasks) }), project: clone(data.project), operandNodes: documentNodes(data), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, macro]) => macroFromData(id, macro)), tasks: Object.entries(data.tasks).map(([id, task]) => ({ ...clone(task), id })), slots: documentToDraft(data),
-    days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slot_ids],
+    days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slot_ids], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsFromData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) })),
     weeks: Object.entries(data.week_schedules ?? {}).map(([id, week]) => ({ id, name: week.display_name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) })),
@@ -202,7 +202,7 @@ export function compileProject(draft) {
     seen.add(day.id);
   }
   const document = { ...(draft.environment === undefined ? {} : { environment: clone(draft.environment) }), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: clone(draft.builtinTasks) }), task_macros: Object.fromEntries((draft.taskMacros ?? []).map((macro) => [macro.id, macroToData(macro)])), tasks: Object.fromEntries((draft.tasks ?? []).map(({ id, ...task }) => [id, clone(task)])), ...serializeNodes(draft.operandNodes), project: clone(draft.project), slots: data.slots,
-    day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slot_ids: [...day.slotIds],
+    day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slot_ids: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsToData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) }])),
     week_schedules: Object.fromEntries((draft.weeks ?? []).map((week) => [week.id, { display_name: week.name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) }])),
@@ -231,7 +231,7 @@ export function createDay(draft, name) {
 }
 
 export function duplicateDay(draft, day) {
-  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slotIds], ...clone(dayEventsFromData(dayEventsToData(day))) };
+  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }), ...clone(dayEventsFromData(dayEventsToData(day))) };
 }
 
 export function referenceCount(draft, slotId) {

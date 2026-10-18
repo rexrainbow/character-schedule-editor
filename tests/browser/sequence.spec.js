@@ -58,21 +58,21 @@ test('empty sequence creation, duplicate, deletion and canceled row picker', asy
 test('overrides use only named shared days, can be removed or explicitly empty, never edit sources', async ({ page }) => {
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
   await load(page); const modal = page.getByRole('dialog');
-  await expect(page.getByRole('button', { name: 'Week 1 / Wednesday', exact: true }).locator('..')).toContainText('Inherited · week custom');
+  await expect(page.getByRole('button', { name: 'Week 1 / Wednesday', exact: true }).locator('..').locator('..')).toContainText('Inherited · week custom');
   await page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).click();
   await expect(modal.getByRole('radio')).toHaveCount(4);
   await expect(modal.getByRole('button', { name: 'Edit slot', exact: true })).toHaveCount(0);
   await expect(modal.getByRole('radio', { name: 'Week custom', exact: true })).toHaveCount(0);
   await modal.getByRole('radio', { name: 'No override — inherit from week', exact: true }).click();
   await modal.getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..')).toContainText('Workday');
+  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..').locator('..')).toContainText('Workday');
   await page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).click();
   await modal.getByRole('radio', { name: 'Override with an empty day', exact: true }).click();
   await modal.getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..')).toContainText('Empty override');
+  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..').locator('..')).toContainText('Empty override');
   await page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).click();
   await modal.getByRole('radio', { name: 'Holiday', exact: true }).click(); await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..')).toContainText('Empty override');
+  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..').locator('..')).toContainText('Empty override');
   const data = await exported(page);
   expect(data.week_schedules).toEqual(example.week_schedules); expect(data.day_schedules).toEqual(example.day_schedules); expect(data.slots).toEqual(example.slots);
   expect(Object.values(data.week_sequences)[0].day_overrides[0]).toEqual({ week_number: 1, weekday: 'mon', day_schedule_id: null });
@@ -90,8 +90,8 @@ test('row movement, duplication and source replacement keep overrides attached t
   await page.getByRole('button', { name: 'Choose week for Week 2', exact: true }).click();
   await page.getByRole('dialog').getByRole('radio', { name: 'Rest week', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Week 2 / Monday', exact: true }).locator('..')).toContainText('Holiday');
-  await expect(page.getByRole('button', { name: 'Week 2 / Tuesday', exact: true }).locator('..')).toContainText('Unassigned');
+  await expect(page.getByRole('button', { name: 'Week 2 / Monday', exact: true }).locator('..').locator('..')).toContainText('Holiday');
+  await expect(page.getByRole('button', { name: 'Week 2 / Tuesday', exact: true }).locator('..').locator('..')).toContainText('Unassigned');
   for (let count = 4; count > 0; count--) await page.getByRole('group', { name: 'Week 1', exact: true }).getByRole('button', { name: 'Delete week row', exact: true }).click();
   data = await exported(page); sequence = Object.values(data.week_sequences)[0];
   expect(sequence.week_schedule_ids).toEqual([]); expect(sequence.day_overrides).toEqual([]);
@@ -106,7 +106,7 @@ test('source week deletion removes referenced rows, and shared day deletion remo
   let data = await exported(page); let sequence = Object.values(data.week_sequences)[0];
   expect(sequence.day_overrides).toEqual([{ week_number: 2, weekday: 'fri', day_schedule_id: null }]);
   await navigate(page, 'sequences');
-  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..')).toContainText('Workday');
+  await expect(page.getByRole('button', { name: 'Week 1 / Monday', exact: true }).locator('..').locator('..')).toContainText('Workday');
   await navigate(page, 'weeks');
   page.once('dialog', async (dialog) => { expect(dialog.message()).toContain('2 sequence row'); await dialog.accept(); });
   await action(page, 'Week actions', 'Delete week');

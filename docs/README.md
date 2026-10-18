@@ -34,6 +34,8 @@
 
 時段行程提供可收合的靜態「邏輯一覽」，支援摘要、展開一層與全部展開，詳見 [LOGIC_OVERVIEW.md](./LOGIC_OVERVIEW.md)。
 
+日行程支援手動多標籤，清單及來源選取器提供標籤篩選與未分類檢視。標籤隨 runtime 日行程輸出，可供事件週期判斷資格，詳見 [DAY_TAGS.md](./DAY_TAGS.md)。
+
 運算元選取器提供獨立的「計算式巨集」頁籤，可搜尋並選取環境層及應用層巨集，布林回傳值可直接與 true／false 比較。「數值運算」頁籤專供四則運算；數值限定的位置不顯示布林巨集。
 
 React + Vite 的深色 Project／Slots／Day／Week／Week Sequences 編輯器，依照 `SPEC.md` 實作。

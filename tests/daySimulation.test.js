@@ -21,15 +21,16 @@ test('every phase interleaves priority-sorted events and main, preserving equal-
   assert.deepEqual(result.errors, []); assert.equal(result.trace.length, 11); assert.equal(result.trace[0].children.length, 6); assert.deepEqual(draft, before);
 });
 
-test('overrides, cleared main days, recurrence skips and active boundaries determine the plan', () => {
+test('overrides, cleared main days, positive recurrence filters and active boundaries determine the plan', () => {
   const { draft, sequence, main, eventDay } = sequenceEventsFixture();
-  sequence.eventGroups = [{ ...rule(sequence, eventDay.id, 0, 20, 2), skipWeekdays: ['sat', 'sun'] }];
+  sequence.eventGroups = [{ ...rule(sequence, eventDay.id, 0, 20, 2), countFilter: { kind: 'tag', tag: 'Work' } }];
+  main.tags = ['Work']; draft.weeks.forEach((week) => ['mon', 'tue', 'wed', 'thu', 'fri'].forEach((day) => { week.days[day] = main.id; }));
   sequence.startWeekday = 'thu'; sequence.endWeekday = 'fri';
   assert.ok(daySimulationPlan(draft, sequence.id, 0).errors.length);
   assert.equal(daySimulationPlan(draft, sequence.id, 3).dayNumber, 1);
   assert.ok(daySimulationPlan(draft, sequence.id, 20).errors.length);
   assert.equal(daySimulationPlan(draft, sequence.id, 5).layers.length, 0);
-  assert.equal(daySimulationPlan(draft, sequence.id, 7).layers.length, 0);
+  assert.equal(daySimulationPlan(draft, sequence.id, 7).layers.filter((layer) => layer.type === 'event').length, 0);
   assert.equal(daySimulationPlan(draft, sequence.id, 8).layers[0].dayId, eventDay.id);
   sequence.rows[2].overrides.mon = eventDay.id;
   assert.equal(daySimulationPlan(draft, sequence.id, 14).mainDayId, eventDay.id);

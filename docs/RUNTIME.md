@@ -1,6 +1,6 @@
 # Runtime data v1
 
-事件組 skip_weekdays 可列出不計入週期的星期（mon～sun，不重複，省略等同 []）。正週期依可計數日推進，排除日不執行；起點被排除時由第一個可計數日從 0 起算。結束日期固定，序列邊界不重設相位。interval_days 為 0 時保留但忽略排除設定；正週期不得排除七天。詳見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
+事件組以 count_filter 正向選擇全部日期、指定日行程或指定標籤。先套用 Day Override 取得主要來源，再判斷計數資格；不符合的日期不計數也不執行。從事件起點起，在第 1、1+N、1+2N… 個符合日期執行，序列邊界只裁切執行，不重設相位。Runtime 日行程與內嵌匿名日皆包含 tags。單次事件只比對起點。詳見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 
 sequences 可包含 event_groups，保存事件組 UUID、共用日行程 UUID、固定周次／星期起訖、interval_days（0 單次）及整數 priority。Engine 在每個日內位置，以高優先權到 0、主要日行程、負優先權的順序合併；相同值依陣列建立順序，不去重。序列執行範圍只裁切執行，不改變週期相位。格式及完整契約見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 

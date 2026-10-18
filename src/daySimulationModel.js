@@ -24,7 +24,7 @@ export function daySimulationPlan(draft, sequenceId, position, t = translator('e
   if (!Number.isSafeInteger(position) || position < 0 || position >= sequence.rows.length * 7 || position < range.start || position > range.end) return { errors: [{ path: '/date', key: 'simulationDateOutside' }], layers: [], phases: [] };
   errors.push(...eventGroupErrors(sequence, draft.days).map((error) => ({ ...error, path: `/week_sequences/${sequence.id}${error.path}` })));
   const { day: main, overridden } = resolveSequenceDay(draft, sequence.rows[rowIndex], weekday);
-  const events = eventsOnDate(sequence, position).map((group) => ({ type: 'event', groupId: group.id, dayId: group.dayId, name: eventGroupName(group, draft.days), priority: group.priority }));
+  const events = eventsOnDate(sequence, position, draft).map((group) => ({ type: 'event', groupId: group.id, dayId: group.dayId, name: eventGroupName(group, draft.days), priority: group.priority }));
   const layers = [...events.filter((entry) => entry.priority >= 0), ...(main ? [{ type: 'main', dayId: main.id, name: main.name, overridden }] : []), ...events.filter((entry) => entry.priority < 0)];
   const count = draft.project.settings.slots_per_day, phases = [];
   const days = new Map(draft.days.map((day) => [day.id, day])), slots = new Map(draft.slots.map((slot) => [slot.id, slot]));

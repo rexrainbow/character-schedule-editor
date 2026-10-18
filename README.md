@@ -9,6 +9,7 @@ Character Schedule Editor is a visual tool for designing character routines and 
 ## Interface Features
 
 - **Schedule editors:** Start with day schedules, then organize weeks and week sequences. Type an activity name in a day cell's slot picker and confirm to create and assign it, or reuse an existing schedule. Activities can consist of a name alone; task logic is optional and available in the advanced slot editor. Customize individual weekdays and add day overrides within a week sequence.
+- **Day tags:** Organize day schedules with multiple custom tags. Filter the list and day selectors by tag or find untagged schedules, alongside name search. Tags are included in runtime data so recurring events can count matching day schedules.
 - **Conditions and expressions:** Build nested ALL/ANY conditions, comparisons, and arithmetic expressions with visual editors. Reuse numeric or Boolean expression macros in either single-expression or conditional branch mode.
 - **Macro eligibility and priority candidates:** Add optional eligibility conditions to sequence, branch, or priority macros. Keep rules and actions in one definition, and arrange any macro types into a priority list that runs the first eligible candidate. Conditions start collapsed, with summaries and shortcuts to shared definitions.
 - **Direct slot candidates:** Start an empty slot schedule with either an ELSE branch or a priority candidate list. Select and order reusable macros directly in the slot editor, without creating a separate priority macro.

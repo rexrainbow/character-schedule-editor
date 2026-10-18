@@ -1,4 +1,5 @@
 import EngineKeyField from './EngineKeyField.jsx';
+import { DayTagsEditor } from './DayTags.jsx';
 import IconField from './IconField.jsx';
 import { Copy, ExternalLink, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -8,7 +9,7 @@ import useVisibleRows from './useVisibleRows.js';
 import EventAssignment from './EventAssignment.jsx';
 import { dayEventCount } from './dayEvents.js';
 
-export default function DayEditor({ day, slots, onChange, onDuplicate, onDelete, onCell, onOpenSlot, restorePosition, t }) {
+export default function DayEditor({ day, days = [], slots, onChange, onDuplicate, onDelete, onCell, onOpenSlot, restorePosition, t }) {
   const [showEvents, setShowEvents] = useState(restorePosition?.dayId === day.id && !!restorePosition.showEvents);
   const rowHeight = showEvents ? 224 : 112;
   // Only mount visible cells for long schedules; the data remains a full array.
@@ -27,6 +28,7 @@ export default function DayEditor({ day, slots, onChange, onDuplicate, onDelete,
       <div className="schedule-name"><label className="sr-only" htmlFor="day-name">{t('dayName')}</label><div className="name-with-icon"><IconField value={day.icon} onChange={(icon) => onChange({ ...day, icon })} t={t} /><input id="day-name" aria-label={t('dayName')} value={day.name} aria-invalid={!day.name.length} onChange={(e) => onChange({ ...day, name: e.target.value })} /><EngineKeyField kind="days" item={day} onChange={(engine_key) => onChange({ ...day, engine_key })} t={t} /></div><FieldError show={!day.name.length} t={t} /></div>
       <ActionMenu label={t('dayActions')} items={[{ label: t('duplicateDay'), icon: Copy, onClick: onDuplicate }, { label: t('deleteDay'), icon: Trash2, danger: true, onClick: onDelete }]} />
     </section>
+    <DayTagsEditor key={`tags:${day.id}`} day={day} days={days} onChange={onChange} t={t} />
     <button className="button secondary event-visibility" aria-expanded={showEvents} onClick={() => setShowEvents(!showEvents)}>{showEvents ? <ChevronUp size={15} aria-hidden="true" /> : <ChevronDown size={15} aria-hidden="true" />}{t(showEvents ? 'collapseEventSchedules' : 'expandEventSchedules', { count: dayEventCount(day) })}</button>
     <div className="day-cells" key={day.id} ref={ref} onScroll={onScroll}>
       {showEvents && event('dayStart')}

@@ -153,6 +153,23 @@ body { min-width: 360px; font-size: 15px; }
 .sequence-week-picker>span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Shared offline activity icons. Dialog content has one scroll container. */
+.event-count-filter { display: grid; gap: 12px; border: 1px solid #423b51; border-radius: 8px; padding: 12px; min-width: 0; }
+.event-count-filter label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.event-count-filter select { width: 100%; min-width: 0; }
+.day-tags-editor { flex-shrink: 0; margin: 0 0 10px; }
+.day-tag-chips { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.day-tag-chips:empty { display: none; }
+.day-tag { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #50445f; border-radius: 12px; background: #2d2639; color: #d9cce9; padding: 3px 8px; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; max-width: 100%; }
+.day-tag>button { display: inline-flex; padding: 2px; border: 0; background: transparent; color: inherit; flex-shrink: 0; }
+.day-tag-add { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+.day-tag-add input { flex: 1; min-width: 110px; width: 150px; }
+.day-tag-add select { min-width: 0; max-width: 100%; }
+.day-tag-filter { margin: 8px 0; }
+.day-tag-filter label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+.day-tag-filter select { width: 100%; min-width: 0; }
+.schedule-list-entry>.slot-item { width: 100%; }
+.schedule-list-entry>.day-tag-chips { margin: 5px 8px 8px; }
+.selector-day-label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .takeover-options { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
 .takeover-options label { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 130px; }
 .logic-overview { margin: 12px 0 20px; min-width: 0; }
@@ -411,8 +428,3 @@ body { min-width: 360px; font-size: 15px; }
 .event-engine-field .engine-key-field { width: 100%; }
 .event-engine-field .engine-key-field input { width: 100%; }
 .event-group-item small { white-space: pre-line; }
-.event-skip-weekdays { min-width: 0; margin: 0; padding: 9px; border: 1px solid #3f4659; border-radius: 6px; font-size: 12px; }
-.event-skip-weekdays>div { display: flex; flex-wrap: wrap; gap: 8px 12px; }
-.event-group-form .event-skip-weekdays label { display: flex; flex-direction: row; align-items: center; gap: 5px; font-size: 12px; }
-.event-group-form .event-skip-weekdays input { width: 15px; height: 15px; accent-color: #b99ade; }
-.event-skip-weekdays:disabled { opacity: .55; }

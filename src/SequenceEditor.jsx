@@ -48,7 +48,7 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
               const label = privateInherited ? t('privateDay') : day?.name || t('unassigned');
               const state = overridden ? day ? 'overridden' : 'emptyOverride' : privateInherited ? 'inheritedPrivate' : 'inherited';
               const date = sequenceDate(sequence, index, weekday);
-              const position = index * 7 + WEEKDAYS.indexOf(weekday), events = eventsOnDate(sequence, position);
+              const position = index * 7 + WEEKDAYS.indexOf(weekday), events = eventsOnDate(sequence, position, draft);
               return <div key={weekday} className={`sequence-day ${overridden ? 'has-override' : ''} ${date.active ? '' : 'outside-range'}`} data-active={date.active}>
                 <div className="sequence-date-heading"><span className="sequence-day-number">{date.active ? t('sequenceDayNumber', { count: date.dayNumber }) : t(date.before ? 'sequenceBeforeStart' : 'sequenceAfterEnd')}</span><div className="sequence-boundary-controls">
                   {index === 0 && <button className="icon-button sequence-start-flag" aria-label={t('setSequenceStart', { weekday: t(weekday) })} title={t('setSequenceStart', { weekday: t(weekday) })} aria-pressed={date.isStart} onClick={() => { if (!date.isStart) update(setSequenceBoundary(sequence, 'start', weekday)); }}><Flag size={14} /></button>}
