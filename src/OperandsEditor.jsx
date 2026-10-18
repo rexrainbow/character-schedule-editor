@@ -27,6 +27,12 @@ export function NodeProperties({ id, nodes, slots, tasks = [], taskMacros = [], 
     catch (e) { setError(e.message); }
   }
   function readOnly(value) { const result = changeReadOnly(nodes, slots, id, value, taskMacros, tasks); setBlocked(result.blocked); setError(result.blocked.length ? 'readOnlyBlocked' : null); if (!result.blocked.length) onChange(result.nodes); }
+  function changeBound(key, input) {
+    const next = { ...node };
+    if (input.value === '' && !input.validity.badInput) delete next[key];
+    else next[key] = input.valueAsNumber;
+    onChange({ ...nodes, [id]: next });
+  }
   function changeType(type) {
     const result = changeOperandType(nodes, slots, id, type, tasks, taskMacros);
     setBlocked(result.blocked); setError(null);
@@ -38,6 +44,7 @@ export function NodeProperties({ id, nodes, slots, tasks = [], taskMacros = [], 
     {node.node_type === 'value' && !isComputed(node) && <label className="readonly-field"><input type="checkbox" aria-label={t('readOnly')} checked={node.read_only ?? false} onChange={(e) => readOnly(e.target.checked)} /><span>{t('readOnly')}</span><small>{t('readOnlyHint')}</small></label>}
     {node.node_type === 'value' && (isComputed(node) ? <><div><span className="field-label">{t('computedResult')}</span><strong>{t('type_' + node.value_type)}</strong></div><section className="expression-preview"><span className="field-label">{t('definition')}</span><pre>{formatComputedDefinition(node.definition, nodes)}</pre><button className="button secondary" onClick={() => setEditingDefinition(true)}>{t('editDefinition')}</button></section></> : <label>{t('valueType')}<select aria-label={t('valueType')} value={node.value_type} onChange={(e) => changeType(e.target.value)}>{['number','string','boolean'].map((type) => <option key={type} value={type}>{t(`type_${type}`)}</option>)}</select></label>)}
     {node.node_type === 'value' && !isComputed(node) && <label>{t('initialValue')}{node.value_type === 'boolean' ? <select aria-label={t('initialValue')} value={String(initialValue(node))} onChange={(e) => onChange({ ...nodes, [id]: { ...node, initial_value: e.target.value === 'true' } })}><option value="false">false</option><option value="true">true</option></select> : <input aria-label={t('initialValue')} type={node.value_type === 'number' ? 'number' : 'text'} step={node.value_type === 'number' ? 'any' : undefined} value={Number.isNaN(initialValue(node)) ? '' : initialValue(node)} onChange={(e) => onChange({ ...nodes, [id]: { ...node, initial_value: node.value_type === 'number' ? e.target.value === '' ? NaN : e.target.valueAsNumber : e.target.value } })} />}<small>{t('initialValueHint')}</small></label>}
+    {node.node_type === 'value' && !isComputed(node) && node.value_type === 'number' && <div className="variable-bounds">{['min_value', 'max_value'].map((key) => <label key={key}>{t(key === 'min_value' ? 'minValue' : 'maxValue')}<input type="number" step="any" aria-label={t(key === 'min_value' ? 'minValue' : 'maxValue')} aria-invalid={errors.some((e) => e.path.endsWith(`/${key}`))} placeholder={t('unboundedValue')} value={Number.isNaN(node[key]) ? '' : node[key] ?? ''} onChange={(e) => changeBound(key, e.target)} /></label>)}<small>{t('variableBoundsHint')}</small></div>}
     </div>
     {errors.map((e, i) => <p key={i} className="inline-error" role="alert">{t(e.key)}</p>)}{error && <p className="inline-error" role="alert">{t(error)}</p>}
     {!!blocked.length && <div className="shared-warning" role="alert"><p>{t(error === 'readOnlyBlocked' ? 'readOnlyBlocked' : 'typeChangeBlocked')}</p><ul>{blocked.map((ref) => <li key={ref.path}>{referenceLabel(ref, t)}<code>{ref.path}</code></li>)}</ul></div>}

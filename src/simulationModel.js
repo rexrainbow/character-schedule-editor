@@ -1,3 +1,4 @@
+import { clampVariable, withinBounds, variableBoundsErrors } from './variableBounds.js';
 import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors, macroEligibility, isPrioritySlot } from './operandModel.js';
 import { taskMacroDefinitionErrors } from './taskMacroModel.js';
 import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
@@ -7,7 +8,7 @@ export const simulationInitialValues = (draft) => Object.fromEntries(Object.entr
 export function simulationValueErrors(draft, values) {
   return Object.entries(simulationInitialValues(draft)).flatMap(([id]) => {
     const value = values[id], node = draft.operandNodes[id];
-    return typeof value !== node.value_type || node.value_type === 'number' && !Number.isFinite(value) ? [{ path: `/values/${id}`, key: 'simulationInvalidValue', field: nodePath(draft.operandNodes, id) }] : [];
+    return typeof value !== node.value_type || node.value_type === 'number' && !Number.isFinite(value) ? [{ path: `/values/${id}`, key: 'simulationInvalidValue', field: nodePath(draft.operandNodes, id) }] : node.value_type === 'number' && !withinBounds(node, value) ? [{ path: `/values/${id}`, key: 'simulationValueOutsideBounds', field: nodePath(draft.operandNodes, id) }] : variableBoundsErrors(node, `/operand_nodes/${id}`, initialValue(node));
   });
 }
 
@@ -125,7 +126,8 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       else if (use.builtin === 'toggle_variable') value = !state[id];
       else { value = operand(use.value, scope, `${path}/value`, event.children, depth + 1); if (use.builtin === 'increment_variable') value = state[id] + value; }
       if (typeof value !== nodes[id].value_type) fail('writeTypeMismatch', path);
-      state[id] = finite(value, path); event.after = state[id];
+      event.requested = finite(value, path); state[id] = clampVariable(nodes[id], value); event.after = state[id];
+      if (!Object.is(event.requested, event.after)) event.children.push({ kind: 'clamp', label: t('simulationClamped', { requested: event.requested, value: event.after }) });
       calls.push({ kind: 'builtin', display_name: definition.display_name, engine_key: definition.engine_key, target_variable_id: id, before: event.before, after: event.after, path });
       return;
     }

@@ -14,6 +14,46 @@ async function runDay(page) {
   await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
 }
 
+for (const [kind, label, scope, count] of [
+  ['cancel_main_slot', 'Cancel the main schedule in this slot', 'slot', 3],
+  ['cancel_main_day', 'Cancel the main schedule for the rest of today', 'day', 10],
+]) test(`${kind} is available as a fixed task and preserves overlay events in simulation`, async ({ page }) => {
+  const { draft, control } = flowControlFixture(); await load(page, draft); await navigate(page, 'tasks');
+  await page.locator('.operand-sidebar').getByRole('button', { name: label, exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Add parameter', exact: true })).toBeDisabled();
+  await expect(page.locator('.parameter-row')).toHaveCount(0);
+  await navigate(page, 'slots');
+  await page.locator('.sidebar').getByRole('button', { name: /Override activity/ }).click();
+  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption(`builtin:${kind}`);
+  await expect(page.locator('.task-editor')).toContainText('All overlay events continue regardless of priority.');
+  const pending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8'));
+  expect(runtime.slots[control.id].branches[0].task).toEqual({ task_key: `control.main_${scope}`, flow_control: 'cancel_main', scope });
+  await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(count);
+  const cancelledEntries = page.locator('.simulation-trace-line').filter({ hasText: 'Cancelled; not evaluated' });
+  for (const text of await cancelledEntries.allTextContents()) expect(text).toContain('Main day schedule');
+});
+
+test('self-cancellation is selectable without parameters, exports its contract and only cancels its own later assignments', async ({ page }) => {
+  const { draft, control } = flowControlFixture(); await load(page, draft);
+  await navigate(page, 'tasks');
+  await page.locator('.operand-sidebar').getByRole('button', { name: 'Cancel this schedule for the rest of today', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Add parameter', exact: true })).toBeDisabled();
+  await expect(page.locator('.parameter-row')).toHaveCount(0);
+  await navigate(page, 'slots');
+  await page.locator('.sidebar').getByRole('button', { name: /Override activity/ }).click();
+  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:cancel_self_day');
+  await expect(page.locator('.task-editor')).toContainText('Other events, the main day');
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8'));
+  expect(runtime.slots[control.id].branches[0].task).toEqual({ task_key: 'control.self_day', flow_control: 'cancel_self', scope: 'day' });
+  await runDay(page);
+  await expect(page.locator('.simulation-cancel-reason')).toHaveCount(9);
+  await expect(page.locator('.simulation-results')).toContainText('Future assignments of this day-schedule instance cancelled through day end.');
+  for (const text of await page.locator('.simulation-cancel-reason').allTextContents()) expect(text).toContain('Cancelled by High');
+});
+
 test('task categories, fixed flow definitions and zero-argument selections persist through project and runtime exports', async ({ page }) => {
   const { draft, control } = flowControlFixture(); await load(page, draft); await navigate(page, 'tasks');
   await expect(page.locator('.operand-sidebar').getByRole('heading', { name: 'Variable operations', exact: true })).toBeVisible();

@@ -22,6 +22,28 @@ async function exported(page) {
   return JSON.parse(await readFile(await (await pending).path(), 'utf8'));
 }
 
+test('eight solid colors appear first, render without a glyph and survive export and import', async ({ page }) => {
+  await load(page);
+  await page.getByRole('button', { name: 'Choose icon', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  expect((await dialog.locator('.icon-choice').allTextContents()).slice(0, 8)).toEqual(['Red', 'Orange', 'Yellow', 'Green', 'Cyan', 'Blue', 'Purple', 'Gray']);
+  await dialog.getByRole('combobox', { name: 'Category' }).selectOption('colors');
+  await expect(dialog.locator('.icon-choice')).toHaveCount(8);
+  await dialog.getByRole('button', { name: 'Blue', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
+  const icon = page.locator('.icon-field [data-icon="color:blue"]');
+  await expect(icon).toHaveCSS('background-color', 'rgb(96, 165, 250)');
+  await expect(icon.locator('svg')).toHaveCount(0);
+  const saved = await exported(page); expect(Object.values(saved.day_schedules)[0].icon).toBe('color:blue');
+  await load(page, saved);
+  await expect(icon).toHaveCSS('background-color', 'rgb(96, 165, 250)');
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW');
+  const t = translator('zh-TW'); await page.getByRole('button', { name: t('chooseIcon'), exact: true }).click();
+  await page.getByRole('dialog').getByRole('combobox', { name: t('iconCategory') }).selectOption('colors');
+  await expect(page.getByRole('dialog').locator('.icon-choice')).toHaveCount(8);
+  await expect(page.getByRole('dialog').locator('.icon-choice').first()).toHaveText('\u7d05\u8272');
+});
+
 test('one offline catalog edits all entity types and updates relationship icons', async ({ page, context }) => {
   const errors = [], external = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -35,7 +57,7 @@ test('one offline catalog edits all entity types and updates relationship icons'
   await expect(page.getByRole('button', { name: 'Monday / Slot 1', exact: true }).locator('[data-icon="tabler:stethoscope"]')).toBeVisible();
   await navigate(page, 'sequences'); await pick(page, 'Important');
   await expect(page.getByRole('button', { name: 'Choose week for Week 1', exact: true }).locator('[data-icon="tabler:home"]')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Week 3 / Monday', exact: true }).locator('..').locator('[data-icon="tabler:heart"]')).toBeVisible();
+  await expect(page.locator('.sequence-day').filter({ has: page.getByRole('button', { name: 'Week 3 / Monday', exact: true }) }).locator('.day-preview-name [data-icon="tabler:heart"]')).toBeVisible();
   const data = await exported(page);
   expect(Object.values(data.slots)[0].icon).toBe('tabler:stethoscope');
   expect(Object.values(data.day_schedules)[0].icon).toBe('tabler:heart');

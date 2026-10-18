@@ -19,7 +19,7 @@ defs.scoped_task_macro_use.properties.arguments.additionalProperties = ref('runt
 defs.runtime_task = obj({ task_key: key, arguments: arr(ref('runtime_argument')) });
 defs.runtime_assignment = obj({ task_key: key, target: { oneOf: [ref('reference_operand'), ref('environment_reference')] }, value: ref('scoped_operand') });
 defs.runtime_target_operation = obj({ task_key: key, target: { oneOf: [ref('reference_operand'), ref('environment_reference')] } });
-defs.runtime_flow_control = obj({ task_key: key, flow_control: { const: 'cancel_lower_priority' }, scope: { enum: ['slot', 'day'] } });
+defs.runtime_flow_control = { oneOf: [obj({ task_key: key, flow_control: { enum: ['cancel_lower_priority', 'cancel_main'] }, scope: { enum: ['slot', 'day'] } }), obj({ task_key: key, flow_control: { const: 'cancel_self' }, scope: { const: 'day' } })] };
 defs.runtime_action = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('scoped_task_macro_use')] };
 defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('scoped_task_macro_use')] };
 defs.runtime_branch = obj({ condition: { oneOf: [ref('scoped_condition'), { type: 'null' }] }, task: ref('runtime_action') });
@@ -34,7 +34,7 @@ defs.runtime_macro = { oneOf: [
 for (const variant of defs.runtime_macro.oneOf) variant.properties.eligibility = { oneOf: [ref('scoped_condition'), { type: 'null' }] };
 defs.variable_tree = { oneOf: [
   entity({ id: ref('uuid'), kind: { const: 'group' }, children: arr(ref('variable_tree')) }, ['id', 'kind', 'children']),
-  entity({ id: ref('uuid'), kind: { const: 'value' }, value_type: { enum: ['number', 'string', 'boolean'] }, read_only: { type: 'boolean' }, initial_value: { type: ['number', 'string', 'boolean'] } }, ['id', 'kind', 'value_type', 'read_only', 'initial_value']),
+  entity({ id: ref('uuid'), kind: { const: 'value' }, value_type: { enum: ['number', 'string', 'boolean'] }, read_only: { type: 'boolean' }, initial_value: { type: ['number', 'string', 'boolean'] }, min_value: { type: 'number' }, max_value: { type: 'number' } }, ['id', 'kind', 'value_type', 'read_only', 'initial_value']),
 ] };
 defs.variable_tree.oneOf[1].allOf = structuredClone(defs.value_node.allOf);
 defs.environment_variable_tree = structuredClone(defs.variable_tree);

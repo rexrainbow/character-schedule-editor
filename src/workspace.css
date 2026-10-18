@@ -153,6 +153,17 @@ body { min-width: 360px; font-size: 15px; }
 .sequence-week-picker>span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Shared offline activity icons. Dialog content has one scroll container. */
+.takeover-options { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.takeover-options label { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 130px; }
+.logic-overview { margin: 12px 0 20px; min-width: 0; }
+.logic-overview-toggle { width: 100%; justify-content: flex-start; }
+.logic-overview-body { margin-top: 10px; padding: 14px; border: 1px solid #423b51; border-radius: 9px; background: #17141e; }
+.logic-overview-body label { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.logic-overview-body pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.8 ui-monospace, monospace; margin: 12px 0 0; }
+.variable-bounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; grid-column: 1 / -1; }
+.variable-bounds label { min-width: 0; }
+.variable-bounds input { width: 100%; min-width: 0; }
+.variable-bounds small { grid-column: 1 / -1; }
 .slot-icon { display: inline-flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
 .slot-icon>svg { width: 68%; height: 68%; flex: none; color: #fff; }
 .icon-field { border: 0; padding: 0; background: transparent; border-radius: 9px; flex: none; display: inline-flex; }

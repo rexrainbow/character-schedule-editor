@@ -2,6 +2,8 @@
 
 環境層與應用層的變數葉節點均可設定 `initial_value`。群組與計算式巨集沒有初始值；第一版只接受常數，不接受 expression 或變數引用。
 
+數值變數亦可設定選填最小值與最大值，初始值須位於其範圍內，詳見 [VARIABLE_BOUNDS.md](./VARIABLE_BOUNDS.md)。
+
 | `value_type` | 初始值 | 預設 |
 | --- | --- | --- |
 | `number` | 有限數字 | `0` |

@@ -20,8 +20,14 @@ const groups = {
   ],
 };
 
-export const categories = Object.keys(groups);
-export const catalog = Object.entries(groups).flatMap(([category, items]) => items.map(([name, zh, en]) => ({ id: `tabler:${name}`, category, zh, en })));
+export const colorIcons = [
+  ['red', '紅色', 'Red', '#F87171'], ['orange', '橙色', 'Orange', '#FB923C'],
+  ['yellow', '黃色', 'Yellow', '#FACC15'], ['green', '綠色', 'Green', '#4ADE80'],
+  ['cyan', '青色', 'Cyan', '#22D3EE'], ['blue', '藍色', 'Blue', '#60A5FA'],
+  ['purple', '紫色', 'Purple', '#A78BFA'], ['gray', '灰色', 'Gray', '#94A3B8'],
+].map(([name, zh, en, color]) => ({ id: `color:${name}`, category: 'colors', zh, en, color }));
+export const categories = ['colors', ...Object.keys(groups)];
+export const catalog = [...colorIcons, ...Object.entries(groups).flatMap(([category, items]) => items.map(([name, zh, en]) => ({ id: `tabler:${name}`, category, zh, en })))];
 export const iconLabel = (item, locale) => locale === 'zh-TW' ? item.zh : item.en;
 export const legacyIcons = { slot: 'tabler:calendar-event', commute: 'tabler:bus', work: 'tabler:briefcase', rest: 'tabler:armchair', sleep: 'tabler:bed' };
 export const canonicalIconName = (name) => Object.hasOwn(legacyIcons, name) ? legacyIcons[name] : name;

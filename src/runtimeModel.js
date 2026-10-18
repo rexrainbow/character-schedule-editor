@@ -1,5 +1,6 @@
+import { numberBounds, variableBoundsErrors } from './variableBounds.js';
 import { normalizeTaskMacro } from './taskMacroModel.js';
-import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
+import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask, flowScope, flowOperation } from './builtinTasks.js';
 import { translator } from './i18n.js';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './runtime.schema.json' with { type: 'json' };
@@ -15,7 +16,11 @@ const keyOf = (item) => item.engine_key?.trim() ?? '';
 const metadata = (item) => ({ display_name: item.display_name ?? item.name, ...(keyOf(item) ? { engine_key: keyOf(item) } : {}) });
 export function validateRuntimeDocument(data) {
   validate(data);
-  return (validate.errors ?? []).map((error) => ({ path: error.instancePath || '/', key: `schema_${error.keyword}`, field: error.params.missingProperty ?? error.params.additionalProperty ?? '' }));
+  const errors = (validate.errors ?? []).map((error) => ({ path: error.instancePath || '/', key: `schema_${error.keyword}`, field: error.params.missingProperty ?? error.params.additionalProperty ?? '' }));
+  if (errors.length) return errors;
+  function visit(items, path) { items.forEach((node, index) => { const location = `${path}/${index}`; if (node.kind === 'group') visit(node.children, `${location}/children`); else errors.push(...variableBoundsErrors(node, location, node.initial_value)); }); }
+  visit(data.environment_variables, '/environment_variables'); visit(data.application_variables, '/application_variables');
+  return errors;
 }
 
 export function compileRuntime(draft, t = translator('en')) {
@@ -59,7 +64,7 @@ export function compileRuntime(draft, t = translator('en')) {
       const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
       if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
       tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: [] });
-      return { task_key: engine_key, flow_control: 'cancel_lower_priority', scope: flowScope(value.builtin) };
+      return { task_key: engine_key, flow_control: flowOperation(value.builtin), scope: flowScope(value.builtin) };
     }
     if (isBuiltinVariableTask(value)) {
       const definition = builtinVariableDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
@@ -76,7 +81,7 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   const branches = (items) => items.map((item) => ({ condition: condition(item.condition), task: task(item.task) }));
   function tree(parent = null, scope = 'application') {
-    return childrenOf(nodes, parent, scope).map(([id, node]) => ({ id, ...metadata(node), ...(node.node_type === 'group' ? { kind: 'group', children: tree(id, scope) } : { kind: 'value', value_type: node.value_type, read_only: node.read_only ?? false, initial_value: initialValue(node) }) }));
+    return childrenOf(nodes, parent, scope).map(([id, node]) => ({ id, ...metadata(node), ...(node.node_type === 'group' ? { kind: 'group', children: tree(id, scope) } : { kind: 'value', value_type: node.value_type, read_only: node.read_only ?? false, initial_value: initialValue(node), ...numberBounds(node) }) }));
   }
   for (const [id, node] of Object.entries(nodes)) if (!isComputed(node) && node.node_type === 'value' && variableScope(node) === 'environment' && !keyOf(node)) errors.push({ path: `/operand_nodes/${id}/engine_key`, key: 'runtimeMissingKey' });
   const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], ...dayEventsToData(item) });

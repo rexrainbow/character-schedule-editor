@@ -30,6 +30,10 @@
 
 環境層與應用層變數支援符合型別的常數初始值；Runtime 匯出含兩層完整變數樹，由 runtime 決定是否套用環境初始值。詳見 [INITIAL_VALUES.md](./INITIAL_VALUES.md)。
 
+數值變數支援選填最小值、最大值，空白表示無限制；runtime 與模擬的數值寫入截斷至設定範圍。詳見 [VARIABLE_BOUNDS.md](./VARIABLE_BOUNDS.md)。
+
+時段行程提供可收合的靜態「邏輯一覽」，支援摘要、展開一層與全部展開，詳見 [LOGIC_OVERVIEW.md](./LOGIC_OVERVIEW.md)。
+
 React + Vite 的深色 Project／Slots／Day／Week／Week Sequences 編輯器，依照 `SPEC.md` 實作。
 
 ## 啟動
@@ -71,6 +75,7 @@ npx.cmd playwright test
 - Slot 支援依名稱搜尋、新增、複製、刪除與名稱編輯。Slot 與 Day 的 ID 為自動產生的 UUID v4，不顯示或編輯；匯入與匯出保留原 UUID。
 - 複製時產生新 UUID，名稱附加 ` (副本)`，圖示與分支內容一起複製。
 - 時段行程、日行程、周行程與周序列共用一套 120 個 Tabler 活動圖示，以 `icon: "tabler:briefcase"` 等字串保存。點擊名稱前的圖示開啟方格選擇器，支援繁中／英文名稱搜尋與分類；套用才更新，取消／Esc 不修改，清除後使用預設圖示。時段編輯視窗內切換同一視窗，不疊加視窗。
+- 圖示選擇器最前方提供 8 種純色圓角方塊：紅、橙、黃、綠、青、藍、紫、灰，另有「純色」分類。以 `color:red`、`color:blue` 等 icon 字串保存，不使用圖片或網路資源，所有使用共用圖示的物件皆可選取。
 - 清單、日／周行程時段格、周行程的日引用、周序列的周引用與生效日行程，以及各引用選擇器都顯示圖示與名稱。引用來源的圖示更新後同步顯示；週內自訂日行程在建立時保留來源日的圖示。
 - 圖示 SVG 資料與中英文標籤隨 App 打包，無執行時圖示 API 請求，可離線使用；保留圓角色塊背景。舊資料缺少 Day／Week／Sequence 圖示時補上預設，舊名稱 `commute`／`work` 等提供對應圖示，未知名稱保留並顯示預設圖示。
 - 圖示清單位於 `src/icons/catalog.js`；修改後執行 `npm.cmd run icons:build` 重建精選 SVG 資料。Tabler 與 Iconify 授權隨輸出附於 `public/licenses`／`dist/licenses`。

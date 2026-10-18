@@ -7,7 +7,7 @@ import { createTaskMacro } from '../src/taskMacroModel.js';
 export function flowControlFixture(kind = 'cancel_lower_priority_slot', target = { index: 0, edge: 'start' }, controller = 'High') {
   const { draft, sequence } = sequenceEventsFixture(), vars = builtinVariableFixture();
   draft.environment = vars.draft.environment;
-  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, cancel_lower_priority_slot: { engine_key: 'control.slot' }, cancel_lower_priority_day: { engine_key: 'control.day' } };
+  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, cancel_lower_priority_slot: { engine_key: 'control.slot' }, cancel_lower_priority_day: { engine_key: 'control.day' }, cancel_self_day: { engine_key: 'control.self_day' }, cancel_main_slot: { engine_key: 'control.main_slot' }, cancel_main_day: { engine_key: 'control.main_day' } };
   draft.tasks = []; draft.slots = []; draft.days = []; draft.taskMacros = [];
   function slot(name, task) { const result = createSlot(draft.slots, name); result.branches = [{ condition: null, task }]; draft.slots.push(result); return result; }
   const increment = { builtin: 'increment_variable', target_variable_id: vars.number, value: { type: 'constant', value: 1 } };

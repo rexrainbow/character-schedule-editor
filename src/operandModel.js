@@ -1,3 +1,4 @@
+import { variableBoundsErrors } from './variableBounds.js';
 import { isBuiltinVariableTask, isBuiltinFlowTask } from './builtinTasks.js';
 import { variableReferenceErrors } from './parameterModel.js';
 import { clearEngineKey, engineMetadata } from './engineKeyModel.js';
@@ -113,7 +114,13 @@ export const TASK_MACRO_MODES = ['sequence', 'branch', 'priority'];
 export const allowedMacroModes = () => TASK_MACRO_MODES;
 export const macroEligibility = (macro) => macro.mode === 'conditional' ? macro.condition : macro.eligibility;
 export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = TASK_MACRO_MODES) {
-  if (isBuiltinFlowTask(use)) return Object.keys(use).filter((key) => key !== 'builtin').map((field) => ({ path: `${path}/${field}`, key: 'schema_additionalProperties', field }));
+  if (isBuiltinFlowTask(use)) return [
+    ...conditionErrors(use.condition, nodes, `${path}/condition`, scope),
+    ...(!use.condition ? [{ path: `${path}/condition`, key: 'invalidCondition' }] : []),
+    ...(!['slot', 'day'].includes(use.scope) ? [{ path: `${path}/scope`, key: 'invalidTakeoverScope' }] : []),
+    ...(!['main', 'lower_priority'].includes(use.target) ? [{ path: `${path}/target`, key: 'invalidTakeoverTarget' }] : []),
+    ...Object.keys(use).filter((key) => !['builtin', 'condition', 'scope', 'target'].includes(key)).map((field) => ({ path: `${path}/${field}`, key: 'schema_additionalProperties', field })),
+  ];
   if (isBuiltinVariableTask(use)) return setVariableErrors(use, nodes, path, scope);
   if (use?.builtin !== undefined) return [{ path: `${path}/builtin`, key: 'invalidBuiltin' }];
   if (use?.task_id !== undefined && use?.task_macro_id !== undefined) return [{ path, key: 'invalidTaskTarget' }];
@@ -220,9 +227,9 @@ export function expressionNameErrors(nodes) {
   return errors;
 }
 export function taskOperandRoots(use, path = '') {
-  return isBuiltinVariableTask(use) ? [{ value: use.value, path: `${path}/value` }] : Object.entries(use?.arguments ?? {}).map(([id, value]) => ({ value, path: `${path}/arguments/${id}` }));
+  return isBuiltinFlowTask(use) ? [{ value: use.condition, path: `${path}/condition` }] : isBuiltinVariableTask(use) ? [{ value: use.value, path: `${path}/value` }] : Object.entries(use?.arguments ?? {}).map(([id, value]) => ({ value, path: `${path}/arguments/${id}` }));
 }
-export const hasTaskValues = (use) => isBuiltinVariableTask(use) ? !!use.value || !!use.target_variable_id : Object.keys(use?.arguments ?? {}).length > 0;
+export const hasTaskValues = (use) => isBuiltinFlowTask(use) ? !!use.condition : isBuiltinVariableTask(use) ? !!use.value || !!use.target_variable_id : Object.keys(use?.arguments ?? {}).length > 0;
 export function setVariableErrors(use, nodes, path = '', parameters = []) {
   // All fixed variable operations share target validation and reference protection.
   const target = nodes[use.target_variable_id], errors = [];
@@ -359,6 +366,7 @@ export function treeErrors(nodes) {
   for (const [id, node] of Object.entries(nodes)) {
     if (!node || typeof node !== 'object' || isComputed(node)) continue;
     const path = `/operand_nodes/${id}`;
+    if (node.node_type === 'value') errors.push(...variableBoundsErrors(node, path, initialValue(node)));
     if (typeof node.display_name !== 'string' || !node.display_name.trim()) errors.push({ path: `${path}/display_name`, key: 'requiredText' });
     if (node.parent_id !== null && (nodes[node.parent_id]?.node_type !== 'group' || variableScope(nodes[node.parent_id]) !== variableScope(node))) errors.push({ path: `${path}/parent_id`, key: 'invalidParent' });
     const list = siblings.get(`${variableScope(node)}:${node.parent_id}`) ?? []; list.push([id, node]); siblings.set(`${variableScope(node)}:${node.parent_id}`, list);
@@ -458,6 +466,7 @@ export function changeOperandType(nodes, slots, id, type, tasks = [], sequences 
   if (nodes[id]?.node_type !== 'value' || !['number', 'string', 'boolean'].includes(type)) throw new Error('missingOperand');
   if (isComputed(nodes[id])) throw new Error('invalidDefinition');
   const next = { ...nodes, [id]: { ...nodes[id], value_type: type, initial_value: type === nodes[id].value_type ? initialValue(nodes[id]) : defaultInitialValue(type) } };
+  if (type !== 'number') { delete next[id].min_value; delete next[id].max_value; }
   const affected = nodeReferences(slots, id, next, new Set(), sequences, tasks);
   const errors = [...computedErrors(next), ...slotUseErrors(slots, tasks, next, sequences), ...slots.flatMap((slot) => slot.branches.flatMap((branch, i) => conditionErrors(branch.condition, next, `/slots/${slot.id}/branches/${i}/condition`)))];
   const blocked = affected.filter((ref) => errors.some((e) => referenceAffected(ref, e)));

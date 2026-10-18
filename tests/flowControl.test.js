@@ -11,6 +11,102 @@ import { translator } from '../src/i18n.js';
 import { createTaskMacro } from '../src/taskMacroModel.js';
 const cancelled = (result) => result.trace.flatMap((phase) => phase.children.filter((entry) => entry.cancelled).map((entry) => ({ phase: phase.label, key: phase.path.split('/').at(-1), entry })));
 
+test('main-targeted controls preserve every overlay and ignore caller priority, including main calling itself', () => {
+  for (const [kind, target, controller, count] of [
+    ['cancel_main_slot', { index: 0, edge: 'start' }, 'High', 3],
+    ['cancel_main_slot', { index: 0, edge: 'start' }, 'Main', 2],
+    ['cancel_main_slot', { index: 0, edge: 'start' }, 'Negative', 2],
+    ['cancel_main_day', 'dayStart', 'High', 11],
+    ['cancel_main_day', 'dayStart', 'Main', 10],
+    ['cancel_main_day', 'dayStart', 'Negative', 10],
+  ]) {
+    const { draft, sequence, number } = flowControlFixture(kind, target, controller);
+    const result = simulateSequenceDay(draft, sequence.id, 0);
+    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, count);
+    assert.ok(cancelled(result).every(({ entry }) => !entry.groupId));
+    assert.equal(result.state[number], 76 - count);
+    assert.ok(result.calls.some((call) => call.kind === 'builtin' && call.context.name === controller));
+    if (kind === 'cancel_main_slot') {
+      assert.ok(cancelled(result).every(({ key }) => key.startsWith('slot:0:')));
+      assert.ok(result.calls.some((call) => call.context.type === 'main' && call.context.phaseKey === 'dayEnd'));
+    } else assert.ok(cancelled(result).some(({ key }) => key === 'dayEnd'));
+  }
+});
+
+test('main slot controls outside a slot and standalone main controls are no-ops', () => {
+  for (const target of ['dayStart', 'dayEnd']) {
+    const { draft, sequence } = flowControlFixture('cancel_main_slot', target);
+    const result = simulateSequenceDay(draft, sequence.id, 0);
+    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, 0);
+    assert.equal(result.calls.find((call) => call.kind === 'control').reason, 'controlNoSlotContext');
+  }
+  for (const kind of ['cancel_main_slot', 'cancel_main_day']) {
+    const { draft, control } = flowControlFixture(kind);
+    const result = simulateSlot(draft, control.id);
+    assert.deepEqual(result.errors, []); assert.equal(result.calls[0].reason, 'controlNoDayContext');
+  }
+});
+
+test('main cancellation skips unsafe main expressions and exports both fixed zero-argument contracts', () => {
+  for (const [kind, scope] of [['cancel_main_slot', 'slot'], ['cancel_main_day', 'day']]) {
+    const { draft, sequence, days, activity, macro } = flowControlFixture(kind);
+    const unsafe = structuredClone(activity); unsafe.id = crypto.randomUUID(); unsafe.branches[0].task.target_variable_id = 'missing';
+    draft.slots.push(unsafe); days.Main.slotIds[0] = unsafe.id;
+    assert.deepEqual(simulateSequenceDay(draft, sequence.id, 0).errors, []);
+    draft.slots.pop(); days.Main.slotIds[0] = activity.id;
+    const project = compileProject(draft); assert.deepEqual(project.errors, []);
+    assert.equal(projectToDraft(project.data).taskMacros[0].steps[0].task.builtin, kind);
+    const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.deepEqual(validateEnvironment(env.data), []);
+    assert.deepEqual(prepareEnvironmentImport(draft, env.data).errors, []);
+    const definition = builtinTaskDefinitions(draft.builtinTasks, translator('en')).find((item) => item.id === `builtin:${kind}`);
+    assert.deepEqual(definition.parameters, []); assert.equal(definition.category, 'flowControl');
+    const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+    assert.deepEqual(runtime.data.task_macros[macro.id].steps[0], { task_key: `control.main_${scope}`, flow_control: 'cancel_main', scope });
+  }
+});
+
+test('self cancellation isolates an event instance even when other events and main reuse its day', () => {
+  const { draft, sequence, days, control, activity, number } = flowControlFixture('cancel_self_day', 'dayStart');
+  sequence.eventGroups[1].dayId = days.High.id;
+  draft.weeks[0].days.mon = days.High.id;
+  control.branches = [{ condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'reference', reference_id: number }, operand_b: { type: 'constant', value: 10 } }, task: control.branches[0].task }, { condition: null, task: structuredClone(activity.branches[0].task) }];
+  const result = simulateSequenceDay(draft, sequence.id, 0);
+  assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, 10);
+  assert.ok(cancelled(result).every(({ entry }) => entry.groupId === sequence.eventGroups[0].id));
+  assert.ok(cancelled(result).some(({ key }) => key === 'dayEnd'));
+  assert.equal(result.state[number], 66);
+  assert.ok(result.calls.some((call) => call.kind === 'builtin' && call.context.groupId === sequence.eventGroups[0].id && call.context.phaseKey === 'dayStart'));
+  assert.ok(result.calls.some((call) => call.context.type === 'main' && call.context.phaseKey === 'dayEnd'));
+  assert.ok(result.calls.some((call) => call.context.groupId === sequence.eventGroups[1].id && call.context.phaseKey === 'dayEnd'));
+  assert.deepEqual(simulateSequenceDay(draft, sequence.id, 0).state, result.state);
+});
+
+test('main self cancellation starts after the current assignment, skips unsafe future calls and is standalone no-op', () => {
+  const { draft, sequence, days, control, number } = flowControlFixture('cancel_self_day', 0, 'Main');
+  const unsafe = { ...structuredClone(control), id: crypto.randomUUID(), branches: [{ condition: null, task: { builtin: 'increment_variable', target_variable_id: 'missing', value: { type: 'constant', value: 1 } } }] };
+  draft.slots.push(unsafe); days.Main.slotIds[1] = unsafe.id;
+  const result = simulateSequenceDay(draft, sequence.id, 0);
+  assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, 8);
+  assert.ok(cancelled(result).every(({ entry }) => !entry.groupId));
+  assert.equal(result.state[number], 68);
+  const single = simulateSlot(draft, control.id);
+  assert.deepEqual(single.errors, []); assert.equal(single.calls[0].reason, 'controlNoDayContext');
+  assert.equal(single.state[number], 11);
+});
+
+test('self control contracts round-trip and runtime only accepts the day scope', () => {
+  const { draft, macro } = flowControlFixture('cancel_self_day', 'dayStart');
+  const project = compileProject(draft); assert.deepEqual(project.errors, []);
+  const loaded = projectToDraft(project.data); assert.equal(loaded.taskMacros[0].steps[0].task.builtin, 'cancel_self_day');
+  const definition = builtinTaskDefinitions(draft.builtinTasks, translator('zh-TW')).find((item) => item.id === 'builtin:cancel_self_day');
+  assert.equal(definition.display_name, '\u53d6\u6d88\u672c\u65e5\u81ea\u8eab\u5f8c\u7e8c\u884c\u7a0b'); assert.deepEqual(definition.parameters, []);
+  const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.deepEqual(validateEnvironment(env.data), []);
+  assert.deepEqual(prepareEnvironmentImport(draft, env.data).errors, []);
+  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.deepEqual(runtime.data.task_macros[macro.id].steps[0], { task_key: 'control.self_day', flow_control: 'cancel_self', scope: 'day' });
+  runtime.data.task_macros[macro.id].steps[0].scope = 'slot'; assert.ok(validateRuntimeDocument(runtime.data).length);
+});
+
 test('slot cancellation skips lower sources across start/main/end, keeps equal priorities and macro steps, and expires', () => {
   const { draft, sequence, number, days, activity } = flowControlFixture();
   // This invalid write must never be evaluated in the cancelled main assignment.

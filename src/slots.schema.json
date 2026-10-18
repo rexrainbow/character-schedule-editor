@@ -292,6 +292,69 @@
             }
           },
           "additionalProperties": false
+        },
+        "cancel_self_day": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "cancel_main_slot": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "cancel_main_day": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "required": [],
@@ -942,6 +1005,14 @@
             "boolean"
           ],
           "description": "Constant initial value. When omitted, defaults to 0, empty string or false according to value_type."
+        },
+        "min_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
+        },
+        "max_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
         }
       },
       "additionalProperties": false,
@@ -991,6 +1062,31 @@
               "initial_value": {
                 "type": "boolean"
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "min_value"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_value"
+                  ]
+                }
+              ]
             }
           }
         }
@@ -2190,7 +2286,10 @@
         "builtin": {
           "enum": [
             "cancel_lower_priority_slot",
-            "cancel_lower_priority_day"
+            "cancel_lower_priority_day",
+            "cancel_self_day",
+            "cancel_main_slot",
+            "cancel_main_day"
           ]
         }
       },
