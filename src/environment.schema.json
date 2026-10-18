@@ -211,7 +211,7 @@
           "required": [],
           "additionalProperties": false
         },
-        "cancel_lower_priority_slot": {
+        "schedule_takeover": {
           "type": "object",
           "properties": {
             "display_name": {
@@ -226,91 +226,38 @@
             },
             "parameters": {
               "type": "object",
-              "properties": {},
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "cancel_lower_priority_day": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "cancel_self_day": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "cancel_main_slot": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "cancel_main_day": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {},
+              "properties": {
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "scope": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
               "additionalProperties": false
             }
           },

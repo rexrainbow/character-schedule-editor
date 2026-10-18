@@ -6,7 +6,6 @@ import { dayAssignment } from './dayEvents.js';
 import { isComputed, nodeScope, nodePath, slotEntries } from './operandModel.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { translator } from './i18n.js';
-import { flowOperation } from './builtinTasks.js';
 
 export const PROGRESS_ROLES = ['current_week', 'current_weekday', 'current_day', 'current_slot', 'slots_per_day', 'total_weeks'];
 export const PROGRESS_LABELS = ['progressWeek', 'progressWeekday', 'progressDay', 'progressSlot', 'progressSlotsPerDay', 'progressTotalWeeks'];
@@ -67,9 +66,8 @@ export function simulateSequenceDay(draft, sequenceId, position, values = simula
   const controls = [];
   const engine = createSimulationEvaluator(draft, input, baseline, t, (signal) => {
     if (signal.scope === 'slot' && !context.phaseKey.startsWith('slot:')) return { applied: false, reason: 'controlNoSlotContext' };
-    controls.push({ ...signal, source: { ...context } });
-    if (flowOperation(signal.builtin) === 'cancel_main') return { applied: true, reason: signal.scope === 'slot' ? 'controlMainSlotApplied' : 'controlMainDayApplied' };
-    return { applied: true, reason: signal.builtin === 'cancel_self_day' ? 'controlSelfDayApplied' : signal.scope === 'slot' ? 'controlSlotApplied' : 'controlDayApplied' };
+    controls.push({ ...signal, operation: signal.result ? signal.target : 'self', source: { ...context } });
+    return { applied: true, reason: signal.result ? 'takeoverSucceeded' : 'takeoverFailed' };
   }), slots = new Map(draft.slots.map((slot) => [slot.id, slot]));
   function lowerPriority(entry, source) {
     if (source.type === 'main') return entry.type === 'event' && entry.priority < 0;
@@ -89,9 +87,9 @@ export function simulateSequenceDay(draft, sequenceId, position, values = simula
         event.children.push(trace);
         const cancellation = controls.find((control) => {
           if (control.scope === 'slot' && (!phase.key.startsWith('slot:') || control.source.currentSlot !== phase.currentSlot)) return false;
-          const operation = flowOperation(control.builtin);
-          if (operation === 'cancel_main') return entry.type === 'main';
-          if (operation === 'cancel_self') return entry.type === control.source.type && (entry.type === 'main' || entry.groupId === control.source.groupId);
+          const operation = control.operation;
+          if (operation === 'main') return entry.type === 'main';
+          if (operation === 'self') return entry.type === control.source.type && (entry.type === 'main' || entry.groupId === control.source.groupId);
           return lowerPriority(entry, control.source);
         });
         if (cancellation) { trace.cancelled = true; trace.empty = false; trace.cancelledBy = { name: cancellation.source.name, task: cancellation.label, scope: cancellation.scope, path: cancellation.path, phase: cancellation.source.phase }; continue; }

@@ -1,7 +1,7 @@
 import { clampVariable, withinBounds, variableBoundsErrors } from './variableBounds.js';
 import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors, macroEligibility, isPrioritySlot } from './operandModel.js';
 import { taskMacroDefinitionErrors } from './taskMacroModel.js';
-import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
+import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinFlowTask } from './builtinTasks.js';
 import { translator } from './i18n.js';
 
 export const simulationInitialValues = (draft) => Object.fromEntries(Object.entries(draft.operandNodes).filter(([, n]) => n.node_type === 'value' && !isComputed(n)).map(([id, n]) => [id, initialValue(n)]));
@@ -112,10 +112,12 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     const errors = taskUseErrors(use, draft.tasks, nodes, path, scope.parameters, draft.taskMacros, modes);
     if (errors.length) { const error = errors[0]; fail(error.key, error.path, error.field); }
     if (isBuiltinFlowTask(use)) {
-      const definition = builtinTaskDefinition(use.builtin, draft.builtinTasks, t), control = { builtin: use.builtin, scope: flowScope(use.builtin), label: definition.display_name, path };
+      const definition = builtinTaskDefinition(use.builtin, draft.builtinTasks, t), children = [];
+      const result = condition(use.condition, scope, `${path}/condition`, children, depth + 1);
+      const control = { builtin: use.builtin, scope: use.scope, target: use.target, result, label: definition.display_name, path };
       const outcome = onControl ? onControl(control) : { applied: false, reason: 'controlNoDayContext' };
-      out.push({ kind: 'control', ...control, ...outcome });
-      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, scope: control.scope, path, ...outcome });
+      out.push({ kind: 'control', ...control, ...outcome, children });
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, scope: control.scope, target: control.target, result, path, ...outcome });
       return;
     }
     if (use.builtin) {

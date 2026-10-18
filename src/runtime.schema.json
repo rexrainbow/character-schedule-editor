@@ -1578,79 +1578,39 @@
       "additionalProperties": false
     },
     "runtime_flow_control": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "task_key": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "flow_control": {
-              "enum": [
-                "cancel_lower_priority",
-                "cancel_main"
-              ]
-            },
-            "scope": {
-              "enum": [
-                "slot",
-                "day"
-              ]
-            }
-          },
-          "required": [
-            "task_key",
-            "flow_control",
-            "scope"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "task_key": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "flow_control": {
-              "const": "cancel_self"
-            },
-            "scope": {
-              "const": "day"
-            }
-          },
-          "required": [
-            "task_key",
-            "flow_control",
-            "scope"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    },
-    "scoped_task_macro_use": {
       "type": "object",
-      "required": [
-        "task_macro_id",
-        "arguments"
-      ],
       "properties": {
-        "arguments": {
-          "type": "object",
-          "propertyNames": {
-            "$ref": "#/$defs/uuid"
-          },
-          "additionalProperties": {
-            "$ref": "#/$defs/runtime_argument"
-          }
+        "task_key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
         },
-        "task_macro_id": {
-          "$ref": "#/$defs/uuid"
+        "flow_control": {
+          "const": "takeover"
+        },
+        "condition": {
+          "$ref": "#/$defs/scoped_condition"
+        },
+        "scope": {
+          "enum": [
+            "slot",
+            "day"
+          ]
+        },
+        "target": {
+          "enum": [
+            "main",
+            "lower_priority"
+          ]
         }
       },
+      "required": [
+        "task_key",
+        "flow_control",
+        "condition",
+        "scope",
+        "target"
+      ],
       "additionalProperties": false
     },
     "scoped_condition": {
@@ -1718,6 +1678,28 @@
         },
         "kind": {
           "const": "comparison"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/runtime_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
         }
       },
       "additionalProperties": false

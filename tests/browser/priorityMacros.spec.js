@@ -41,10 +41,10 @@ test('new conditional tasks and priority lists use shared task controls and pers
   await page.locator('.macro-eligibility summary').click();
   await page.getByRole('button', { name: 'Set eligibility condition', exact: true }).click();
   await page.getByRole('button', { name: 'Add step', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:cancel_lower_priority_day');
-  await expect(page.locator('.task-step')).toContainText('No parameters.');
+  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:schedule_takeover');
+  await expect(page.locator('.task-step')).toContainText('Evaluate the condition once.');
   const project = await save(page), [id, gate] = Object.entries(project.task_macros).find(([, item]) => item.display_name === 'Always override');
-  expect(gate.mode).toBe('sequence'); expect(gate.steps[0].task).toEqual({ builtin: 'cancel_lower_priority_day' });
+  expect(gate.mode).toBe('sequence'); expect(gate.steps[0].task).toEqual({ builtin: 'schedule_takeover', condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'constant', value: true }, operand_b: { type: 'constant', value: true } }, scope: 'day', target: 'main' });
   await selectPriority(page); await page.getByRole('button', { name: 'Add candidate', exact: true }).last().click();
   await candidate(page, 4).getByRole('combobox', { name: 'Task', exact: true }).selectOption(`macro:${id}`);
   const saved = await save(page); expect(saved.task_macros[priority.id].candidates[3].task).toEqual({ task_macro_id: id, arguments: {} });

@@ -25,7 +25,7 @@
 .operand-button { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid #49405e; border-radius: 7px; background: #252031; text-align: left; }
 .operand-button>span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .operand-button[aria-invalid=true], select[aria-invalid=true] { border-color: #dc7f89; }
-.operand-mode { display: flex; gap: 8px; margin-bottom: 20px; }
+.operand-mode { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .operand-mode [role=tab] { padding: 10px 18px; background: #24202f; border: 1px solid #4d425f; border-radius: 6px; }
 .operand-mode [aria-selected=true] { border-color: #baa1ef; background: #433151; }
 .selected-path { margin-top: 16px; line-height: 1.6; overflow-wrap: anywhere; color: #d0b9ef; }

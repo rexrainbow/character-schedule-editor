@@ -8,8 +8,9 @@ export const operandLabel = (value, nodes, t, parameters = []) => formatOperand(
 
 function OperandPane({ value, nodes, numericOnly, expectedType, parameters, onChange, onEnter, t }) {
   // Keep parameter identity distinct from project variable identity in every nested operand.
-  const mode = ['parameter_reference', 'expression_macro_reference'].includes(value?.type) ? 'reference' : value?.type ?? 'reference';
-  const [selected, setSelected] = useState(value?.type === 'expression_macro_reference' ? value.expression_macro_id : value?.type === 'reference' ? value.reference_id : null);
+  const mode = value?.type === 'expression_macro_reference' ? 'macro' : value?.type === 'parameter_reference' ? 'reference' : value?.type ?? 'reference';
+  const [selected, setSelected] = useState(value?.type === 'reference' ? value.reference_id : null);
+  const [selectedMacro, setSelectedMacro] = useState(value?.type === 'expression_macro_reference' ? value.expression_macro_id : null);
   const [selectedParameter, setSelectedParameter] = useState(value?.type === 'parameter_reference' ? value.parameter_id : null);
   const [type, setType] = useState(value?.type === 'constant' && ['number','string','boolean'].includes(typeof value.value) ? typeof value.value : 'number');
   const [constants, setConstants] = useState({ number: value?.type === 'constant' && typeof value.value === 'number' ? String(value.value) : '', string: value?.type === 'constant' && typeof value.value === 'string' ? value.value : '', boolean: value?.type === 'constant' && typeof value.value === 'boolean' ? String(value.value) : 'true' });
@@ -24,6 +25,7 @@ function OperandPane({ value, nodes, numericOnly, expectedType, parameters, onCh
     setRemoving(false);
     if (next === mode) return;
     if (next === 'expression') { if (canWrap) onChange(wrapExpression(value)); }
+    else if (next === 'macro') onChange({ type: 'expression_macro_reference', expression_macro_id: selectedMacro ?? '' });
     else if (next === 'reference') onChange(selectedParameter ? { type: 'parameter_reference', parameter_id: selectedParameter } : referenceOperand(selected ?? '', nodes));
     else onChange(constantData(numericOnly ? 'number' : expectedType ?? type));
   }
@@ -32,7 +34,8 @@ function OperandPane({ value, nodes, numericOnly, expectedType, parameters, onCh
     setConstants(next); onChange(constantData(numericOnly ? 'number' : expectedType ?? type, next));
   }
   function keepOperand(next) {
-    if (next?.type === 'reference' || next?.type === 'expression_macro_reference') { setSelected(next.reference_id ?? next.expression_macro_id); setSelectedParameter(null); }
+    if (next?.type === 'reference') { setSelected(next.reference_id); setSelectedParameter(null); }
+    if (next?.type === 'expression_macro_reference') { setSelectedMacro(next.expression_macro_id); setSelectedParameter(null); }
     if (next?.type === 'parameter_reference') { setSelectedParameter(next.parameter_id); setSelected(null); }
     if (next?.type === 'constant') {
       const nextType = ['number','string','boolean'].includes(typeof next.value) ? typeof next.value : 'number';
@@ -41,15 +44,21 @@ function OperandPane({ value, nodes, numericOnly, expectedType, parameters, onCh
     onChange(next); setRemoving(false);
   }
   const currentType = numericOnly ? 'number' : expectedType ?? type;
+  const macroItems = Object.entries(expressionNodes(nodes)).filter(([, node]) => (!(numericOnly || expectedType) || node.value_type === (numericOnly ? 'number' : expectedType)) && node.display_name.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   return <>
-    <div className="operand-mode" role="tablist" aria-label={t('operandMode')}>{['reference','constant','expression'].map((key) => <button key={key} role="tab" aria-selected={mode === key} disabled={key === 'expression' && mode !== 'expression' && !canWrap} title={key === 'expression' && !canWrap ? t('numericOperandRequired') : undefined} onClick={() => switchMode(key)}>{t(key)}</button>)}</div>
+    <div className="operand-mode" role="tablist" aria-label={t('operandMode')}>{['reference','constant','macro','expression'].map((key) => <button key={key} role="tab" aria-selected={mode === key} disabled={key === 'expression' && mode !== 'expression' && !canWrap} title={key === 'expression' && !canWrap ? t('numericOperandRequired') : undefined} onClick={() => switchMode(key)}>{t(key === 'macro' ? 'expressions' : key === 'expression' ? 'operandArithmetic' : key)}</button>)}</div>
     {numericOnly && <p className="field-hint numeric-hint">{t('numericOperandRequired')}</p>}
     {mode === 'reference' ? <>
       <label className="search-field"><Search size={16} /><input autoFocus aria-label={t('searchVariables')} placeholder={t('searchVariables')} value={search} onChange={(e) => setSearch(e.target.value)} /></label>
       {parameters.length > 0 && <section className="parameter-reference-list"><h3>{t('macroParameters')}</h3><div role="tree" aria-label={t('macroParameters')}>{parameters.filter((p) => p.type !== 'variable_reference' && (!(numericOnly || expectedType) || p.type === (numericOnly ? 'number' : expectedType)) && p.display_name.toLocaleLowerCase().includes(search.toLocaleLowerCase())).map((p) => <button type="button" role="treeitem" aria-label={p.display_name} aria-selected={value.type === 'parameter_reference' && value.parameter_id === p.id} className="parameter-reference" key={p.id} onClick={() => { setSelectedParameter(p.id); setSelected(null); onChange({ type: 'parameter_reference', parameter_id: p.id }); }}><strong>{p.display_name}</strong><span>{t('type_' + p.type)}</span></button>)}</div></section>}
       <h3 className="reference-source-heading">{t('operands')}</h3>
       <ScopedVariableTree defaultExpanded={false} nodes={variableNodes(nodes)} selected={value.reference_id} onSelect={(id) => { setSelected(id); setSelectedParameter(null); onChange(referenceOperand(id, nodes)); }} search={search} selectable="value" valueType={numericOnly ? 'number' : expectedType} t={t} />
-      {Object.keys(expressionNodes(nodes)).length > 0 && <section className="parameter-reference-list"><h3>{t('expressions')}</h3><div role="tree" aria-label={t('expressions')}>{Object.entries(expressionNodes(nodes)).filter(([, node]) => (!(numericOnly || expectedType) || node.value_type === (numericOnly ? 'number' : expectedType)) && node.display_name.toLocaleLowerCase().includes(search.toLocaleLowerCase())).map(([id, node]) => <button type="button" role="treeitem" aria-label={node.display_name} aria-selected={value.type === 'expression_macro_reference' && value.expression_macro_id === id} className="parameter-reference" key={id} onClick={() => { setSelected(id); setSelectedParameter(null); onChange(referenceOperand(id, nodes)); }}><strong>{node.display_name}</strong><span>{t('type_' + node.value_type)}</span></button>)}</div></section>}
+      {Object.keys(expressionNodes(nodes)).length > 0 && <section className="parameter-reference-list"><h3>{t('expressions')}</h3><div role="tree" aria-label={t('expressions')}>{Object.entries(expressionNodes(nodes)).filter(([, node]) => (!(numericOnly || expectedType) || node.value_type === (numericOnly ? 'number' : expectedType)) && node.display_name.toLocaleLowerCase().includes(search.toLocaleLowerCase())).map(([id, node]) => <button type="button" role="treeitem" aria-label={node.display_name} aria-selected={value.type === 'expression_macro_reference' && value.expression_macro_id === id} className="parameter-reference" key={id} onClick={() => { setSelectedMacro(id); setSelectedParameter(null); onChange(referenceOperand(id, nodes)); }}><strong>{node.display_name}</strong><span>{t('type_' + node.value_type)}</span></button>)}</div></section>}
+      <p className="selected-path">{t('selectedPath')}: {operandLabel(value, nodes, t, parameters)}</p>
+    </> : mode === 'macro' ? <>
+      <label className="search-field"><Search size={16} /><input autoFocus aria-label={t('searchExpressions')} placeholder={t('searchExpressions')} value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+      <div role="tree" aria-label={t('expressions')}>{macroItems.map(([id, node]) => <button type="button" role="treeitem" key={id} aria-label={node.display_name} aria-selected={value.expression_macro_id === id} className="parameter-reference" onClick={() => { setSelectedMacro(id); setSelectedParameter(null); onChange(referenceOperand(id, nodes)); }}><strong>{node.display_name}</strong><span>{t('type_' + node.value_type)}</span></button>)}</div>
+      {!macroItems.length && <p className="selector-empty">{t('noMatchingExpressionMacros')}</p>}
       <p className="selected-path">{t('selectedPath')}: {operandLabel(value, nodes, t, parameters)}</p>
     </> : mode === 'constant' ? <div className="constant-fields">
       <label>{t('constantType')}<select aria-label={t('constantType')} value={currentType} disabled={numericOnly || !!expectedType} onChange={(e) => { setType(e.target.value); onChange(constantData(e.target.value)); }}>{(numericOnly ? ['number'] : expectedType ? [expectedType] : ['number','string','boolean']).map((key) => <option key={key} value={key}>{t('type_' + key)}</option>)}</select></label>

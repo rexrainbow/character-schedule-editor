@@ -35,6 +35,7 @@ export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], built
   }
   function definition(value, scope, remaining, level) {
     if (!guard(level)) return t('logicExpansionLimit');
+    if (value?.kind === 'branch' && value.branches?.length === 1 && value.branches[0].condition === null) return definition(value.branches[0].result, scope, remaining, level + 1);
     if (value?.kind === 'branch') return (value.branches ?? []).map((item, index) => `${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining, level + 1)})`} → ${definition(item.result, scope, remaining, level + 1)}`).join('; ') || t('logicNoActions');
     return value?.kind === 'number' ? operand(value.expression, scope, remaining, level + 1) : condition(value?.condition, scope, remaining, level + 1);
   }
@@ -52,6 +53,14 @@ export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], built
       const known = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'].includes(use.builtin) || isBuiltinFlowTask(use);
       if (!known) { line(indent, `${prefix}${t('logicMissingTask')}`); return; }
       const built = builtinTaskDefinition(use.builtin, builtinTasks, t);
+      if (isBuiltinFlowTask(use)) {
+        line(indent, `${prefix}${built.display_name}`);
+        line(indent + 1, `IF (${condition(use.condition, scope, remaining)})`);
+        line(indent + 2, `${t('logicTakeover')}: ${t(`takeover_${use.scope}`)} / ${t(`takeover_${use.target}`)}`);
+        line(indent + 1, 'ELSE');
+        line(indent + 2, `${t('logicWithdraw')}: ${t(`takeover_${use.scope}`)} / ${t('takeoverSelf')}`);
+        return;
+      }
       const args = isBuiltinFlowTask(use) ? [] : [nodePath(nodes, use.target_variable_id) || missing(), ...(['set_variable', 'increment_variable'].includes(use.builtin) ? [operand(use.value, scope, remaining)] : [])];
       line(indent, `${prefix}${built.display_name}${args.length ? ` (${args.join(', ')})` : ''}`); return;
     }
@@ -73,6 +82,7 @@ export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], built
   }
   function branches(items, indent, remaining, scope) {
     if (!items.length) line(indent, t('logicNoActions'));
+    if (items.length === 1 && items[0].condition === null) { task(items[0].task, indent, remaining, scope); return; }
     items.forEach((item, index) => task(item.task, indent, remaining, scope, `${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining)})`} → `));
   }
   function priority(items, indent, remaining, scope) {

@@ -59,7 +59,7 @@ test('Remove OP keeps either side, direct zero blocks Apply, and expression chil
   await dialog.getByRole('button', { name: /^Keep operand B:/ }).click();
   await expect(dialog.getByRole('spinbutton', { name: 'Constant value', exact: true })).toHaveValue('10');
   await expect(preview(page)).toHaveText('10');
-  await dialog.getByRole('tab', { name: 'Expression', exact: true }).click();
+  await dialog.getByRole('tab', { name: 'Numeric operation', exact: true }).click();
   await dialog.getByRole('combobox', { name: 'Arithmetic operator', exact: true }).selectOption('/');
   await expect(dialog.getByRole('alert')).toContainText('Division by a constant zero');
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
@@ -81,8 +81,8 @@ test('string operands cannot Add OP; expression results still require numeric co
   await expect(first(page).getByRole('button', { name: 'Add OP to Left operand (opA)', exact: true })).toBeDisabled();
   await first(page).getByRole('button', { name: 'Left operand (opA)', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('tab', { name: 'Expression', exact: true })).toBeDisabled();
-  await number(page, '30'); await dialog.getByRole('tab', { name: 'Expression', exact: true }).click();
+  await expect(dialog.getByRole('tab', { name: 'Numeric operation', exact: true })).toBeDisabled();
+  await number(page, '30'); await dialog.getByRole('tab', { name: 'Numeric operation', exact: true }).click();
   await expect(preview(page)).toHaveText('(30 + 0)'); await apply(page);
   await expect(first(page)).toContainText('Both operands must have the same type.');
   await exportProject(page);

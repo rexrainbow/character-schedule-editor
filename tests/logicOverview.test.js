@@ -1,3 +1,4 @@
+import { createTakeover } from '../src/builtinTasks.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { slotLogicText } from '../src/logicOverviewModel.js';
@@ -22,7 +23,7 @@ test('summary, one-level and full expansion preserve nesting and pass expression
   const p = { id: crypto.randomUUID(), display_name: 'Input', type: 'number' }; wrapper.parameters = [p];
   wrapper.steps = [{ ...createTaskStep(), task: { task_macro_id: f.eligible.id, arguments: { [f.amount.id]: { type: 'expression', operator: '+', operand_a: parameter(p.id), operand_b: constant(2) } } } }];
   f.draft.taskMacros.push(wrapper); f.slot.branches[0].task = { task_macro_id: wrapper.id, arguments: { [p.id]: constant(3) } };
-  assert.equal(render(f), 'ELSE → Wrapper (Input: 3)');
+  assert.equal(render(f), 'Wrapper (Input: 3)');
   assert.match(render(f, 'one'), /1\. IF \(Engine.Counter >= \(3 \+ 2\)\) → Eligible increase \(Amount: \(3 \+ 2\)\)/);
   assert.doesNotMatch(render(f, 'one'), /Increase value/);
   assert.match(render(f, 'all'), /    1\. Increase value \(Engine.Counter, \(3 \+ 2\)\)/);
@@ -35,10 +36,11 @@ test('computed conditions expand with ALL/ANY and branch results without evaluat
     { condition: null, result: { kind: 'boolean', condition: { kind: 'comparison', operand_a: constant(false), comparator: '==', operand_b: constant(true) } } },
   ] } };
   f.slot.branches[0].condition = { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', operand_a: { type: 'expression_macro_reference', expression_macro_id: expressionId }, comparator: '==', operand_b: constant(true) }] };
-  f.slot.branches.push({ condition: null, task: { builtin: 'cancel_main_day' } });
+  f.slot.branches.push({ condition: null, task: createTakeover() });
   assert.match(render(f), /ALL\(Can work == true\)/);
   assert.match(render(f, 'all'), /Can work \{ IF \(ANY\(Engine.Counter >= 10\)\) → true == true; ELSE → false == true \}/);
-  assert.match(render(f, 'all'), /ELSE → Cancel the main schedule for the rest of today/);
+  assert.match(render(f, 'all'), /ELSE → Schedule takeover/);
+  assert.match(render(f, 'all'), /Withdraw: Rest of today/);
 });
 
 test('empty and partial drafts remain readable, cycles stop and string arguments retain quoting', () => {

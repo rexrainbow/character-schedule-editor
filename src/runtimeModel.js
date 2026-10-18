@@ -1,6 +1,6 @@
 import { numberBounds, variableBoundsErrors } from './variableBounds.js';
 import { normalizeTaskMacro } from './taskMacroModel.js';
-import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask, flowScope, flowOperation } from './builtinTasks.js';
+import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask } from './builtinTasks.js';
 import { translator } from './i18n.js';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './runtime.schema.json' with { type: 'json' };
@@ -63,8 +63,8 @@ export function compileRuntime(draft, t = translator('en')) {
     if (isBuiltinFlowTask(value)) {
       const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
       if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
-      tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: [] });
-      return { task_key: engine_key, flow_control: flowOperation(value.builtin), scope: flowScope(value.builtin) };
+      tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: definition.parameters.map((p) => ({ display_name: p.display_name, type: p.type })) });
+      return { task_key: engine_key, flow_control: 'takeover', condition: condition(value.condition), scope: value.scope, target: value.target };
     }
     if (isBuiltinVariableTask(value)) {
       const definition = builtinVariableDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
