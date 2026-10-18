@@ -147,7 +147,14 @@ export default function App() {
   function copyDay() { const day = duplicateDay(draft, activeDay); commit({ ...draft, days: [...draft.days, day] }); setSelectedDay(day.id); resetSearch(); }
   function deleteDay() { if (window.confirm(t('deleteDayOverrideConfirm', { name: activeDay.name, count: dayReferenceCount(draft, activeDay.id), overrideCount: dayOverrideReferenceCount(draft, activeDay.id) }))) { commit(deleteSharedDay(draft, activeDay.id)); setSelectedDay(null); } }
   function copyWeek() { const next = duplicateWeek(draft, activeWeek); commit(next); setSelectedWeek(next.weeks.at(-1).id); resetSearch(); }
-  function removeWeek() { if (window.confirm(t('deleteWeekSequenceConfirm', { name: activeWeek.name, count: weekSequenceReferenceCount(draft, activeWeek.id) }))) { commit(deleteWeek(draft, activeWeek.id)); setSelectedWeek(null); } }
+  function removeWeek() {
+    if (window.confirm(t('deleteWeekSequenceConfirm', { name: activeWeek.name, count: weekSequenceReferenceCount(draft, activeWeek.id) }))) {
+      const next = deleteWeek(draft, activeWeek.id);
+      const adjusted = next.sequences.some((sequence, index) => sequence.endWeekday !== draft.sequences[index].endWeekday);
+      commit(next); setSelectedWeek(null);
+      if (adjusted) setNotice({ key: 'sequenceRangeAdjusted' });
+    }
+  }
   function copySequence() { const sequence = duplicateSequence(draft, activeSequence); commit({ ...draft, sequences: [...draft.sequences, sequence] }); setSelectedSequence(sequence.id); resetSearch(); }
   function removeSequence() { if (window.confirm(t('deleteSequenceConfirm', { name: activeSequence.name }))) { commit({ ...draft, sequences: draft.sequences.filter((sequence) => sequence.id !== activeSequence.id) }); setSelectedSequence(null); } }
   function saveSettings(project) { commit({ ...draft, project }); setSettings(null); }

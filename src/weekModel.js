@@ -1,6 +1,7 @@
 import { clearEngineKey } from './engineKeyModel.js';
 import { clone, compileDraft, nextSlotId } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
+import { normalizeSequenceRange } from './sequenceRange.js';
 
 export const isPrivateDay = (day) => day?.scope === 'week_private';
 export const sharedDays = (draft) => draft.days.filter((day) => !isPrivateDay(day));
@@ -63,7 +64,7 @@ export function duplicateWeek(draft, source) {
 
 export function deleteWeek(draft, weekId) {
   return { ...draft, weeks: draft.weeks.filter((week) => week.id !== weekId),
-    sequences: (draft.sequences ?? []).map((sequence) => ({ ...sequence, rows: sequence.rows.filter((row) => row.weekId !== weekId) })),
+    sequences: (draft.sequences ?? []).map((sequence) => normalizeSequenceRange({ ...sequence, rows: sequence.rows.filter((row) => row.weekId !== weekId) })),
     days: draft.days.filter((day) => !isPrivateDay(day) || day.owner.week_schedule_id !== weekId) };
 }
 

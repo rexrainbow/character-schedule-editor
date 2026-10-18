@@ -1,5 +1,7 @@
 # Runtime data v1
 
+每個 sequences 項目含 `start_weekday`／`end_weekday`（mon～sun），分別套用第一筆／最後一筆 entries，預設 mon／sun。有效日期包含兩端，engine 從開始日第一個時段執行至結束日最後一個時段；schedule.current_day 從開始日 1 起算，同一天不因時段推進而增加。entries 與 day_overrides 完整保留，不裁切範圍外資料。空序列沒有可執行日期；單筆 entries 的開始日必須早於或等於結束日。
+
 時段行程允許 `branches: []`，代表僅以 `display_name` 表示的活動，不包含任務動作。Runtime 可顯示活動名稱並完成；如需穩定連接程式功能，使用 `engine_key` 契約。非空分支仍須完整任務與唯一最後 ELSE。
 
 expression_macros.definition 也支援 `{kind: "branch", branches: [{condition, result}, ...]}`，result 是原本的 number／boolean 單一定義，所有分支結果須符合巨集 value_type。第一個條件符合者回傳其結果，唯一最後 ELSE 保證有回傳值；只有選中結果求值。條件及結果內的環境引用皆轉成 engine_key，詳見 [COMPUTED_BRANCHES.md](./COMPUTED_BRANCHES.md)。

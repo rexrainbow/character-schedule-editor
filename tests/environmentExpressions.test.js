@@ -7,24 +7,42 @@ import { addComputedNode, addOperandNode, isComputed, computedErrors, applyCompu
 import { addProgressDefinitions } from '../src/progressEnvironment.js';
 import { translator } from '../src/i18n.js';
 
-test('new default environments include five read-only progress variables and three scoped boolean macros', () => {
+test('new default environments include six read-only progress variables and three scoped boolean macros', () => {
   for (const locale of ['en', 'zh-TW']) {
     const t = translator(locale), draft = createProjectWithEnvironment('Progress', 3, null, undefined, t);
     const nodes = draft.operandNodes, values = Object.values(nodes).filter((n) => !isComputed(n) && n.node_type === 'value');
-    assert.equal(values.length, 5); assert.ok(values.every((n) => n.read_only && n.scope === 'environment' && n.value_type === 'number'));
+    assert.equal(values.length, 6); assert.ok(values.every((n) => n.read_only && n.scope === 'environment' && n.value_type === 'number'));
     assert.ok(values.some((n) => n.display_name === t('progressWeek')));
+    const [dayId, day] = Object.entries(nodes).find(([, n]) => n.engine_key === 'schedule.current_day');
+    assert.equal(day.display_name, t('progressDay')); assert.equal(day.initial_value, 1);
     assert.equal(Object.values(nodes).filter(isComputed).length, 3);
     assert.deepEqual(addProgressDefinitions(nodes, 3, t), nodes, 're-adding preserves UUIDs and definitions');
     const project = compileProject(draft); assert.deepEqual(project.errors, []);
     assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
     const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(Object.keys(env.data.expression_macros).length, 3);
+    assert.equal(env.data.operand_nodes[dayId].initial_value, 1);
     const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
     const [id] = Object.entries(nodes).find(([, n]) => n.engine_key === 'schedule.is_first_slot');
     const macro = runtime.data.expression_macros[id];
     assert.equal(macro.display_name, t('progressFirstSlot'));
     assert.deepEqual(macro.definition.condition.operand_a, { type: 'environment_reference', engine_key: 'schedule.current_slot' });
-    assert.equal(macro.scope, undefined); assert.equal(runtime.data.environment_variables[0].children.length, 5);
+    assert.equal(macro.scope, undefined); assert.equal(runtime.data.environment_variables[0].children.length, 6);
+    assert.ok(runtime.data.environment_variables[0].children.some((n) => n.engine_key === 'schedule.current_day' && n.initial_value === 1 && n.read_only));
   }
+});
+
+test('adding progress to an older environment adds only current day and preserves existing customizations', () => {
+  const draft = createProjectWithEnvironment('Existing', 3, null), nodes = structuredClone(draft.operandNodes);
+  const id = Object.keys(nodes).find((id) => nodes[id].engine_key === 'schedule.current_day'), removed = nodes[id]; delete nodes[id];
+  for (const node of Object.values(nodes)) if (node.parent_id === removed.parent_id && node.order > removed.order) node.order--;
+  const weekId = Object.keys(nodes).find((id) => nodes[id].engine_key === 'schedule.current_week');
+  nodes[weekId].display_name = 'Custom week'; nodes[weekId].initial_value = 4;
+  const next = addProgressDefinitions(nodes, 3, translator('en'));
+  for (const [id, node] of Object.entries(nodes)) assert.deepEqual(next[id], node);
+  const added = Object.entries(next).filter(([id]) => !nodes[id]);
+  assert.equal(added.length, 1); assert.equal(added[0][1].engine_key, 'schedule.current_day');
+  assert.deepEqual(addProgressDefinitions(next, 3, translator('en')), next);
+  draft.operandNodes = next; assert.deepEqual(compileProject(draft).errors, []);
 });
 
 test('environment expressions cannot depend on application data; application expressions may use both layers', () => {

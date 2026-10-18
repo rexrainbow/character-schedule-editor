@@ -49,7 +49,7 @@ test('existing projects can add the progress preset repeatedly without duplicati
   await page.getByRole('button', { name: 'Add schedule progress', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Read only', exact: true })).toBeChecked();
   const first = await download(page, () => exportProject(page));
-  expect(Object.keys(first.operand_nodes)).toHaveLength(6); expect(Object.keys(first.expression_macros)).toHaveLength(3);
+  expect(Object.keys(first.operand_nodes)).toHaveLength(7); expect(Object.keys(first.expression_macros)).toHaveLength(3);
   await page.getByRole('button', { name: 'Add schedule progress', exact: true }).click();
   const second = await download(page, () => exportProject(page));
   expect(second.operand_nodes).toEqual(first.operand_nodes); expect(second.expression_macros).toEqual(first.expression_macros);

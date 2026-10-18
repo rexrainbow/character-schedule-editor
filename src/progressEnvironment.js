@@ -13,7 +13,7 @@ export function addProgressDefinitions(nodes, slotsPerDay, t) {
   }
   const root = ensure('schedule.progress', { display_name: t('progressGroup'), icon: 'tabler:calendar-stats', node_type: 'group', parent_id: null, order: Object.values(next).filter((n) => n.source !== 'computed' && (n.scope ?? 'environment') === 'environment' && n.parent_id === null).length });
   const ids = {};
-  for (const [name, label, value] of [['current_week', 'progressWeek', 1], ['current_weekday', 'progressWeekday', 1], ['current_slot', 'progressSlot', 1], ['slots_per_day', 'progressSlotsPerDay', slotsPerDay], ['total_weeks', 'progressTotalWeeks', 0]]) {
+  for (const [name, label, value] of [['current_week', 'progressWeek', 1], ['current_weekday', 'progressWeekday', 1], ['current_day', 'progressDay', 1], ['current_slot', 'progressSlot', 1], ['slots_per_day', 'progressSlotsPerDay', slotsPerDay], ['total_weeks', 'progressTotalWeeks', 0]]) {
     ids[name] = ensure(`schedule.${name}`, { display_name: t(label), icon: 'tabler:code', node_type: 'value', parent_id: root, order: Object.values(next).filter((n) => n.parent_id === root).length, value_type: 'number', read_only: true, initial_value: value });
   }
   const ref = (name) => ({ type: 'reference', reference_id: ids[name] });

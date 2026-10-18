@@ -19,6 +19,24 @@ async function action(page, label, item) {
   await page.getByRole('menuitem', { name: item, exact: true }).click();
 }
 
+test('day numbers cover blank and overridden dates and follow week row positions', async ({ page }) => {
+  await load(page);
+  const numbers = page.locator('.sequence-day-number');
+  await expect(numbers).toHaveText(Array.from({ length: 21 }, (_, i) => `Day ${i + 1}`));
+  await page.locator('.sequence-row-controls').first().getByRole('button', { name: 'Duplicate week row', exact: true }).click();
+  await expect(numbers).toHaveText(Array.from({ length: 28 }, (_, i) => `Day ${i + 1}`));
+  await page.locator('.sequence-row-controls').first().getByRole('button', { name: 'Move down', exact: true }).click();
+  await expect(numbers).toHaveText(Array.from({ length: 28 }, (_, i) => `Day ${i + 1}`));
+  await page.locator('.sequence-row-controls').first().getByRole('button', { name: 'Delete week row', exact: true }).click();
+  await expect(numbers).toHaveText(Array.from({ length: 21 }, (_, i) => `Day ${i + 1}`));
+  const data = await exported(page);
+  expect(JSON.stringify(data.week_sequences)).not.toContain('day_number');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('zh-TW');
+  await expect(numbers.first()).toHaveText('Day 1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test('empty sequence creation, duplicate, deletion and canceled row picker', async ({ page }) => {
   await page.goto('/'); await page.locator('.welcome').getByRole('button', { name: 'New project', exact: true }).click(); await page.getByRole('dialog').getByRole('button', { name: 'Create project', exact: true }).click();
   await navigate(page, 'sequences');

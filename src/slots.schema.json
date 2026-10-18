@@ -622,6 +622,32 @@
         "engine_key": {
           "type": "string",
           "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "start_weekday": {
+          "type": "string",
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "default": "mon"
+        },
+        "end_weekday": {
+          "type": "string",
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "default": "sun"
         }
       },
       "additionalProperties": false

@@ -18,11 +18,14 @@ Runtime 仍使用同一個 `expression_macros` 字典，完整輸出環境與應
 | --- | --- | --- | --- |
 | 目前周次 | schedule.current_week | number / 1 | 周序列中的位置，從 1 開始 |
 | 目前星期 | schedule.current_weekday | number / 1 | 星期一 1 至星期日 7 |
+| 目前第幾天 | schedule.current_day | number / 1 | 從開始日起算，第 1 天為 1；同一天所有時段維持相同值 |
 | 目前時段 | schedule.current_slot | number / 1 | 當日時段位置，從 1 開始 |
 | 每日時段數 | schedule.slots_per_day | number / 新專案設定值 | 由環境 settings.slots_per_day 提供 |
 | 周序列周數 | schedule.total_weeks | number / 0 | 執行中周序列的周數，空序列為 0 |
 
-五個變數初始為 read_only，群組預設 key 為 schedule.progress。這些預設 key 是可編輯的契約名稱，engine 須提供相符的綁定。Engine 在執行前以實際起點、環境設定及所選周序列覆寫初始值；一個時段內維持一致快照，完成後一次推進位置。編輯器不實作 engine 計時或推進。
+六個變數初始為 read_only，群組預設 key 為 schedule.progress。這些預設 key 是可編輯的契約名稱，engine 須提供相符的綁定。Engine 在執行前以實際起點、環境設定及所選周序列覆寫初始值；一個時段內維持一致快照，完成後一次推進位置。編輯器不實作 engine 計時或推進。
+
+周序列每個有效日行程名稱上方顯示 Day N，包含未指定、覆蓋與空白日期；預設第一周星期一開始、最後一周星期日結束，可於第一周／最後一周的日期旗幟設定。有效編號為周列索引 × 7 + 星期索引 − 開始星期索引 + 1，範圍外不編號。周列新增、複製、移動、刪除時依目前位置重新計算，Day N 不保存於資料內，只有開始／結束星期需存檔。開始日設定同時決定畫面編號及 schedule.current_day 的起算點；即使從星期四開始，該日仍是 Day 1，而目前周次及目前星期維持各自定義。模擬模式可手動調整目前第幾天的測試值，尚不自動推進。
 
 | 環境巨集名稱 | 預設 engine_key | 布林定義 |
 | --- | --- | --- |

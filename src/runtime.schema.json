@@ -1744,6 +1744,28 @@
           "minLength": 1,
           "pattern": "\\S"
         },
+        "start_weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "end_weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
         "entries": {
           "type": "array",
           "items": {
@@ -1840,6 +1862,8 @@
       },
       "required": [
         "display_name",
+        "start_weekday",
+        "end_weekday",
         "entries"
       ],
       "additionalProperties": false

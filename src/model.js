@@ -114,6 +114,7 @@ export function validateDocument(data) {
   if (sequences && typeof sequences === 'object' && !Array.isArray(sequences)) {
     for (const [id, sequence] of Object.entries(sequences)) {
       const weekIds = sequence?.week_schedule_ids;
+      if (Array.isArray(weekIds) && weekIds.length === 1 && WEEKDAYS.indexOf(sequence.start_weekday ?? 'mon') > WEEKDAYS.indexOf(sequence.end_weekday ?? 'sun')) errors.push({ path: `/week_sequences/${id}/end_weekday`, key: 'invalidSequenceRange' });
       if (Array.isArray(weekIds)) weekIds.forEach((weekId, index) => {
         if (!weeks || !Object.hasOwn(weeks, weekId)) errors.push({ path: `/week_sequences/${id}/week_schedule_ids/${index}`, key: 'missingWeek' });
       });
@@ -173,6 +174,7 @@ export function projectToDraft(data) {
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) })),
     weeks: Object.entries(data.week_schedules ?? {}).map(([id, week]) => ({ id, name: week.display_name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) })),
     sequences: Object.entries(data.week_sequences ?? {}).map(([id, sequence]) => ({ id, name: sequence.display_name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats',
+      ...(sequence.start_weekday === undefined ? {} : { startWeekday: sequence.start_weekday }), ...(sequence.end_weekday === undefined ? {} : { endWeekday: sequence.end_weekday }),
       rows: sequence.week_schedule_ids.map((weekId, index) => ({ uid: uid(), weekId,
         overrides: Object.fromEntries(sequence.day_overrides.filter((item) => item.week_number === index + 1).map((item) => [item.weekday, item.day_schedule_id])) })) })) };
 }
@@ -191,6 +193,7 @@ export function compileProject(draft) {
     week_schedules: Object.fromEntries((draft.weeks ?? []).map((week) => [week.id, { display_name: week.name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) }])),
     week_sequences: Object.fromEntries((draft.sequences ?? []).map((sequence) => [sequence.id, {
       display_name: sequence.name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats', week_schedule_ids: sequence.rows.map((row) => row.weekId),
+      ...(sequence.startWeekday === undefined ? {} : { start_weekday: sequence.startWeekday }), ...(sequence.endWeekday === undefined ? {} : { end_weekday: sequence.endWeekday }),
       day_overrides: sequence.rows.flatMap((row, index) => WEEKDAYS.filter((weekday) => Object.hasOwn(row.overrides, weekday)).map((weekday) => ({ week_number: index + 1, weekday, day_schedule_id: row.overrides[weekday] }))),
     }])) };
   const sequenceIds = new Set();

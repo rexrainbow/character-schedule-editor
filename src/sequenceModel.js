@@ -1,9 +1,10 @@
 import { clearEngineKey } from './engineKeyModel.js';
 import { clone, nextSlotId, uid } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
+import { normalizeSequenceRange } from './sequenceRange.js';
 
 export function createSequence(draft, name) {
-  return { id: nextSlotId(draft.sequences), name, icon: 'tabler:calendar-stats', rows: [] };
+  return { id: nextSlotId(draft.sequences), name, icon: 'tabler:calendar-stats', startWeekday: 'mon', endWeekday: 'sun', rows: [] };
 }
 
 export function duplicateSequence(draft, sequence) {
@@ -12,7 +13,7 @@ export function duplicateSequence(draft, sequence) {
 
 export function addSequenceRow(draft, sequence, weekId) {
   if (!draft.weeks.some((week) => week.id === weekId)) throw new Error('Unknown week');
-  return { ...sequence, rows: [...sequence.rows, { uid: uid(), weekId, overrides: {} }] };
+  return normalizeSequenceRange({ ...sequence, rows: [...sequence.rows, { uid: uid(), weekId, overrides: {} }] });
 }
 
 export function replaceSequenceWeek(draft, sequence, rowUid, weekId) {
@@ -35,7 +36,7 @@ export function duplicateSequenceRow(sequence, rowUid) {
 }
 
 export function removeSequenceRow(sequence, rowUid) {
-  return { ...sequence, rows: sequence.rows.filter((row) => row.uid !== rowUid) };
+  return normalizeSequenceRange({ ...sequence, rows: sequence.rows.filter((row) => row.uid !== rowUid) });
 }
 
 export function setSequenceOverride(draft, sequence, rowUid, weekday, choice) {
