@@ -3,7 +3,7 @@ import { eventsOnDate, eventGroupErrors, eventGroupName } from './sequenceEvents
 import { sequenceRange } from './sequenceRange.js';
 import { resolveSequenceDay } from './sequenceModel.js';
 import { dayAssignment } from './dayEvents.js';
-import { isComputed, nodeScope, nodePath } from './operandModel.js';
+import { isComputed, nodeScope, nodePath, slotEntries } from './operandModel.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { translator } from './i18n.js';
 
@@ -83,12 +83,12 @@ export function simulateSequenceDay(draft, sequenceId, position, values = simula
       for (const entry of phase.entries) {
         context = { ...entry, phase: phase.label, phaseKey: phase.key, currentSlot: phase.currentSlot };
         engine.guard(0, entry.sourcePath);
-        const slot = slots.get(entry.slotId), trace = { kind: 'daySlot', label: `${entry.name} [${entry.type === 'main' ? t('simulationMainDay') : `${t('eventPriority')}: ${entry.priority}`}] → ${slot.name}`, slotId: slot.id, dayId: entry.dayId, groupId: entry.groupId, children: [], empty: !slot.branches.length };
+        const slot = slots.get(entry.slotId), trace = { kind: 'daySlot', label: `${entry.name} [${entry.type === 'main' ? t('simulationMainDay') : `${t('eventPriority')}: ${entry.priority}`}] → ${slot.name}`, slotId: slot.id, dayId: entry.dayId, groupId: entry.groupId, children: [], empty: !slotEntries(slot).length };
         event.children.push(trace);
         const cancellation = controls.find((control) => (control.scope === 'day' || phase.key.startsWith('slot:') && control.source.currentSlot === phase.currentSlot) && lowerPriority(entry, control.source));
         if (cancellation) { trace.cancelled = true; trace.empty = false; trace.cancelledBy = { name: cancellation.source.name, task: cancellation.label, scope: cancellation.scope, path: cancellation.path, phase: cancellation.source.phase }; continue; }
         const firstCall = engine.calls.length;
-        try { if (slot.branches.length) engine.branches(slot.branches, { values: {}, parameters: [] }, `/slots/${slot.id}/branches`, trace.children, ['sequence', 'branch']); }
+        try { if (slotEntries(slot).length) engine.runSlot(slot, trace.children); }
         catch (error) { trace.failed = true; throw error; }
         finally { for (let i = firstCall; i < engine.calls.length; i++) Object.assign(engine.calls[i], { context: { ...context } }); }
       }

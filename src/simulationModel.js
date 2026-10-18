@@ -1,4 +1,4 @@
-import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors } from './operandModel.js';
+import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors, macroEligibility, isPrioritySlot } from './operandModel.js';
 import { taskMacroDefinitionErrors } from './taskMacroModel.js';
 import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
 import { translator } from './i18n.js';
@@ -106,7 +106,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     out.push({ kind: 'reference', label: parameter.display_name, value: nodePath(nodes, reference.reference_id), path });
     return structuredClone(reference);
   }
-  function task(use, scope, path, out, modes = ['sequence', 'branch'], depth = 0) {
+  function task(use, scope, path, out, modes = ['sequence', 'branch', 'priority'], depth = 0, qualified = null) {
     guard(depth, path);
     const errors = taskUseErrors(use, draft.tasks, nodes, path, scope.parameters, draft.taskMacros, modes);
     if (errors.length) { const error = errors[0]; fail(error.key, error.path, error.field); }
@@ -132,7 +132,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     const macro = use.task_macro_id ? draft.taskMacros.find((m) => m.id === use.task_macro_id) : null;
     const definition = macro ?? draft.tasks.find((item) => item.id === use.task_id);
     const event = { kind: macro ? 'macro' : 'task', label: definition.display_name, path, children: [] }; out.push(event);
-    const args = Object.fromEntries(definition.parameters.map((p) => [p.id, argument(use.arguments[p.id], p, scope, `${path}/arguments/${p.id}`, event.children, depth + 1)]));
+    const args = qualified?.args ?? Object.fromEntries(definition.parameters.map((p) => [p.id, argument(use.arguments[p.id], p, scope, `${path}/arguments/${p.id}`, event.children, depth + 1)]));
     if (!macro) {
       event.unmodeled = true; unmodeled = true;
       calls.push({ kind: 'task', display_name: definition.display_name, engine_key: definition.engine_key, arguments: definition.parameters.map((p) => ({ id: p.id, display_name: p.display_name, type: p.type, value: args[p.id] })), path, effectsModeled: false });
@@ -144,11 +144,47 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     stack.add(macro.id);
     try {
       const local = { parameters: macro.parameters, values: args };
+      if (!qualified && macroEligibility(macro) != null) {
+        const guardEvent = { kind: 'guard', label: t('candidateCondition'), children: [], path: `/task_macros/${macro.id}/${macro.mode === 'conditional' ? 'condition' : 'eligibility'}` };
+        event.children.push(guardEvent);
+        guardEvent.result = condition(macroEligibility(macro), local, guardEvent.path, guardEvent.children, depth + 1);
+        if (!guardEvent.result) { event.children.push({ kind: 'skipped', label: t('conditionalSkipped') }); return; }
+      }
       if (macro.mode === 'sequence') {
         event.empty = !macro.steps.length;
-        macro.steps.forEach((step, index) => { const entry = { kind: 'step', index: index + 1, path: `/task_macros/${macro.id}/steps/${index}`, children: [] }; event.children.push(entry); task(step.task, local, `${entry.path}/task`, entry.children, [], depth + 1); });
-      } else { event.empty = !macro.branches.length; if (!event.empty) branches(macro.branches, local, `/task_macros/${macro.id}/branches`, event.children, ['sequence'], depth + 1); }
+        macro.steps.forEach((step, index) => { const entry = { kind: 'step', index: index + 1, path: `/task_macros/${macro.id}/steps/${index}`, children: [] }; event.children.push(entry); task(step.task, local, `${entry.path}/task`, entry.children, ['sequence', 'branch', 'priority'], depth + 1); });
+      } else if (macro.mode === 'branch') {
+        event.empty = !macro.branches.length; if (!event.empty) branches(macro.branches, local, `/task_macros/${macro.id}/branches`, event.children, ['sequence', 'branch', 'priority'], depth + 1);
+      } else if (macro.mode === 'conditional') {
+        task(macro.task, local, `/task_macros/${macro.id}/task`, event.children, ['sequence', 'branch', 'priority'], depth + 1);
+      } else if (macro.mode === 'priority') {
+        event.empty = !macro.candidates.length;
+        priorityCandidates(macro.candidates, local, `/task_macros/${macro.id}/candidates`, event.children, depth + 1);
+      }
     } finally { stack.delete(macro.id); }
+  }
+  function priorityCandidates(items, scope, path, out, depth = 0) {
+    let selected = false;
+    items.forEach((candidate, index) => {
+      const candidatePath = `${path}/${index}/task`;
+      guard(depth, candidatePath);
+      const definition = draft.taskMacros.find((item) => item.id === candidate.task?.task_macro_id);
+      const entry = { kind: 'candidate', label: `${t('candidateNumber', { count: index + 1 })}: ${definition?.display_name ?? '?'}`, path: candidatePath, children: [] }; out.push(entry);
+      if (selected) { entry.skipped = true; return; }
+      const errors = taskUseErrors(candidate.task, draft.tasks, nodes, candidatePath, scope.parameters, draft.taskMacros, ['sequence', 'branch', 'priority']);
+      if (errors.length) { const error = errors[0]; fail(error.key, error.path, error.field); }
+      if (!definition) fail('conditionalCandidateRequired', candidatePath);
+      const args = Object.fromEntries(definition.parameters.map((p) => [p.id, argument(candidate.task.arguments[p.id], p, scope, `${candidatePath}/arguments/${p.id}`, entry.children, depth + 1)]));
+      entry.result = macroEligibility(definition) == null || condition(macroEligibility(definition), { parameters: definition.parameters, values: args }, `/task_macros/${definition.id}/${definition.mode === 'conditional' ? 'condition' : 'eligibility'}`, entry.children, depth + 1);
+      if (entry.result) { selected = true; task(candidate.task, scope, candidatePath, entry.children, ['sequence', 'branch', 'priority'], depth + 1, { args }); }
+    });
+    if (!selected && items.length > 0) out.push({ kind: 'message', label: t('noCandidateMatched') });
+  }
+  function runSlot(slot, out = trace) {
+    const items = isPrioritySlot(slot) ? slot.candidates : slot.branches;
+    if (!items.length) out.push({ kind: 'slot', label: slot.name, empty: true, path: `/slots/${slot.id}`, children: [] });
+    else if (isPrioritySlot(slot)) priorityCandidates(items, { values: {}, parameters: [] }, `/slots/${slot.id}/candidates`, out);
+    else branches(items, { values: {}, parameters: [] }, `/slots/${slot.id}/branches`, out, ['sequence', 'branch', 'priority']);
   }
   function branches(items, scope, path, out, modes, depth = 0) {
     if (branchOrderErrors(items, path).length) fail('elseLast', path);
@@ -161,7 +197,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       if (event.result) { selected = true; task(branch.task, scope, `${event.path}/task`, event.children, modes, depth + 1); }
     });
   }
-  return { state, calls, trace, operand, branches, guard, get unmodeled() { return unmodeled; } };
+  return { state, calls, trace, operand, branches, runSlot, guard, get unmodeled() { return unmodeled; } };
 }
 
 export function evaluateSimulationExpressions(draft, values) {
@@ -176,8 +212,7 @@ export function simulateSlot(draft, slotId, values = simulationInitialValues(dra
   const engine = createSimulationEvaluator(draft, input, baseline, t), slot = draft.slots.find((item) => item.id === slotId);
   if (!slot) errors.push({ path: '/slot_id', key: 'simulationChooseSlot' });
   if (!errors.length) try {
-    if (Array.isArray(slot.branches) && slot.branches.length === 0) engine.trace.push({ kind: 'slot', label: slot.name, empty: true, path: `/slots/${slotId}`, children: [] });
-    else engine.branches(slot.branches, { values: {}, parameters: [] }, `/slots/${slotId}/branches`, engine.trace, ['sequence', 'branch']);
+    engine.runSlot(slot);
   }
   catch (error) { errors.push({ path: error.path ?? '/', key: error.key ?? 'simulationError', field: error.field }); }
   return { slotId, trace: engine.trace, calls: engine.calls, state: engine.state, errors, unmodeled: engine.unmodeled, changes: Object.keys(input).filter((id) => !Object.is(input[id], engine.state[id])).map((id) => ({ id, name: nodePath(draft.operandNodes, id), before: input[id], after: engine.state[id] })) };

@@ -1,9 +1,9 @@
 import { updateParameterContract } from './parameterModel.js';
 import { clearEngineKey } from './engineKeyModel.js';
-import { taskUseErrors, argumentErrors, macroEntries } from './operandModel.js';
+import { taskUseErrors, argumentErrors, macroEntries, mapMacroEntries, slotEntries, mapSlotEntries } from './operandModel.js';
 
 export const taskUses = (slots, id, sequences = []) => [
-  ...slots.flatMap((slot) => slot.branches.flatMap((branch, index) => branch.task?.task_id === id ? [{ slot: slot.name, branch: index + 1, path: `/slots/${slot.id}/branches/${index}/task`, task: branch.task }] : [])),
+  ...slots.flatMap((slot) => slotEntries(slot).flatMap(({ entry: branch, index, path }) => branch.task?.task_id === id ? [{ slot: slot.name, branch: index + 1, path: `${path}/task`, task: branch.task }] : [])),
   ...sequences.flatMap((macro) => macroEntries(macro).flatMap(({ entry, path, index }) => entry.task?.task_id === id ? [{ slot: macro.display_name, ...(macro.mode === 'branch' ? { branch: index + 1 } : { step: index + 1 }), scope: macro.parameters, path: `${path}/task`, task: entry.task }] : [])),
 ];
 export const createTask = (name) => ({ id: crypto.randomUUID(), display_name: name, parameters: [] });
@@ -37,7 +37,7 @@ export function deleteTask(draft, id) {
 }
 export function deleteParameter(draft, taskId, parameterId) {
   return { ...draft, tasks: draft.tasks.map((task) => task.id === taskId ? { ...task, parameters: task.parameters.filter((p) => p.id !== parameterId) } : task),
-    taskMacros: (draft.taskMacros ?? []).map((macro) => { const key = macro.mode === 'branch' ? 'branches' : 'steps'; return { ...macro, [key]: macro[key].map((entry) => entry.task.task_id !== taskId ? entry : { ...entry, task: { ...entry.task, arguments: Object.fromEntries(Object.entries(entry.task.arguments).filter(([id]) => id !== parameterId)) } }) }; }),
-    slots: draft.slots.map((slot) => ({ ...slot, branches: slot.branches.map((branch) => branch.task?.task_id !== taskId ? branch : { ...branch, task: { ...branch.task, arguments: Object.fromEntries(Object.entries(branch.task.arguments).filter(([id]) => id !== parameterId)) } }) })) };
+    taskMacros: (draft.taskMacros ?? []).map((macro) => mapMacroEntries(macro, (entry) => entry.task?.task_id !== taskId ? entry : { ...entry, task: { ...entry.task, arguments: Object.fromEntries(Object.entries(entry.task.arguments).filter(([id]) => id !== parameterId)) } })),
+    slots: draft.slots.map((slot) => mapSlotEntries(slot, (branch) => branch.task?.task_id !== taskId ? branch : { ...branch, task: { ...branch.task, arguments: Object.fromEntries(Object.entries(branch.task.arguments).filter(([id]) => id !== parameterId)) } })) };
 }
 export { taskUseErrors };

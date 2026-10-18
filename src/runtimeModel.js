@@ -1,9 +1,10 @@
+import { normalizeTaskMacro } from './taskMacroModel.js';
 import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
 import { translator } from './i18n.js';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './runtime.schema.json' with { type: 'json' };
 import { compileProject } from './model.js';
-import { initialValue, variableScope, isComputed, childrenOf } from './operandModel.js';
+import { initialValue, variableScope, isComputed, childrenOf, isPrioritySlot } from './operandModel.js';
 import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { dayEventsToData } from './dayEvents.js';
@@ -86,8 +87,8 @@ export function compileRuntime(draft, t = translator('en')) {
     environment_variables: tree(null, 'environment'),
     application_variables: tree(),
     expression_macros: Object.fromEntries(Object.entries(nodes).filter(([, node]) => isComputed(node)).map(([id, node]) => [id, { ...metadata(node), value_type: node.value_type, definition: computedDefinition(node.definition) }])),
-    task_macros: Object.fromEntries(draft.taskMacros.map((macro) => [macro.id, { ...metadata(macro), parameters: macro.parameters.map((p) => ({ id: p.id, display_name: p.display_name, type: p.type, ...contract(p) })), mode: macro.mode, ...(macro.mode === 'sequence' ? { steps: macro.steps.map((step) => task(step.task)) } : { branches: branches(macro.branches) }) }])),
-    slots: Object.fromEntries(draft.slots.map((slot) => [slot.id, { ...metadata(slot), branches: branches(slot.branches) }])),
+    task_macros: Object.fromEntries(draft.taskMacros.map((value) => { const macro = normalizeTaskMacro(value); return [macro.id, { ...metadata(macro), parameters: macro.parameters.map((p) => ({ id: p.id, display_name: p.display_name, type: p.type, ...contract(p) })), mode: macro.mode, ...(macro.eligibility == null ? {} : { eligibility: condition(macro.eligibility) }), ...(macro.mode === 'sequence' ? { steps: macro.steps.map((step) => task(step.task)) } : macro.mode === 'branch' ? { branches: branches(macro.branches) } : { candidates: macro.candidates.map((entry) => task(entry.task)) }) }]; })),
+    slots: Object.fromEntries(draft.slots.map((slot) => [slot.id, { ...metadata(slot), ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: slot.candidates.map((entry) => task(entry.task)) } : { branches: branches(slot.branches) }) }])),
     days: Object.fromEntries(draft.days.filter((item) => item.scope !== 'week_private').map((item) => [item.id, day(item)])),
     weeks: Object.fromEntries(draft.weeks.map((week) => [week.id, { ...metadata(week), days: Object.fromEntries(WEEKDAYS.map((weekday) => {
       const id = week.days[weekday], item = draft.days.find((item) => item.id === id);

@@ -18,12 +18,12 @@ test('both macro modes round-trip without branch editor metadata; branch operati
   assert.deepEqual(removeBranch(added, added.length - 1), added);
   assert.ok(!JSON.stringify(compileProject(draft).data).includes('"uid"'));
 });
-test('macro calls enforce slot → either mode, branch → sequence, sequence → primitive only', () => {
+test('direct and indirect circular macro calls are rejected', () => {
   const { branch, sequence } = setup();
   for (const [owner, target] of [[branch, branch], [sequence, branch], [sequence, sequence]]) {
     const data = structuredClone(example), macro = data.task_macros[owner.id], entry = owner.mode === 'branch' ? macro.branches[0] : macro.steps[0];
     entry.task = { task_macro_id: target.id, arguments: {} };
-    assert.ok(validateDocument(data).some((e) => e.key === 'macroCallNotAllowed' && e.path.includes(owner.id)));
+    assert.ok(validateDocument(data).some((e) => e.key === 'taskMacroCycle'));
   }
   const bad = structuredClone(example); bad.task_macros[branch.id].branches.at(-1).condition = constant(true);
   assert.ok(validateDocument(bad).some((e) => e.key === 'elseLast'));
@@ -49,10 +49,10 @@ test('copying branch macros remaps local conditions and call values while retain
   draft.taskMacros.push(copy); assert.deepEqual(compileProject(draft).errors, []);
   assert.ok(macroParameterReferences(copy, copy.parameters[1].id).some((ref) => ref.path.includes('/condition/')));
 });
-test('mode changes preserve identity and parameters, clear content and protect branch callers', () => {
+test('mode changes preserve identity and parameters, clear content and protect incoming callers', () => {
   const { draft, branch, sequence } = setup();
-  assert.equal(changeMacroMode(draft, sequence.id, 'branch').draft, draft);
-  assert.ok(changeMacroMode(draft, sequence.id, 'branch').blocked.some((use) => use.ownerId === branch.id));
+  assert.notEqual(changeMacroMode(draft, sequence.id, 'branch').draft, draft);
+  assert.deepEqual(changeMacroMode(draft, sequence.id, 'branch').blocked, []);
   const changed = changeMacroMode(draft, branch.id, 'sequence').draft.taskMacros.find((m) => m.id === branch.id);
   assert.deepEqual(changed.parameters, branch.parameters); assert.equal(changed.display_name, branch.display_name); assert.deepEqual(changed.steps, []); assert.ok(!('branches' in changed));
   const unused = createTaskMacro('Unused'); draft.taskMacros.push(unused);

@@ -1,6 +1,6 @@
 import { engineMetadata, clearEngineKey } from './engineKeyModel.js';
 import { taskMacroDefinitionErrors, macroToData, macroFromData } from './taskMacroModel.js';
-import { taskMacroContentErrors } from './operandModel.js';
+import { taskMacroContentErrors, slotEntries, slotContentErrors, isPrioritySlot } from './operandModel.js';
 import { computedErrors, conditionErrors, treeErrors, documentNodes, serializeNodes } from './operandModel.js';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './slots.schema.json' with { type: 'json' };
@@ -22,7 +22,7 @@ export function branchFromData(branch) {
 
 export function documentToDraft(data) {
   return Object.entries(data.slots).map(([id, slot]) => ({
-    uid: uid(), id, name: slot.display_name, ...engineMetadata(slot), icon: slot.icon, branches: slot.branches.map(branchFromData),
+    uid: uid(), id, name: slot.display_name, ...engineMetadata(slot), icon: slot.icon, branches: (slot.branches ?? []).map(branchFromData), ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: clone(slot.candidates) } : {}),
   }));
 }
 
@@ -38,7 +38,7 @@ export function createSlot(slots, name) {
 
 export function duplicateSlot(slots, slot) {
   return { ...clearEngineKey(slot), uid: uid(), id: nextSlotId(slots), name: `${slot.name} (副本)`,
-    branches: slot.branches.map((branch) => ({ ...clone(branch), uid: uid() })) };
+    branches: (slot.branches ?? []).map((branch) => ({ ...clone(branch), uid: uid() })), ...(isPrioritySlot(slot) ? { candidates: slot.candidates.map((candidate) => ({ ...clone(candidate), id: uid() })) } : {}) };
 }
 
 export function addBranch(branches) {
@@ -155,10 +155,7 @@ export function validateDocument(data) {
   const tasks = data?.tasks && typeof data.tasks === 'object' && !Array.isArray(data.tasks) ? Object.entries(data.tasks).map(([id, task]) => ({ ...task, id })) : [];
   const taskMacros = data?.task_macros && typeof data.task_macros === 'object' && !Array.isArray(data.task_macros) ? Object.entries(data.task_macros).map(([id, sequence]) => ({ ...sequence, id })) : [];
   errors.push(...taskDefinitionErrors(tasks), ...taskMacroDefinitionErrors(taskMacros), ...taskMacroContentErrors(taskMacros, tasks, nodes));
-  if (data?.slots && typeof data.slots === 'object') for (const [id, slot] of Object.entries(data.slots)) {
-    if (Array.isArray(slot?.branches)) slot.branches.forEach((branch, i) => errors.push(...conditionErrors(branch?.condition, nodes, `/slots/${id}/branches/${i}/condition`)));
-    if (Array.isArray(slot?.branches)) slot.branches.forEach((branch, i) => errors.push(...taskUseErrors(branch?.task, tasks, nodes, `/slots/${id}/branches/${i}/task`, [], taskMacros)));
-  }
+  if (data?.slots && typeof data.slots === 'object') errors.push(...slotContentErrors(Object.entries(data.slots).filter(([, slot]) => slot && typeof slot === 'object').map(([id, slot]) => ({ ...slot, id })), tasks, nodes, taskMacros));
   return errors;
 }
 
@@ -171,8 +168,8 @@ export function compileDraft(slots, operandNodes = {}, tasks = [], taskMacros = 
     if (!idPattern.test(slot.id)) errors.push({ path, key: 'idPattern' });
     if (seen.has(slot.id)) errors.push({ path, key: 'duplicateId' });
     seen.add(slot.id);
-    const branches = slot.branches.map((branch) => ({ condition: branch.condition, task: clone(branch.task) }));
-    entries.push([slot.id, { display_name: slot.name, ...engineMetadata(slot), icon: slot.icon, branches }]);
+    const branches = (slot.branches ?? []).map((branch) => ({ condition: branch.condition, task: clone(branch.task) }));
+    entries.push([slot.id, { display_name: slot.name, ...engineMetadata(slot), icon: slot.icon, ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: clone(slot.candidates) } : { branches }) }]);
   }
   const data = { slots: Object.fromEntries(entries) };
   errors.push(...validateDocument({ project: createProject().project, ...data, day_schedules: {}, ...serializeNodes(operandNodes), tasks: Object.fromEntries(tasks.map(({ id, ...task }) => [id, task])), task_macros: Object.fromEntries(taskMacros.map((macro) => [macro.id, macroToData(macro)])) }));
@@ -263,5 +260,5 @@ export function applySlotEdit(draft, slot, dayId, index) {
 
 export function taskSummary(slot, unnamed, tasks = [], taskMacros = [], builtinName = 'Set variable') {
   const names = typeof builtinName === 'string' ? { set_variable: builtinName, increment_variable: 'Increase value', toggle_variable: 'Toggle boolean', reset_variable: 'Reset initial value', cancel_lower_priority_slot: 'Cancel lower-priority schedules in this slot', cancel_lower_priority_day: 'Cancel lower-priority schedules for the rest of today' } : builtinName;
-  return slot.branches.map((branch) => (branch.task?.builtin ? { display_name: names[branch.task.builtin] } : branch.task?.task_macro_id !== undefined ? taskMacros.find((sequence) => sequence.id === branch.task.task_macro_id) : tasks.find((task) => task.id === branch.task?.task_id))?.display_name || unnamed).join(' / ');
+  return slotEntries(slot).map(({ entry: branch }) => (branch.task?.builtin ? { display_name: names[branch.task.builtin] } : branch.task?.task_macro_id !== undefined ? taskMacros.find((sequence) => sequence.id === branch.task.task_macro_id) : tasks.find((task) => task.id === branch.task?.task_id))?.display_name || unnamed).join(' / ');
 }

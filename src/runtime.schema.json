@@ -1071,6 +1071,16 @@
               "items": {
                 "$ref": "#/$defs/runtime_step"
               }
+            },
+            "eligibility": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/scoped_condition"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1106,6 +1116,16 @@
               "items": {
                 "$ref": "#/$defs/runtime_branch"
               }
+            },
+            "eligibility": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/scoped_condition"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1113,6 +1133,51 @@
             "parameters",
             "mode",
             "branches"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/task_parameter"
+              }
+            },
+            "mode": {
+              "const": "priority"
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "eligibility": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/scoped_condition"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "display_name",
+            "parameters",
+            "mode",
+            "candidates"
           ],
           "additionalProperties": false
         }
@@ -1205,6 +1270,9 @@
         },
         {
           "$ref": "#/$defs/runtime_flow_control"
+        },
+        {
+          "$ref": "#/$defs/scoped_task_macro_use"
         }
       ]
     },
@@ -1472,27 +1540,26 @@
       ],
       "additionalProperties": false
     },
-    "runtime_branch": {
+    "scoped_task_macro_use": {
       "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
       "properties": {
-        "condition": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/scoped_condition"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/runtime_argument"
+          }
         },
-        "task": {
-          "$ref": "#/$defs/runtime_action"
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
         }
       },
-      "required": [
-        "condition",
-        "task"
-      ],
       "additionalProperties": false
     },
     "scoped_condition": {
@@ -1564,6 +1631,29 @@
       },
       "additionalProperties": false
     },
+    "runtime_branch": {
+      "type": "object",
+      "properties": {
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task": {
+          "$ref": "#/$defs/runtime_action"
+        }
+      },
+      "required": [
+        "condition",
+        "task"
+      ],
+      "additionalProperties": false
+    },
     "runtime_action": {
       "oneOf": [
         {
@@ -1583,51 +1673,61 @@
         }
       ]
     },
-    "scoped_task_macro_use": {
-      "type": "object",
-      "required": [
-        "task_macro_id",
-        "arguments"
-      ],
-      "properties": {
-        "arguments": {
-          "type": "object",
-          "propertyNames": {
-            "$ref": "#/$defs/uuid"
-          },
-          "additionalProperties": {
-            "$ref": "#/$defs/runtime_argument"
-          }
-        },
-        "task_macro_id": {
-          "$ref": "#/$defs/uuid"
-        }
-      },
-      "additionalProperties": false
-    },
     "runtime_slot": {
-      "type": "object",
-      "properties": {
-        "display_name": {
-          "type": "string"
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "branches": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/runtime_branch"
+              }
+            }
+          },
+          "required": [
+            "display_name",
+            "branches"
+          ],
+          "additionalProperties": false
         },
-        "engine_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "\\S"
-        },
-        "branches": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/runtime_branch"
-          }
+        {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "mode": {
+              "const": "priority"
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            }
+          },
+          "required": [
+            "display_name",
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "display_name",
-        "branches"
-      ],
-      "additionalProperties": false
+      ]
     },
     "runtime_day": {
       "type": "object",

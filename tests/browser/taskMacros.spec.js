@@ -46,7 +46,8 @@ test('new branch macros share slot branch controls, bind local conditions and pa
   await constant(page, branch(page), 'Right operand (opB)', '10');
   await branch(page).getByRole('combobox', { name: 'Operator', exact: true }).selectOption('>');
   const select = branch(page).getByRole('combobox', { name: 'Task', exact: true });
-  await expect(select.locator(`option[value="macro:${branchId}"]`)).toHaveCount(0);
+  await expect(select.locator(`option[value="macro:${branchId}"]`)).toHaveCount(1);
+  await expect(select.getByRole('option', { name: 'Work rules', exact: true })).toHaveCount(0);
   await select.selectOption('macro:' + sequenceId);
   await constant(page, branch(page), 'Argument: Destination', 'Shop', 'string');
   await local(page, branch(page), 'Argument: Speed', 'Input');
@@ -69,9 +70,10 @@ test('new branch macros share slot branch controls, bind local conditions and pa
 
 test('mode switching confirms discard, preserves signature, and blocks incompatible macro callers', async ({ page }) => {
   await load(page); await selectMacro(page, 'Shopping', 2);
-  await page.getByRole('combobox', { name: 'Macro mode', exact: true }).selectOption('branch');
-  await expect(page.getByRole('combobox', { name: 'Macro mode', exact: true })).toHaveValue('sequence');
-  await expect(page.getByRole('alert')).toContainText(`/task_macros/${branchId}/branches/0/task`);
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('combobox', { name: 'Macro mode', exact: true }).selectOption('priority');
+  await expect(page.getByRole('combobox', { name: 'Macro mode', exact: true })).toHaveValue('priority');
+  await expect(page.getByRole('alert')).toHaveCount(0);
   await selectMacro(page, 'Choose trip', 2);
   page.once('dialog', (d) => d.dismiss()); await page.getByRole('combobox', { name: 'Macro mode', exact: true }).selectOption('sequence');
   expect((await exported(page)).task_macros[branchId]).toEqual(branchMacro);
@@ -109,7 +111,7 @@ test('signature deletion clears branch callers and invalid macro edges/import sc
   const saved = await exported(page); expect(saved.task_macros[branchId].branches[0].task.arguments[sequenceMacro.parameters[1].id]).toBeUndefined();
   const bad = structuredClone(saved); bad.task_macros[branchId].branches[0].task = { task_macro_id: branchId, arguments: {} };
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'cycle.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(bad)) });
-  await expect(page.locator('.issues')).toContainText('cannot be called from here');
+  await expect(page.locator('.issues')).toContainText('circular call chain');
   expect((await exported(page)).task_macros).toEqual(saved.task_macros);
 });
 

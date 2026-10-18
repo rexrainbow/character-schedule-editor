@@ -310,6 +310,17 @@ body { min-width: 360px; font-size: 15px; }
 .simulation-day-plan li { margin: 4px 0; }
 .simulation-source-actions { display: flex; gap: 4px; }
 .task-category { display: flex; flex-direction: column; gap: 6px; }
+.slot-start-actions { display: flex; gap: 10px; }
+.slot-start-actions>.button { flex: 1; min-width: 0; }
+.priority-candidates-editor { min-width: 0; }
+.macro-eligibility { border: 1px solid #494158; border-radius: 8px; margin: 12px 0 20px; background: #252233; }
+.macro-eligibility>summary { padding: 12px; cursor: pointer; overflow-wrap: anywhere; }
+.macro-eligibility>summary>strong { margin-right: 12px; }
+.macro-eligibility>summary>span { color: #c4b5de; }
+.macro-eligibility-body { padding: 0 12px 12px; display: grid; gap: 12px; }
+.macro-eligibility-body>.button { justify-self: start; }
+.candidate-condition-summary { padding: 12px; margin-top: 12px; border: 1px solid #494158; border-radius: 8px; background: #252233; overflow-wrap: anywhere; }
+.candidate-condition-summary p { margin: 8px 0; white-space: pre-wrap; }
 .task-category h3, .task-category-heading { color: var(--muted); font-size: 12px; margin: 10px 0 2px; }
 .simulation-cancel-reason { color: #e3bf8f; background: #352c23; border-left: 2px solid #b38c60; padding: 8px; font-size: 12px; overflow-wrap: anywhere; }
 .sequence-day-actions { display: flex; align-items: center; gap: 2px; min-width: 0; }

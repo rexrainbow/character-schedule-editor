@@ -1,3 +1,4 @@
+import { macroEntries, slotEntries } from './operandModel.js';
 import { translator } from './i18n.js';
 import { addProgressDefinitions } from './progressEnvironment.js';
 import { isBuiltinVariableTask } from './builtinTasks.js';
@@ -91,8 +92,11 @@ export function prepareEnvironmentImport(draft, environment) {
     }
     for (const [key, child] of Object.entries(value)) walk(child, `${path}/${key}`);
   }
-  for (const slot of next.slots) walk(slot.branches, `/slots/${slot.id}/branches`);
-  for (const macro of next.taskMacros) walk(macro.mode === 'branch' ? macro.branches : macro.steps, `/task_macros/${macro.id}/${macro.mode === 'branch' ? 'branches' : 'steps'}`);
+  for (const slot of next.slots) for (const { entry, path } of slotEntries(slot)) { walk(entry.condition, `${path}/condition`); walk(entry.task, `${path}/task`); }
+  for (const macro of next.taskMacros) {
+    walk(macro.eligibility, `/task_macros/${macro.id}/eligibility`);
+    for (const { entry, path } of macroEntries(macro)) { walk(entry.condition, `${path}/condition`); walk(entry.task, `${path}/task`); }
+  }
   for (const [id, node] of Object.entries(application)) if (isComputed(node)) walk(node.definition, `/expression_macros/${id}/definition`);
   stats.variables = [...variableMap.values()].filter((node) => node && !isComputed(node)).length; stats.expressions = [...variableMap.values()].filter((node) => node && isComputed(node)).length; stats.tasks = [...taskMap.values()].filter(Boolean).length;
   if (errors.length) return { draft: null, errors, stats };

@@ -4,7 +4,7 @@ import ConditionEditor from './ConditionEditor.jsx';
 import TaskUseEditor from './TaskUseEditor.jsx';
 import { IconButton } from './ui.jsx';
 
-export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch'], allowEmpty = false, emptyHint = 'emptyMacroHint', renderResult, onAddBranch, t }) {
+export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch', 'priority'], ownerMacroId, allowEmpty = false, emptyHint = 'emptyMacroHint', renderResult, onAddBranch, emptyActions, t }) {
   function patchBranch(index, values) { onChange(branches.map((branch, i) => i === index ? { ...branch, ...values } : branch)); }
   return (
     <section className="branch-section">
@@ -17,10 +17,10 @@ export default function BranchRulesEditor({ branches, onChange, nodes = {}, task
             {!isElse && <div className="row-actions"><IconButton icon={ArrowUp} label={t('up')} disabled={index === 0} onClick={() => onChange(moveBranch(branches, index, -1))} /><IconButton icon={ArrowDown} label={t('down')} disabled={index >= branches.length - 2} onClick={() => onChange(moveBranch(branches, index, 1))} /><IconButton icon={Trash2} label={t('removeBranch')} danger onClick={() => onChange(removeBranch(branches, index))} /></div>}
             {isElse && allowEmpty && branches.length === 1 && <IconButton icon={Trash2} label={t('removeBranch')} danger onClick={() => onChange([])} />}
           </div>
-          <div className="branch-body">{!isElse ? <div className="condition-field"><span className="field-label">{t('condition')}</span><ConditionEditor parameters={parameters} nodes={nodes} t={t} value={branch.condition} onChange={(condition) => patchBranch(index, { condition })} /></div> : <p className="else-description">{t('elseBody')}</p>}{renderResult ? renderResult(branch, index, (values) => patchBranch(index, values)) : <TaskUseEditor parameters={parameters} allowedMacroModes={allowedMacroModes} tasks={tasks} nodes={nodes} t={t} branch={branch} onChange={(values) => patchBranch(index, values)} />}</div>
+          <div className="branch-body">{!isElse ? <div className="condition-field"><span className="field-label">{t('condition')}</span><ConditionEditor parameters={parameters} nodes={nodes} t={t} value={branch.condition} onChange={(condition) => patchBranch(index, { condition })} /></div> : <p className="else-description">{t('elseBody')}</p>}{renderResult ? renderResult(branch, index, (values) => patchBranch(index, values)) : <TaskUseEditor ownerMacroId={ownerMacroId} parameters={parameters} allowedMacroModes={allowedMacroModes} tasks={tasks} nodes={nodes} t={t} branch={branch} onChange={(values) => patchBranch(index, values)} />}</div>
         </article>;
       })}</div>
-      <button className="button add-branch" onClick={() => onAddBranch ? onAddBranch() : onChange(allowEmpty && !branches.length ? [{ uid: crypto.randomUUID(), condition: null, task: { task_id: '', arguments: {} } }] : addBranch(branches))}><Plus size={17} />{t(allowEmpty && !branches.length ? 'addElseBranch' : 'addBranch')}</button>
+      <div className={emptyActions && !branches.length ? 'slot-start-actions' : undefined}>{!branches.length && emptyActions}<button className="button add-branch" onClick={() => onAddBranch ? onAddBranch() : onChange(allowEmpty && !branches.length ? [{ uid: crypto.randomUUID(), condition: null, task: { task_id: '', arguments: {} } }] : addBranch(branches))}><Plus size={17} />{t(allowEmpty && !branches.length ? 'addElseBranch' : 'addBranch')}</button></div>
     </section>
   );
 }

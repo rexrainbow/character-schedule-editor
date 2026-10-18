@@ -64,7 +64,7 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 
 引用參數不支援在算術或條件式中直接求值；需要取得值時仍使用既有的變數讀值運算式。傳遞給巨集的引用保持身分，數值參數才於進入巨集時求值。環境變數依賴會合併讀取與寫入用途，engine 應核對實際寫入權限。
 
-序列巨集的 `steps` 直接為任務呼叫陣列，省略步驟 ID。分支巨集與時段行程保留 `{condition, task}`，ELSE 為最後一個 `condition: null`。來源專案原有的巨集呼叫限制仍適用。
+序列巨集的 `steps` 直接為任務／巨集呼叫陣列，省略步驟 ID。分支巨集與時段行程保留 `{condition, task}`，ELSE 為最後一個 `condition: null`。巨集可呼叫任意模式巨集，禁止循環；各巨集的共通資格條件與分支 condition 分開處理。
 
 設定變數模板呼叫為 `{task_key: "使用者設定的 engine_key", target: VariableReference, value: Operand}`。Runtime 不輸出固定的 `builtin` 識別，engine 必須依 task_key 連接提供此介面的任務。`target` 可為應用 UUID 引用或環境 key 引用，傳遞寫入位置，不是先求值成變數內容；它取代編輯器的 `target_variable_id`。寫入權限與型別在匯出前檢查。
 
@@ -73,6 +73,10 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 另外三個固定範本同樣以使用者設定的 task_key 連接 engine：「增加數值」輸出 `{task_key, target, value}`，value 為數字 expression，target 契約為 number/read_write；「切換布林」輸出 `{task_key, target}`，target 為 boolean/read_write；「重設初始值」輸出 `{task_key, target}`，target 為 any/write。重設基準是 runtime 實際採用的初始化值，不在呼叫內嵌入初始值。完整語意與原子更新契約見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
 
 ## 行程
+
+時段行程除了既有 branches，也可為 `{display_name, engine_key?, mode: "priority", candidates: [{task_macro_id, arguments}, ...]}`，兩者互斥。candidates 依序檢查所引用巨集的資格，選中第一個符合者，引數及資格不重複求值；空清單或全部不符合時沒有動作。詳見 [SLOT_PRIORITY.md](./SLOT_PRIORITY.md)。
+
+[任務巨集](./TASK_MACROS.md) 的 sequence、branch、priority 均可附 `eligibility: Condition`，省略表示無限制。直接呼叫巨集時先求值引數及資格條件，再執行內容。優先候選的 candidates 可引用任一種巨集；第一個符合資格者直接執行內容，不重複求值資格與引數，不再檢查後續候選；全部不成立時沒有動作。允許巨集互相呼叫，但由來源編譯器拒絕循環。runtime 不再輸出 conditional 模式。
 
 [流程控制任務](./FLOW_CONTROL_TASKS.md) 輸出 `{task_key, flow_control: "cancel_lower_priority", scope: "slot" | "day"}`。範本無參數，控制語意不由顯示名稱或自訂 task_key 推測。engine 的周序列執行器依目前來源優先權取消範圍內的低優先指派，同優先權與目前來源保留；取消後不求值任何條件、計算式或引數。
 

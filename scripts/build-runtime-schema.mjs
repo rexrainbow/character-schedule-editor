@@ -21,15 +21,17 @@ defs.runtime_assignment = obj({ task_key: key, target: { oneOf: [ref('reference_
 defs.runtime_target_operation = obj({ task_key: key, target: { oneOf: [ref('reference_operand'), ref('environment_reference')] } });
 defs.runtime_flow_control = obj({ task_key: key, flow_control: { const: 'cancel_lower_priority' }, scope: { enum: ['slot', 'day'] } });
 defs.runtime_action = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('scoped_task_macro_use')] };
-defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control')] };
+defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('scoped_task_macro_use')] };
 defs.runtime_branch = obj({ condition: { oneOf: [ref('scoped_condition'), { type: 'null' }] }, task: ref('runtime_action') });
-defs.runtime_slot = entity({ branches: arr(ref('runtime_branch')) }, ['branches']);
+defs.runtime_slot = { oneOf: [entity({ branches: arr(ref('runtime_branch')) }, ['branches']), entity({ mode: { const: 'priority' }, candidates: arr(ref('scoped_task_macro_use')) }, ['mode', 'candidates'])] };
 defs.runtime_expression = entity({ value_type: { enum: ['number', 'boolean'] }, definition: ref('computed_definition') }, ['value_type', 'definition']);
 defs.runtime_expression.allOf = structuredClone(defs.expression_macro.allOf);
 defs.runtime_macro = { oneOf: [
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'sequence' }, steps: arr(ref('runtime_step')) }, ['parameters', 'mode', 'steps']),
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'branch' }, branches: arr(ref('runtime_branch')) }, ['parameters', 'mode', 'branches']),
+  entity({ parameters: arr(ref('task_parameter')), mode: { const: 'priority' }, candidates: arr(ref('scoped_task_macro_use')) }, ['parameters', 'mode', 'candidates']),
 ] };
+for (const variant of defs.runtime_macro.oneOf) variant.properties.eligibility = { oneOf: [ref('scoped_condition'), { type: 'null' }] };
 defs.variable_tree = { oneOf: [
   entity({ id: ref('uuid'), kind: { const: 'group' }, children: arr(ref('variable_tree')) }, ['id', 'kind', 'children']),
   entity({ id: ref('uuid'), kind: { const: 'value' }, value_type: { enum: ['number', 'string', 'boolean'] }, read_only: { type: 'boolean' }, initial_value: { type: ['number', 'string', 'boolean'] } }, ['id', 'kind', 'value_type', 'read_only', 'initial_value']),

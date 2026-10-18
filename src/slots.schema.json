@@ -345,55 +345,14 @@
       "additionalProperties": false
     },
     "slot": {
-      "type": "object",
-      "required": [
-        "icon",
-        "display_name",
-        "branches"
-      ],
-      "properties": {
-        "icon": {
-          "type": "string",
-          "default": ""
+      "oneOf": [
+        {
+          "$ref": "#/$defs/slot_branch"
         },
-        "display_name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "branches": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/branch"
-          },
-          "allOf": [
-            {
-              "if": {
-                "minItems": 1
-              },
-              "then": {
-                "contains": {
-                  "type": "object",
-                  "required": [
-                    "condition"
-                  ],
-                  "properties": {
-                    "condition": {
-                      "type": "null"
-                    }
-                  }
-                },
-                "minContains": 1,
-                "maxContains": 1
-              }
-            }
-          ]
-        },
-        "engine_key": {
-          "type": "string",
-          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        {
+          "$ref": "#/$defs/slot_priority"
         }
-      },
-      "additionalProperties": false
+      ]
     },
     "branch": {
       "type": "object",
@@ -1473,6 +1432,16 @@
         },
         "icon": {
           "type": "string"
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -1685,6 +1654,16 @@
         },
         "icon": {
           "type": "string"
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -1696,6 +1675,12 @@
         },
         {
           "$ref": "#/$defs/task_macro_branch"
+        },
+        {
+          "$ref": "#/$defs/task_macro_conditional"
+        },
+        {
+          "$ref": "#/$defs/task_macro_priority"
         }
       ]
     },
@@ -1922,6 +1907,9 @@
         },
         {
           "$ref": "#/$defs/flow_control_task"
+        },
+        {
+          "$ref": "#/$defs/scoped_task_macro_use"
         }
       ]
     },
@@ -2208,6 +2196,207 @@
       },
       "required": [
         "builtin"
+      ],
+      "additionalProperties": false
+    },
+    "task_macro_conditional": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "conditional"
+        },
+        "condition": {
+          "$ref": "#/$defs/scoped_condition"
+        },
+        "task": {
+          "$ref": "#/$defs/scoped_task_action"
+        }
+      },
+      "required": [
+        "display_name",
+        "parameters",
+        "mode",
+        "condition",
+        "task"
+      ],
+      "additionalProperties": false,
+      "description": "Legacy import-only form. Converted to a sequence with eligibility and one task step."
+    },
+    "task_macro_priority": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "display_name",
+        "parameters",
+        "mode",
+        "candidates"
+      ],
+      "additionalProperties": false
+    },
+    "slot_branch": {
+      "type": "object",
+      "required": [
+        "icon",
+        "display_name",
+        "branches"
+      ],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "default": ""
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/branch"
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ]
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "mode": {
+          "const": "branch"
+        }
+      },
+      "additionalProperties": false
+    },
+    "slot_priority": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "default": ""
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "icon",
+        "display_name",
+        "mode",
+        "candidates"
       ],
       "additionalProperties": false
     }

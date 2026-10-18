@@ -109,7 +109,10 @@ export function argumentErrors(value, parameter, nodes, path = '', scope = []) {
   if (type && type !== parameter.type) errors.push({ path, key: 'parameterTypeMismatch', field: parameter.display_name });
   return errors;
 }
-export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = ['sequence', 'branch']) {
+export const TASK_MACRO_MODES = ['sequence', 'branch', 'priority'];
+export const allowedMacroModes = () => TASK_MACRO_MODES;
+export const macroEligibility = (macro) => macro.mode === 'conditional' ? macro.condition : macro.eligibility;
+export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = TASK_MACRO_MODES) {
   if (isBuiltinFlowTask(use)) return Object.keys(use).filter((key) => key !== 'builtin').map((field) => ({ path: `${path}/${field}`, key: 'schema_additionalProperties', field }));
   if (isBuiltinVariableTask(use)) return setVariableErrors(use, nodes, path, scope);
   if (use?.builtin !== undefined) return [{ path: `${path}/builtin`, key: 'invalidBuiltin' }];
@@ -117,7 +120,7 @@ export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = []
   const task = use?.task_macro_id !== undefined ? sequences.find((item) => item.id === use.task_macro_id) : tasks.find((item) => item.id === use?.task_id);
   if (!task) return [{ path: `${path}/${use?.task_macro_id !== undefined ? 'task_macro_id' : 'task_id'}`, key: 'chooseTask' }];
   const errors = [];
-  if (use?.task_macro_id !== undefined && !allowedModes.includes(task.mode)) errors.push({ path: `${path}/task_macro_id`, key: 'macroCallNotAllowed' });
+  if (use?.task_macro_id !== undefined && !allowedModes.includes(task.mode === 'conditional' ? 'sequence' : task.mode)) errors.push({ path: `${path}/task_macro_id`, key: 'macroCallNotAllowed' });
   const parameters = Array.isArray(task.parameters) ? task.parameters.filter((p) => p && typeof p === 'object') : [];
   for (const p of parameters) {
     const value = use.arguments?.[p.id], location = `${path}/arguments/${p.id}`;
@@ -130,16 +133,56 @@ export function branchOrderErrors(branches, path = '') {
   return !Array.isArray(branches) || branches.filter((branch) => branch?.condition === null).length !== 1 || branches.at(-1)?.condition !== null ? [{ path, key: 'elseLast' }] : [];
 }
 export function macroEntries(macro) {
-  const key = macro.mode === 'branch' ? 'branches' : 'steps';
+  if (macro.mode === 'conditional') return [{ entry: macro, index: 0, path: `/task_macros/${macro.id}` }];
+  const key = macro.mode === 'branch' ? 'branches' : macro.mode === 'priority' ? 'candidates' : 'steps';
   return (Array.isArray(macro[key]) ? macro[key] : []).map((entry, index) => ({ entry, index, path: `/task_macros/${macro.id}/${key}/${index}` })).filter(({ entry }) => entry && typeof entry === 'object');
 }
-export function taskMacroContentErrors(macros = [], tasks = [], nodes = {}, allMacros = macros) {
-  return macros.flatMap((macro) => macroEntries(macro).flatMap(({ entry, path }) => [
-    ...(macro.mode === 'branch' ? conditionErrors(entry.condition, nodes, `${path}/condition`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : []) : []),
-    ...taskUseErrors(entry.task, tasks, nodes, `${path}/task`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : [], allMacros, macro.mode === 'branch' ? ['sequence'] : []),
-  ]));
+export function mapMacroEntries(macro, change) {
+  if (macro.mode === 'conditional') return change(macro);
+  const key = macro.mode === 'branch' ? 'branches' : macro.mode === 'priority' ? 'candidates' : 'steps';
+  return { ...macro, [key]: (macro[key] ?? []).map(change) };
 }
-const slotUseErrors = (slots, tasks, nodes, sequences = []) => [...slots.flatMap((slot) => slot.branches.flatMap((branch, i) => taskUseErrors(branch.task, tasks, nodes, `/slots/${slot.id}/branches/${i}/task`, [], sequences))), ...taskMacroContentErrors(sequences, tasks, nodes)];
+export function macroReaches(macros, start, target) {
+  const byId = new Map(macros.map((macro) => [macro.id, macro])), pending = [start], seen = new Set();
+  while (pending.length) {
+    const id = pending.pop(); if (id === target) return true;
+    if (seen.has(id) || !byId.has(id)) continue; seen.add(id);
+    for (const { entry } of macroEntries(byId.get(id))) if (entry.task?.task_macro_id) pending.push(entry.task.task_macro_id);
+  }
+  return false;
+}
+export function taskMacroContentErrors(macros = [], tasks = [], nodes = {}, allMacros = macros) {
+  return macros.flatMap((macro) => [
+    ...(macro.eligibility == null ? [] : conditionErrors(macro.eligibility, nodes, `/task_macros/${macro.id}/eligibility`, macro.parameters ?? [])),
+    ...macroEntries(macro).flatMap(({ entry, path }) => [
+    ...(['branch', 'conditional'].includes(macro.mode) ? conditionErrors(entry.condition, nodes, `${path}/condition`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : []) : []),
+    ...(macro.mode === 'priority' && !entry.task?.task_macro_id ? [{ path: `${path}/task`, key: 'conditionalCandidateRequired' }] : []),
+    ...taskUseErrors(entry.task, tasks, nodes, `${path}/task`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : [], allMacros, allowedMacroModes(macro.mode)),
+  ])]);
+}
+export const isPrioritySlot = (slot) => slot.mode === 'priority';
+export function slotEntries(slot) {
+  const key = isPrioritySlot(slot) ? 'candidates' : 'branches';
+  return (Array.isArray(slot[key]) ? slot[key] : []).map((entry, index) => ({ entry, index, path: `/slots/${slot.id}/${key}/${index}` })).filter(({ entry }) => entry && typeof entry === 'object');
+}
+export function mapSlotEntries(slot, change) {
+  const key = isPrioritySlot(slot) ? 'candidates' : 'branches';
+  return { ...slot, [key]: (slot[key] ?? []).map(change) };
+}
+export function slotContentErrors(slots, tasks, nodes, sequences = []) {
+  return slots.flatMap((slot) => {
+    const seen = new Set(), errors = [];
+    for (const { entry, path } of slotEntries(slot)) {
+      if (isPrioritySlot(slot)) {
+        if (!entry.task?.task_macro_id) errors.push({ path: `${path}/task`, key: 'conditionalCandidateRequired' });
+        if (seen.has(entry.id)) errors.push({ path: `${path}/id`, key: 'duplicateStep' }); seen.add(entry.id);
+      } else errors.push(...conditionErrors(entry.condition, nodes, `${path}/condition`));
+      errors.push(...taskUseErrors(entry.task, tasks, nodes, `${path}/task`, [], sequences));
+    }
+    return errors;
+  });
+}
+const slotUseErrors = (slots, tasks, nodes, sequences = []) => [...slotContentErrors(slots, tasks, nodes, sequences), ...taskMacroContentErrors(sequences, tasks, nodes)];
 export function referencesIn(value, path = '', referenceKind = 'reference') {
   const result = [], pending = [{ value, path }];
   while (pending.length) {
@@ -218,15 +261,18 @@ function taskArgumentReferences(use, root, tasks, macros) {
 export function nodeReferences(slots, id, nodes = {}, excludedOwners = new Set(), sequences = [], tasks = []) {
   const found = [];
   const targets = id instanceof Set ? id : new Set([id]);
-  slots.forEach((slot) => slot.branches.forEach((branch, i) => {
-    for (const ref of referencesIn(branch.condition, `/slots/${slot.id}/branches/${i}/condition`)) if (targets.has(ref.nodeId)) found.push({ ...ref, slot: slot.name, branch: i + 1 });
-    for (const root of taskOperandRoots(branch.task, `/slots/${slot.id}/branches/${i}/task`)) for (const ref of taskArgumentReferences(branch.task, root, tasks, sequences)) if (targets.has(ref.nodeId)) found.push({ ...ref, slot: slot.name, branch: i + 1 });
-    if (isBuiltinVariableTask(branch.task) && targets.has(branch.task.target_variable_id)) found.push({ nodeId: branch.task.target_variable_id, path: `/slots/${slot.id}/branches/${i}/task/target_variable_id`, access: 'write', slot: slot.name, branch: i + 1 });
+  slots.forEach((slot) => slotEntries(slot).forEach(({ entry: branch, index: i, path }) => {
+    for (const ref of referencesIn(branch.condition, `${path}/condition`)) if (targets.has(ref.nodeId)) found.push({ ...ref, slot: slot.name, branch: i + 1 });
+    for (const root of taskOperandRoots(branch.task, `${path}/task`)) for (const ref of taskArgumentReferences(branch.task, root, tasks, sequences)) if (targets.has(ref.nodeId)) found.push({ ...ref, slot: slot.name, branch: i + 1 });
+    if (isBuiltinVariableTask(branch.task) && targets.has(branch.task.target_variable_id)) found.push({ nodeId: branch.task.target_variable_id, path: `${path}/task/target_variable_id`, access: 'write', slot: slot.name, branch: i + 1 });
   }));
-  for (const macro of sequences) for (const { entry, index, path } of macroEntries(macro)) {
-    const refs = [...referencesIn(entry.condition, `${path}/condition`), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => taskArgumentReferences(entry.task, root, tasks, sequences))];
-    if (isBuiltinVariableTask(entry.task)) refs.push({ nodeId: entry.task.target_variable_id, path: `${path}/task/target_variable_id`, access: 'write' });
-    for (const ref of refs) if (targets.has(ref.nodeId)) found.push({ ...ref, macroId: macro.id, macroName: macro.display_name, ...(macro.mode === 'branch' ? { branch: index + 1 } : { step: index + 1 }) });
+  for (const macro of sequences) {
+    for (const ref of referencesIn(macro.eligibility, `/task_macros/${macro.id}/eligibility`)) if (targets.has(ref.nodeId)) found.push({ ...ref, macroId: macro.id, macroName: macro.display_name });
+    for (const { entry, index, path } of macroEntries(macro)) {
+      const refs = [...referencesIn(entry.condition, `${path}/condition`), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => taskArgumentReferences(entry.task, root, tasks, sequences))];
+      if (isBuiltinVariableTask(entry.task)) refs.push({ nodeId: entry.task.target_variable_id, path: `${path}/task/target_variable_id`, access: 'write' });
+      for (const ref of refs) if (targets.has(ref.nodeId)) found.push({ ...ref, macroId: macro.id, macroName: macro.display_name, ...(macro.mode === 'branch' ? { branch: index + 1 } : { step: index + 1 }) });
+    }
   }
   for (const [ownerId, node] of Object.entries(nodes)) {
     if (!isComputed(node) || excludedOwners.has(ownerId)) continue;
