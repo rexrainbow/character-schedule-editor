@@ -1,6 +1,6 @@
 import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors } from './operandModel.js';
 import { taskMacroDefinitionErrors } from './taskMacroModel.js';
-import { builtinVariableDefinition } from './builtinTasks.js';
+import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
 import { translator } from './i18n.js';
 
 export const simulationInitialValues = (draft) => Object.fromEntries(Object.entries(draft.operandNodes).filter(([, n]) => n.node_type === 'value' && !isComputed(n)).map(([id, n]) => [id, initialValue(n)]));
@@ -11,7 +11,7 @@ export function simulationValueErrors(draft, values) {
   });
 }
 
-function evaluator(draft, values, baseline, t) {
+export function createSimulationEvaluator(draft, values, baseline, t, onControl = null) {
   const nodes = draft.operandNodes, state = structuredClone(values), calls = [], trace = [], stack = new Set();
   let operations = 0, unmodeled = false;
   const fail = (key, path, field) => { const error = new Error(key); Object.assign(error, { key, path, field }); throw error; };
@@ -110,6 +110,13 @@ function evaluator(draft, values, baseline, t) {
     guard(depth, path);
     const errors = taskUseErrors(use, draft.tasks, nodes, path, scope.parameters, draft.taskMacros, modes);
     if (errors.length) { const error = errors[0]; fail(error.key, error.path, error.field); }
+    if (isBuiltinFlowTask(use)) {
+      const definition = builtinTaskDefinition(use.builtin, draft.builtinTasks, t), control = { builtin: use.builtin, scope: flowScope(use.builtin), label: definition.display_name, path };
+      const outcome = onControl ? onControl(control) : { applied: false, reason: 'controlNoDayContext' };
+      out.push({ kind: 'control', ...control, ...outcome });
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, scope: control.scope, path, ...outcome });
+      return;
+    }
     if (use.builtin) {
       const definition = builtinVariableDefinition(use.builtin, draft.builtinTasks, t), id = use.target_variable_id;
       const event = { kind: 'builtin', label: definition.display_name, path, children: [], target: nodePath(nodes, id), before: state[id] }; out.push(event);
@@ -154,19 +161,19 @@ function evaluator(draft, values, baseline, t) {
       if (event.result) { selected = true; task(branch.task, scope, `${event.path}/task`, event.children, modes, depth + 1); }
     });
   }
-  return { state, calls, trace, operand, branches, get unmodeled() { return unmodeled; } };
+  return { state, calls, trace, operand, branches, guard, get unmodeled() { return unmodeled; } };
 }
 
 export function evaluateSimulationExpressions(draft, values) {
   return Object.fromEntries(Object.entries(draft.operandNodes).filter(([, n]) => isComputed(n)).map(([id]) => {
-    try { const engine = evaluator(draft, values, simulationInitialValues(draft), translator('en')); return [id, { value: engine.operand({ type: 'expression_macro_reference', expression_macro_id: id }, { values: {}, parameters: [] }, `/expression_macros/${id}`, []) }]; }
+    try { const engine = createSimulationEvaluator(draft, values, simulationInitialValues(draft), translator('en')); return [id, { value: engine.operand({ type: 'expression_macro_reference', expression_macro_id: id }, { values: {}, parameters: [] }, `/expression_macros/${id}`, []) }]; }
     catch (error) { return [id, { error: { key: error.key ?? 'simulationError', path: error.path ?? '/', field: error.field } }]; }
   }));
 }
 
 export function simulateSlot(draft, slotId, values = simulationInitialValues(draft), baseline = simulationInitialValues(draft), t = translator('en')) {
   const input = structuredClone(values), errors = [...simulationValueErrors(draft, input), ...simulationValueErrors(draft, baseline).map((error) => ({ ...error, path: error.path.replace('/values/', '/initial_values/') }))];
-  const engine = evaluator(draft, input, baseline, t), slot = draft.slots.find((item) => item.id === slotId);
+  const engine = createSimulationEvaluator(draft, input, baseline, t), slot = draft.slots.find((item) => item.id === slotId);
   if (!slot) errors.push({ path: '/slot_id', key: 'simulationChooseSlot' });
   if (!errors.length) try {
     if (Array.isArray(slot.branches) && slot.branches.length === 0) engine.trace.push({ kind: 'slot', label: slot.name, empty: true, path: `/slots/${slotId}`, children: [] });

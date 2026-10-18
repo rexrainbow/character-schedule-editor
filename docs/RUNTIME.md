@@ -1,5 +1,7 @@
 # Runtime data v1
 
+事件組 skip_weekdays 可列出不計入週期的星期（mon～sun，不重複，省略等同 []）。正週期依可計數日推進，排除日不執行；起點被排除時由第一個可計數日從 0 起算。結束日期固定，序列邊界不重設相位。interval_days 為 0 時保留但忽略排除設定；正週期不得排除七天。詳見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
+
 sequences 可包含 event_groups，保存事件組 UUID、共用日行程 UUID、固定周次／星期起訖、interval_days（0 單次）及整數 priority。Engine 在每個日內位置，以高優先權到 0、主日行程、負優先權的順序合併；相同值依陣列建立順序，不去重。序列執行範圍只裁切執行，不改變週期相位。格式及完整契約見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 
 日行程及匿名內嵌日可含 day_start_slot_id、day_end_slot_id 及 slot_events，各值引用同一份 slots。事件不增加每日時段數，執行位置順序與空值規則見 [DAY_EVENTS.md](./DAY_EVENTS.md)。未指定主時段時仍可執行該時段事件；不存在日行程時沒有對應事件。
@@ -71,6 +73,8 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 另外三個固定範本同樣以使用者設定的 task_key 連接 engine：「增加數值」輸出 `{task_key, target, value}`，value 為數字 expression，target 契約為 number/read_write；「切換布林」輸出 `{task_key, target}`，target 為 boolean/read_write；「重設初始值」輸出 `{task_key, target}`，target 為 any/write。重設基準是 runtime 實際採用的初始化值，不在呼叫內嵌入初始值。完整語意與原子更新契約見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
 
 ## 行程
+
+[流程控制任務](./FLOW_CONTROL_TASKS.md) 輸出 `{task_key, flow_control: "cancel_lower_priority", scope: "slot" | "day"}`。範本無參數，控制語意不由顯示名稱或自訂 task_key 推測。engine 的周序列執行器依目前來源優先權取消範圍內的低優先指派，同優先權與目前來源保留；取消後不求值任何條件、計算式或引數。
 
 日行程保留 `{display_name, engine_key?, slot_ids: [UUID | null, ...]}`；UUID 引用 `slots`。
 

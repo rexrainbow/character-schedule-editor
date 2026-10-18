@@ -1202,6 +1202,9 @@
         },
         {
           "$ref": "#/$defs/runtime_target_operation"
+        },
+        {
+          "$ref": "#/$defs/runtime_flow_control"
         }
       ]
     },
@@ -1444,6 +1447,31 @@
       ],
       "additionalProperties": false
     },
+    "runtime_flow_control": {
+      "type": "object",
+      "properties": {
+        "task_key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "flow_control": {
+          "const": "cancel_lower_priority"
+        },
+        "scope": {
+          "enum": [
+            "slot",
+            "day"
+          ]
+        }
+      },
+      "required": [
+        "task_key",
+        "flow_control",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
     "runtime_branch": {
       "type": "object",
       "properties": {
@@ -1546,6 +1574,9 @@
         },
         {
           "$ref": "#/$defs/runtime_target_operation"
+        },
+        {
+          "$ref": "#/$defs/runtime_flow_control"
         },
         {
           "$ref": "#/$defs/scoped_task_macro_use"

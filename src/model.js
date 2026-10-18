@@ -262,6 +262,6 @@ export function applySlotEdit(draft, slot, dayId, index) {
 }
 
 export function taskSummary(slot, unnamed, tasks = [], taskMacros = [], builtinName = 'Set variable') {
-  const names = typeof builtinName === 'string' ? { set_variable: builtinName, increment_variable: 'Increase value', toggle_variable: 'Toggle boolean', reset_variable: 'Reset initial value' } : builtinName;
+  const names = typeof builtinName === 'string' ? { set_variable: builtinName, increment_variable: 'Increase value', toggle_variable: 'Toggle boolean', reset_variable: 'Reset initial value', cancel_lower_priority_slot: 'Cancel lower-priority schedules in this slot', cancel_lower_priority_day: 'Cancel lower-priority schedules for the rest of today' } : builtinName;
   return slot.branches.map((branch) => (branch.task?.builtin ? { display_name: names[branch.task.builtin] } : branch.task?.task_macro_id !== undefined ? taskMacros.find((sequence) => sequence.id === branch.task.task_macro_id) : tasks.find((task) => task.id === branch.task?.task_id))?.display_name || unnamed).join(' / ');
 }

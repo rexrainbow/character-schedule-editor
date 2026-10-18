@@ -3,6 +3,10 @@ import { BuiltinTasksContext } from './TaskContext.js';
 
 export const builtinVariableKinds = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'];
 export const isBuiltinVariableTask = (value) => builtinVariableKinds.includes(value?.builtin);
+export const builtinFlowKinds = ['cancel_lower_priority_slot', 'cancel_lower_priority_day'];
+export const isBuiltinFlowTask = (value) => builtinFlowKinds.includes(value?.builtin);
+export const builtinTaskCategories = ['variableOperations', 'flowControl'];
+export const flowScope = (kind) => kind === 'cancel_lower_priority_slot' ? 'slot' : 'day';
 const contracts = {
   set_variable: { name: 'setVariable', icon: 'tabler:code', value_type: 'any', access: 'write', value: 'expression', valueName: 'assignmentValue' },
   increment_variable: { name: 'incrementVariable', icon: 'tabler:calculator', value_type: 'number', access: 'read_write', value: 'number', valueName: 'incrementAmount' },
@@ -18,6 +22,13 @@ export function builtinVariableDefinition(kind, config, t) {
 }
 export const builtinVariableDefinitions = (config, t) => builtinVariableKinds.map((kind) => builtinVariableDefinition(kind, config, t));
 export const useBuiltinVariableDefinitions = (t) => builtinVariableDefinitions(useContext(BuiltinTasksContext), t);
+export function builtinTaskDefinition(kind, config, t) {
+  if (!builtinFlowKinds.includes(kind)) return { ...builtinVariableDefinition(kind, config, t), category: 'variableOperations' };
+  const item = config?.[kind] ?? {};
+  return { id: `builtin:${kind}`, display_name: item.display_name ?? t(kind === 'cancel_lower_priority_slot' ? 'cancelLowerSlot' : 'cancelLowerDay'), icon: item.icon || 'tabler:calendar-off', engine_key: item.engine_key ?? '', parameters: [], category: 'flowControl' };
+}
+export const builtinTaskDefinitions = (config, t) => [...builtinVariableKinds, ...builtinFlowKinds].map((kind) => builtinTaskDefinition(kind, config, t));
+export const useBuiltinTaskDefinitions = (t) => builtinTaskDefinitions(useContext(BuiltinTasksContext), t);
 export const setVariableDefinition = (config, t) => builtinVariableDefinition('set_variable', config, t);
 export const useSetVariableDefinition = (t) => setVariableDefinition(useContext(BuiltinTasksContext), t);
 

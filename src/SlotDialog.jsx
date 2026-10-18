@@ -1,4 +1,4 @@
-import { builtinVariableDefinitions } from './builtinTasks.js';
+import { builtinTaskDefinitions } from './builtinTasks.js';
 import { useState } from 'react';
 import { Copy, Pencil, Plus, Search } from 'lucide-react';
 import { applySlotEdit, assignCell, clone, compileDraft, createSlot, duplicateSlot, referenceCount, taskSummary } from './model.js';
@@ -13,7 +13,7 @@ export default function SlotDialog({ draft, day, index, onCommit, onClose, t, on
   const searchName = search.trim();
   const exactMatches = draft.slots.filter((slot) => slot.name.trim() === searchName);
   const selected = draft.slots.find((slot) => slot.id === selectedId);
-  const filtered = draft.slots.filter((slot) => `${slot.name} ${taskSummary(slot, t('unnamedTask'), draft.tasks, draft.taskMacros, Object.fromEntries(builtinVariableDefinitions(draft.builtinTasks, t).map((item) => [item.id.slice(8), item.display_name])))}`.toLocaleLowerCase().includes(searchName.toLocaleLowerCase()));
+  const filtered = draft.slots.filter((slot) => `${slot.name} ${taskSummary(slot, t('unnamedTask'), draft.tasks, draft.taskMacros, Object.fromEntries(builtinTaskDefinitions(draft.builtinTasks, t).map((item) => [item.id.slice(8), item.display_name])))}`.toLocaleLowerCase().includes(searchName.toLocaleLowerCase()));
   const editErrors = edit ? compileDraft([edit.slot], draft.operandNodes, draft.tasks, draft.taskMacros).errors : [];
   const invalid = edit ? editErrors.length > 0 : !selected;
   function start(mode) {

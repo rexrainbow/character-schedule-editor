@@ -1,4 +1,4 @@
-import { isBuiltinVariableTask } from './builtinTasks.js';
+import { isBuiltinVariableTask, isBuiltinFlowTask } from './builtinTasks.js';
 import { variableReferenceErrors } from './parameterModel.js';
 import { clearEngineKey, engineMetadata } from './engineKeyModel.js';
 export const variableScope = (node) => node?.scope ?? 'environment';
@@ -110,6 +110,7 @@ export function argumentErrors(value, parameter, nodes, path = '', scope = []) {
   return errors;
 }
 export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = ['sequence', 'branch']) {
+  if (isBuiltinFlowTask(use)) return Object.keys(use).filter((key) => key !== 'builtin').map((field) => ({ path: `${path}/${field}`, key: 'schema_additionalProperties', field }));
   if (isBuiltinVariableTask(use)) return setVariableErrors(use, nodes, path, scope);
   if (use?.builtin !== undefined) return [{ path: `${path}/builtin`, key: 'invalidBuiltin' }];
   if (use?.task_id !== undefined && use?.task_macro_id !== undefined) return [{ path, key: 'invalidTaskTarget' }];

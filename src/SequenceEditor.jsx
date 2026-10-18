@@ -3,7 +3,7 @@ import DayReferencePreview from './DayReferencePreview.jsx';
 import IconField from './IconField.jsx';
 import SlotIcon from './SlotIcon.jsx';
 import { useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays, Play } from 'lucide-react';
 import { FieldError, IconButton } from './ui.jsx';
 import ActionMenu from './ActionMenu.jsx';
 import WeekPicker from './WeekPicker.jsx';
@@ -13,10 +13,10 @@ import { addSequenceRow, duplicateSequenceRow, moveSequenceRow, removeSequenceRo
 import useVisibleRows from './useVisibleRows.js';
 import { sequenceDate, sequenceRange, setSequenceBoundary } from './sequenceRange.js';
 import SequenceEventsDialog from './SequenceEventsDialog.jsx';
-import { eventsOnDate, eventTooltip, eventGroupName } from './sequenceEvents.js';
+import { eventsOnDate } from './sequenceEvents.js';
 
 const rowHeight = 184;
-export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, t }) {
+export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, t }) {
   const [weekPicker, setWeekPicker] = useState(null);
   const [override, setOverride] = useState(null);
   const [rangeNotice, setRangeNotice] = useState(null);
@@ -55,11 +55,11 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
                   {index === sequence.rows.length - 1 && <button className="icon-button sequence-end-flag" aria-label={t('setSequenceEnd', { weekday: t(weekday) })} title={t('setSequenceEnd', { weekday: t(weekday) })} aria-pressed={date.isEnd} onClick={() => { if (!date.isEnd) update(setSequenceBoundary(sequence, 'end', weekday)); }}><FlagTriangleRight size={14} /></button>}
                 </div></div>
                 <div className="sequence-overlay-icons" aria-label={t('eventGroups')}>
-                  {events.slice(0, 2).map((group, eventIndex) => { const eventDay = draft.days.find((item) => item.id === group.dayId); return <button key={group.id} className={`sequence-event-icon ${group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''}`} title={eventTooltip(group, draft.days, t)} aria-label={t('editEventGroup', { name: eventGroupName(group, draft.days) || '—' })} onClick={() => setEventManager({ id: group.id, position })}><SlotIcon name={eventDay?.icon} /></button>; })}
+                  {events.slice(0, 2).map((group, eventIndex) => { const eventDay = draft.days.find((item) => item.id === group.dayId); return <DayReferencePreview key={group.id} day={eventDay} draft={draft} week={week} weekday={weekday} eventGroup={group} eventClassName={group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''} onOpen={onOpenDay} onOpenSlot={onOpenSlot} onEditEvent={() => setEventManager({ id: group.id, position })} t={t} />; })}
                   {events.length > 2 && <button className="sequence-events-more" aria-label={t('eventMore', { count: events.length - 2 })} onClick={() => setEventManager({ position, onlyDate: true })}>+{events.length - 2}</button>}
                   <button className="icon-button sequence-event-add" disabled={!draft.days.some((item) => !item.scope || item.scope === 'shared')} title={t('addEventGroup')} aria-label={t('addEventOnDate', { week: index + 1, weekday: t(weekday) })} onClick={() => setEventManager({ createAt: position, position })}><Plus size={13} /></button>
                 </div>
-                <div className="sequence-day-content"><DayReferencePreview day={day} draft={draft} week={week} weekday={weekday} overridden={overridden} label={label} onOpen={onOpenDay} onOpenSlot={onOpenSlot} t={t} /></div><button className="sequence-state sequence-override-button" aria-label={t('sequenceDayCell', { count: index + 1, weekday: t(weekday) })} onClick={() => setOverride({ rowUid: row.uid, weekday })}>{t(state)}<ChevronDown size={13} /></button></div>;
+                <div className="sequence-day-content"><DayReferencePreview day={day} draft={draft} week={week} weekday={weekday} overridden={overridden} label={label} onOpen={onOpenDay} onOpenSlot={onOpenSlot} t={t} /></div><div className="sequence-day-actions"><button className="sequence-state sequence-override-button" aria-label={t('sequenceDayCell', { count: index + 1, weekday: t(weekday) })} onClick={() => setOverride({ rowUid: row.uid, weekday })}>{t(state)}<ChevronDown size={13} /></button><button className="icon-button" disabled={!date.active} title={t('simulationThisDay')} aria-label={t('simulationThisDate', { week: index + 1, weekday: t(weekday) })} onClick={() => onSimulateDay(sequence.id, position)}><Play size={13} /></button></div></div>;
             })}
           </div>;
         })}

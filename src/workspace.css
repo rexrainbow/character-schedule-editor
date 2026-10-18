@@ -251,6 +251,9 @@ body { min-width: 360px; font-size: 15px; }
   .sidebar-collapsed .sidebar>:not(.sidebar-heading) { display: none; }
 }
 .day-preview-anchor { display: flex; align-items: center; min-width: 0; flex: 1; gap: 2px; }
+.sequence-overlay-icons .sequence-event-preview { flex: 0 0 auto; }
+.day-reference-preview .event-preview-summary { white-space: pre-line; }
+.day-preview-source-open { flex: 0 0 28px; margin-left: auto; }
 .day-preview-name { border: 0; padding: 3px 0; background: transparent; color: inherit; flex: 1; text-align: left; overflow: hidden; }
 .day-preview-name strong { font-size: 14px; }
 .day-open-button, .day-assignment-button { padding: 3px; width: 24px; height: 28px; flex: 0 0 24px; }
@@ -296,6 +299,23 @@ body { min-width: 360px; font-size: 15px; }
 .return-day-button { flex-shrink: 0; padding: 6px 8px; font-size: 13px; }
 .simulation-editor { display: flex; flex: 1; min-height: 0; min-width: 0; flex-direction: column; padding: 16px 20px; gap: 14px; overflow: hidden; }
 .simulation-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.simulation-target, .simulation-day-controls { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+.simulation-target label, .simulation-day-controls label, .simulation-binding-grid label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.simulation-day-controls label { flex: 1 1 220px; max-width: 380px; }
+.simulation-target select, .simulation-day-controls select, .simulation-binding-grid select { width: 100%; min-width: 0; }
+.simulation-progress { flex-shrink: 0; }
+.simulation-progress summary, .simulation-day-plan summary { cursor: pointer; padding: 5px 0; }
+.simulation-binding-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.simulation-day-plan { margin: 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-wrap: anywhere; }
+.simulation-day-plan li { margin: 4px 0; }
+.simulation-source-actions { display: flex; gap: 4px; }
+.task-category { display: flex; flex-direction: column; gap: 6px; }
+.task-category h3, .task-category-heading { color: var(--muted); font-size: 12px; margin: 10px 0 2px; }
+.simulation-cancel-reason { color: #e3bf8f; background: #352c23; border-left: 2px solid #b38c60; padding: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.sequence-day-actions { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.sequence-day-actions .sequence-override-button { flex: 1; min-width: 0; font-size: 11px; }
+.sequence-day-actions .icon-button { width: 24px; height: 24px; min-width: 24px; padding: 3px; }
+@media (max-width: 720px) { .simulation-binding-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .simulation-day-controls label { max-width: none; } }
 .simulation-toolbar>label { display: flex; flex-direction: column; gap: 5px; flex: 1 1 220px; max-width: 380px; }
 .simulation-toolbar select { width: 100%; min-width: 0; }
 .simulation-columns { display: grid; grid-template-columns: minmax(280px, 36%) minmax(0, 1fr); gap: 18px; flex: 1; min-height: 0; }

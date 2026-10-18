@@ -250,6 +250,48 @@
           },
           "required": [],
           "additionalProperties": false
+        },
+        "cancel_lower_priority_slot": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "cancel_lower_priority_day": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "required": [],
@@ -383,6 +425,9 @@
             },
             {
               "$ref": "#/$defs/target_variable_operation"
+            },
+            {
+              "$ref": "#/$defs/flow_control_task"
             }
           ]
         }
@@ -1575,6 +1620,9 @@
             },
             {
               "$ref": "#/$defs/scoped_target_variable_operation"
+            },
+            {
+              "$ref": "#/$defs/flow_control_task"
             }
           ]
         }
@@ -1871,6 +1919,9 @@
         },
         {
           "$ref": "#/$defs/scoped_target_variable_operation"
+        },
+        {
+          "$ref": "#/$defs/flow_control_task"
         }
       ]
     },
@@ -2143,6 +2194,21 @@
           "default": []
         }
       },
+      "additionalProperties": false
+    },
+    "flow_control_task": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "enum": [
+            "cancel_lower_priority_slot",
+            "cancel_lower_priority_day"
+          ]
+        }
+      },
+      "required": [
+        "builtin"
+      ],
       "additionalProperties": false
     }
   }

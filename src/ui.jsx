@@ -1,4 +1,4 @@
-import { useBuiltinVariableDefinitions } from './builtinTasks.js';
+import { useBuiltinTaskDefinitions } from './builtinTasks.js';
 import { EngineKeyWarning } from './EngineKeyField.jsx';
 import { TaskContext, TaskMacrosContext } from './TaskContext.js';
 import { useContext, useEffect, useRef, useId, useState } from 'react';
@@ -22,7 +22,7 @@ export function Issues({ errors, t }) {
 export function SlotInfo({ slot, t }) {
   const tasks = useContext(TaskContext);
   const taskMacros = useContext(TaskMacrosContext);
-  const builtinDefinitions = useBuiltinVariableDefinitions(t);
+  const builtinDefinitions = useBuiltinTaskDefinitions(t);
   const summary = taskSummary(slot, t('unnamedTask'), tasks, taskMacros, Object.fromEntries(builtinDefinitions.map((item) => [item.id.slice(8), item.display_name])));
   return <><SlotIcon name={slot.icon} label={t('icon')} /><div className="slot-info-text"><strong title={slot.name}>{slot.name || '—'}</strong><EngineKeyWarning kind="slots" id={slot.id} value={slot.engine_key} t={t} /><span title={summary}>{summary}</span></div></>;
 }

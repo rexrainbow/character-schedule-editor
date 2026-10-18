@@ -1,4 +1,4 @@
-import { builtinVariableDefinition, isBuiltinVariableTask } from './builtinTasks.js';
+import { builtinVariableDefinition, builtinTaskDefinition, isBuiltinVariableTask, isBuiltinFlowTask, flowScope } from './builtinTasks.js';
 import { translator } from './i18n.js';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from './runtime.schema.json' with { type: 'json' };
@@ -54,6 +54,12 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   const contract = (p) => ({ ...(p.type === 'variable_reference' ? { value_type: p.value_type, access: p.access } : {}) });
   function task(value) {
+    if (isBuiltinFlowTask(value)) {
+      const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
+      if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
+      tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: [] });
+      return { task_key: engine_key, flow_control: 'cancel_lower_priority', scope: flowScope(value.builtin) };
+    }
     if (isBuiltinVariableTask(value)) {
       const definition = builtinVariableDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
       if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
