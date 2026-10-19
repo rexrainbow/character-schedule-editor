@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { addOperandNode, duplicateOperandSubtree, moveOperandNode, deleteOperandNode, treeErrors, scopedVariables } from '../src/operandModel.js';
+import { createProject, compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { addOperandNode, duplicateOperandSubtree, moveOperandNode, deleteOperandNode, treeErrors, scopedVariables } from '../src/core/operandModel.js';
 
 test('variable layers persist independently and cannot move across parents in another layer', () => {
   const env = addOperandNode({}, null, 'group', 'Engine', 'environment');

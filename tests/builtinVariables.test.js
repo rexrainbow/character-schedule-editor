@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { builtinVariableDefinition, changeBuiltinDefinition } from '../src/builtinTasks.js';
-import { translator } from '../src/i18n.js';
-import { compileProject, projectToDraft, validateDocument, taskSummary } from '../src/model.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { compileEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
-import { changeReadOnly, changeOperandType, deleteOperandNode, setVariableErrors } from '../src/operandModel.js';
+import { builtinVariableDefinition, changeBuiltinDefinition } from '../src/gui/hooks/builtinTasks.js';
+import { translator } from '../src/i18n/index.js';
+import { compileProject, projectToDraft, validateDocument, taskSummary } from '../src/core/model.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
+import { changeReadOnly, changeOperandType, deleteOperandNode, setVariableErrors } from '../src/core/operandModel.js';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
 
 test('new variable builtins retain fixed contracts and editable metadata across project/environment files', () => {
@@ -16,7 +16,7 @@ test('new variable builtins retain fixed contracts and editable metadata across 
     const definition = builtinVariableDefinition(kind, draft.builtinTasks, translator('zh-TW'));
     assert.equal(definition.display_name, 'Custom ' + kind);
     assert.equal(definition.parameters[0].type, 'variable_reference');
-    assert.equal(definition.parameters.length, kind === 'increment_variable' ? 2 : 1);
+    assert.equal(definition.parameters.length, kind === 'increment_variable' ? 3 : 1);
   }
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);

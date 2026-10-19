@@ -1,8 +1,8 @@
 import { createActionSlot as createSlot } from '../slotFixture.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { createProject, compileProject } from '../../src/model.js';
-import { createTaskMacro } from '../../src/taskMacroModel.js';
+import { createProject, compileProject } from '../../src/core/model.js';
+import { createTaskMacro } from '../../src/core/taskMacroModel.js';
 import { navigate, exportProject } from './navigation.js';
 
 async function download(page, action) {

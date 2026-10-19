@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { priorityMacroFixture } from '../priorityMacroFixture.js';
-import { compileProject, createDay } from '../../src/model.js';
+import { compileProject, createDay } from '../../src/core/model.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
 async function load(page, includeDay = false) {
   const fixture = priorityMacroFixture(); fixture.slot.branches = [];

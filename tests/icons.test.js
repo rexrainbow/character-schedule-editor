@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/sequence-example.json' with { type: 'json' };
+import example from '../src/examples/sequence-example.json' with { type: 'json' };
 import data from '../src/icons/data.json' with { type: 'json' };
 import { catalog, colorIcons, findIcons, canonicalIconName } from '../src/icons/catalog.js';
-import { clone, compileProject, projectToDraft, duplicateDay } from '../src/model.js';
-import { changeWeekCell, duplicateWeek } from '../src/weekModel.js';
-import { duplicateSequence } from '../src/sequenceModel.js';
+import { clone, compileProject, projectToDraft, duplicateDay } from '../src/core/model.js';
+import { changeWeekCell, duplicateWeek } from '../src/core/weekModel.js';
+import { duplicateSequence } from '../src/core/sequenceModel.js';
 
 test('curated catalog has unique, bundled SVG data and searches both languages', () => {
   assert.equal(catalog.length, 128);

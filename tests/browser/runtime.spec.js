@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/state-example.json' with { type: 'json' };
-import { validateRuntimeDocument } from '../../src/runtimeModel.js';
+import example from '../../src/examples/state-example.json' with { type: 'json' };
+import { validateRuntimeDocument } from '../../src/core/runtimeModel.js';
 import { exportProject, switchMode } from './navigation.js';
 
 async function load(page, contracts = true) {

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, compileProject, projectToDraft } from '../src/model.js';
-import { createProjectWithEnvironment, compileEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/environmentModel.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { addComputedNode, addOperandNode, isComputed, computedErrors, applyComputedDefinition } from '../src/operandModel.js';
-import { addProgressDefinitions } from '../src/progressEnvironment.js';
-import { translator } from '../src/i18n.js';
+import { createProject, compileProject, projectToDraft } from '../src/core/model.js';
+import { createProjectWithEnvironment, compileEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/core/environmentModel.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { addComputedNode, addOperandNode, isComputed, computedErrors, applyComputedDefinition } from '../src/core/operandModel.js';
+import { addProgressDefinitions } from '../src/core/progressEnvironment.js';
+import { translator } from '../src/i18n/index.js';
 
 test('new default environments include six read-only progress variables and three scoped boolean macros', () => {
   for (const locale of ['en', 'zh-TW']) {

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { flowControlFixture } from '../flowControlFixture.js';
-import { compileProject } from '../../src/model.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 async function load(page, draft) {
   await page.goto('/'); const compiled = compileProject(draft); expect(compiled.errors).toEqual([]);
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'takeover.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compiled.data)) });
@@ -18,7 +18,7 @@ async function download(page, action) { const pending = page.waitForEvent('downl
 test('one fixed takeover definition replaces cancellation commands, permits metadata edits and exports typed contracts', async ({ page }) => {
   const { draft, control } = flowControlFixture(); await load(page, draft); await navigate(page, 'tasks');
   const flow = page.locator('.task-category').filter({ has: page.getByRole('heading', { name: 'Flow control', exact: true }) });
-  await expect(flow.locator('button')).toHaveCount(1);
+  await expect(flow.locator('button')).toHaveCount(2);
   await flow.getByRole('button', { name: 'Schedule takeover', exact: true }).click();
   await expect(page.locator('.parameter-row')).toHaveCount(3);
   await expect(page.getByRole('button', { name: 'Add parameter', exact: true })).toBeDisabled();

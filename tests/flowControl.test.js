@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { flowControlFixture } from './flowControlFixture.js';
-import { simulateSequenceDay } from '../src/daySimulationModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { compileEnvironment, validateEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
-import { builtinTaskDefinitions, createTakeover, changeBuiltinDefinition } from '../src/builtinTasks.js';
-import { translator } from '../src/i18n.js';
+import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
+import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { compileEnvironment, validateEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
+import { builtinTaskDefinitions, createTakeover, changeBuiltinDefinition } from '../src/gui/hooks/builtinTasks.js';
+import { translator } from '../src/i18n/index.js';
 import { constant, reference, parameter } from './priorityMacroFixture.js';
-import { createTaskMacro, duplicateTaskMacro, macroParameterReferences } from '../src/taskMacroModel.js';
-import { subtreeReferences, changeOperandType, deleteOperandNode } from '../src/operandModel.js';
+import { createTaskMacro, duplicateTaskMacro, macroParameterReferences } from '../src/core/taskMacroModel.js';
+import { subtreeReferences, changeOperandType, deleteOperandNode } from '../src/core/operandModel.js';
 const cancelled = (result) => result.trace.flatMap((phase) => phase.children.filter((entry) => entry.cancelled).map((entry) => ({ key: phase.path.split('/').at(-1), entry })));
 const booleanCondition = (value) => ({ kind: 'comparison', comparator: '==', operand_a: constant(value), operand_b: constant(true) });
 
@@ -90,8 +90,8 @@ test('no-op contexts, cancelled unsafe expressions and visited condition errors 
 test('three fixed parameters and takeover calls round-trip through project/environment/runtime; old commands reject', () => {
   const { draft, macro } = flowControlFixture({ scope: 'day', target: 'main' });
   const definitions = builtinTaskDefinitions(draft.builtinTasks, translator('en'));
-  assert.deepEqual(definitions.filter((item) => item.category === 'flowControl').map((item) => item.id), ['builtin:schedule_takeover']);
-  const definition = definitions.at(-1); assert.deepEqual(definition.parameters.map((p) => p.id), ['condition', 'scope', 'target']);
+  assert.deepEqual(definitions.filter((item) => item.category === 'flowControl').map((item) => item.id), ['builtin:schedule_takeover', 'builtin:adjust_probability_event']);
+  const definition = definitions.find((item) => item.id === 'builtin:schedule_takeover'); assert.deepEqual(definition.parameters.map((p) => p.id), ['condition', 'scope', 'target']);
   draft.builtinTasks = changeBuiltinDefinition(draft.builtinTasks, definition, { ...definition, display_name: 'Take control', engine_key: 'custom.takeover', parameters: definition.parameters.map((p) => ({ ...p, display_name: `Custom ${p.id}` })) });
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   const loaded = projectToDraft(project.data); assert.deepEqual(loaded.builtinTasks, draft.builtinTasks);

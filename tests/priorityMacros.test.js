@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { priorityMacroFixture, constant, parameter } from './priorityMacroFixture.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
-import { createTaskMacro, createTaskStep, changeMacroMode, duplicateTaskMacro, deleteTaskMacro, deleteMacroParameter, changeMacroParameterType } from '../src/taskMacroModel.js';
-import { changeOperandType, deleteOperandNode, nodeReferences, macroEntries, macroReaches } from '../src/operandModel.js';
-import { compileEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { createTaskMacro, createTaskStep, changeMacroMode, duplicateTaskMacro, deleteTaskMacro, deleteMacroParameter, changeMacroParameterType } from '../src/core/taskMacroModel.js';
+import { changeOperandType, deleteOperandNode, nodeReferences, macroEntries, macroReaches } from '../src/core/operandModel.js';
+import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { flowControlFixture } from './flowControlFixture.js';
-import { simulateSequenceDay } from '../src/daySimulationModel.js';
+import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
 const flatten = (events) => events.flatMap((event) => [event, ...flatten(event.children ?? [])]);
 
 test('priority candidates evaluate arguments and eligibility once, stop at first match and preserve lazy later candidates', () => {

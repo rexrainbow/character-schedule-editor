@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { exportProject, navigate, switchMode } from './navigation.js';
-import { compileProject, createProject, createDay, createSlot } from '../../src/model.js';
+import { compileProject, createProject, createDay, createSlot } from '../../src/core/model.js';
 
 async function load(page, draft) {
   await page.goto('/');

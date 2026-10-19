@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, createDay, createSlot, compileProject, projectToDraft, assignCell, referenceCount, deleteSlotAndReferences, duplicateDay } from '../src/model.js';
-import { createWeek, setWeekDay, changeWeekCell, duplicateWeek } from '../src/weekModel.js';
-import { dayAssignment, dayAssignments } from '../src/dayEvents.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
+import { createProject, createDay, createSlot, compileProject, projectToDraft, assignCell, referenceCount, deleteSlotAndReferences, duplicateDay } from '../src/core/model.js';
+import { createWeek, setWeekDay, changeWeekCell, duplicateWeek } from '../src/core/weekModel.js';
+import { dayAssignment, dayAssignments } from '../src/core/dayEvents.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 
 function fixture() {
   let draft = createProject(); const slot = createSlot([], 'Inspect'), day = createDay(draft, 'Inspection');

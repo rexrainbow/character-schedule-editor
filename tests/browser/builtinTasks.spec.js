@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/state-example.json' with { type: 'json' };
+import example from '../../src/examples/state-example.json' with { type: 'json' };
 import { navigate, exportProject } from './navigation.js';
 
 test('builtin uses shared task fields, locks structure, and custom labels survive language changes and project reload', async ({ page }) => {

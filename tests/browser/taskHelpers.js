@@ -1,5 +1,5 @@
 import { navigate as navigatePage } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 export async function selectFirstDefinedTask(select) {
   if (!await select.count()) {
     const page = select.page(), t = translator(await page.locator('html').getAttribute('lang'));

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/state-example.json' with { type: 'json' };
-import { compileProject, projectToDraft } from '../src/model.js';
-import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/environmentModel.js';
-import { addOperandNode } from '../src/operandModel.js';
-import { compileRuntime } from '../src/runtimeModel.js';
+import example from '../src/examples/state-example.json' with { type: 'json' };
+import { compileProject, projectToDraft } from '../src/core/model.js';
+import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/core/environmentModel.js';
+import { addOperandNode } from '../src/core/operandModel.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
 
 function setup() {
   const draft = projectToDraft(example); draft.environment = createEnvironmentInfo('Engine environment');

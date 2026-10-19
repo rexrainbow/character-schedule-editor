@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sequenceEventsFixture } from './sequenceEventsFixture.js';
-import { compileProject, projectToDraft, duplicateDay, validateDocument } from '../src/model.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { changeWeekCell, sharedDays } from '../src/weekModel.js';
-import { availableDayTags, matchesDayTag, tagFilterValue } from '../src/dayTags.js';
+import { compileProject, projectToDraft, duplicateDay, validateDocument } from '../src/core/model.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { changeWeekCell, sharedDays } from '../src/core/weekModel.js';
+import { availableDayTags, matchesDayTag, tagFilterValue } from '../src/core/dayTags.js';
 
 test('tags survive project round trips and independent copies and export to runtime including private snapshots', () => {
   const { draft, main, eventDay } = sequenceEventsFixture();

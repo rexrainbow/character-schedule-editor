@@ -1,10 +1,10 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/computed-example.json' with { type: 'json' };
-import { compileProject, createProject, projectToDraft, validateDocument } from '../src/model.js';
-import { changeParameterType, createParameter, createTask, deleteParameter, deleteTask, duplicateTask, taskUses } from '../src/taskModel.js';
-import { applyComputedDefinition, changeOperandType, deleteOperandNode } from '../src/operandModel.js';
+import example from '../src/examples/computed-example.json' with { type: 'json' };
+import { compileProject, createProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { changeParameterType, createParameter, createTask, deleteParameter, deleteTask, duplicateTask, taskUses } from '../src/core/taskModel.js';
+import { applyComputedDefinition, changeOperandType, deleteOperandNode } from '../src/core/operandModel.js';
 
 const constant = (value) => ({ type: 'constant', value });
 function setup() {

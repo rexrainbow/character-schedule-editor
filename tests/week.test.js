@@ -1,9 +1,9 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/example.json' with { type: 'json' };
-import { clone, compileProject, duplicateSlot, projectToDraft, validateDocument } from '../src/model.js';
-import { changeWeekCell, createWeek, dayReferenceCount, deleteSharedDay, deleteWeek, duplicateWeek, isPrivateDay, setWeekDay, sharedDays, weekDay } from '../src/weekModel.js';
+import example from '../src/examples/example.json' with { type: 'json' };
+import { clone, compileProject, duplicateSlot, projectToDraft, validateDocument } from '../src/core/model.js';
+import { changeWeekCell, createWeek, dayReferenceCount, deleteSharedDay, deleteWeek, duplicateWeek, isPrivateDay, setWeekDay, sharedDays, weekDay } from '../src/core/weekModel.js';
 
 function setup() {
   const draft = projectToDraft(example); const week = createWeek(draft, 'Normal week');

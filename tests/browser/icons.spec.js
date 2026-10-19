@@ -1,8 +1,8 @@
 import { exportProject, navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/sequence-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/sequence-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 
 async function load(page, data = example) {
   await page.goto('/');

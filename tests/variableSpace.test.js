@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/state-example.json' with { type: 'json' };
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { addComputedNode, applyComputedDefinition, changeOperandType, changeReadOnly, defaultDefinition, deleteOperandNode, documentNodes, duplicateOperandSubtree, expressionNodes, nodeReferences, referenceOperand, variableNodes } from '../src/operandModel.js';
-import { changeMacroParameterType, deleteMacroParameter, duplicateTaskMacro, macroParameterReferences } from '../src/taskMacroModel.js';
+import example from '../src/examples/state-example.json' with { type: 'json' };
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { addComputedNode, applyComputedDefinition, changeOperandType, changeReadOnly, defaultDefinition, deleteOperandNode, documentNodes, duplicateOperandSubtree, expressionNodes, nodeReferences, referenceOperand, variableNodes } from '../src/core/operandModel.js';
+import { changeMacroParameterType, deleteMacroParameter, duplicateTaskMacro, macroParameterReferences } from '../src/core/taskMacroModel.js';
 const constant = (value) => ({ type: 'constant', value });
 function setup() {
   const draft = projectToDraft(example), find = (name) => Object.keys(draft.operandNodes).find((id) => draft.operandNodes[id].display_name === name);

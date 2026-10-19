@@ -1,0 +1,3217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Character Schedule Project Schema",
+  "description": "Schedule project with a typed variable space, independent expression macros, built-in variable assignment, and sequence/branch task macros. References, write permissions, scopes, types and cell counts also require application validation.",
+  "type": "object",
+  "required": [
+    "project",
+    "slots",
+    "day_schedules",
+    "operand_nodes",
+    "tasks"
+  ],
+  "properties": {
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "slots": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/slot"
+      }
+    },
+    "day_schedules": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/day_schedule"
+      }
+    },
+    "week_schedules": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/week_schedule"
+      }
+    },
+    "week_sequences": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/week_sequence"
+      }
+    },
+    "operand_nodes": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/operand_node"
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/task_definition"
+      }
+    },
+    "task_macros": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/task_macro"
+      }
+    },
+    "expression_macros": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/expression_macro"
+      }
+    },
+    "builtin_tasks": {
+      "type": "object",
+      "properties": {
+        "set_variable": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "increment_variable": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "random_amplitude": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "toggle_variable": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "reset_variable": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "schedule_takeover": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "scope": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "adjust_probability_event": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "event": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "property": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "operation": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "environment": {
+      "$ref": "#/$defs/environment_info"
+    },
+    "enum_definitions": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/uuid"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/enum_definition_node"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "name",
+        "settings"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "default": "Character Schedule"
+        },
+        "settings": {
+          "$ref": "#/$defs/project_settings"
+        }
+      },
+      "additionalProperties": false
+    },
+    "project_settings": {
+      "type": "object",
+      "required": [
+        "slots_per_day"
+      ],
+      "properties": {
+        "slots_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "slot": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/slot_branch"
+        },
+        {
+          "$ref": "#/$defs/slot_priority"
+        }
+      ]
+    },
+    "branch": {
+      "type": "object",
+      "required": [
+        "condition",
+        "task"
+      ],
+      "properties": {
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/task_use"
+            },
+            {
+              "$ref": "#/$defs/task_macro_use"
+            },
+            {
+              "$ref": "#/$defs/set_variable"
+            },
+            {
+              "$ref": "#/$defs/target_variable_operation"
+            },
+            {
+              "$ref": "#/$defs/flow_control_task"
+            },
+            {
+              "$ref": "#/$defs/adjust_probability_event"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "day_schedule": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "slot_ids"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "shared",
+            "week_private"
+          ]
+        },
+        "owner": {
+          "type": "object",
+          "required": [
+            "week_schedule_id",
+            "weekday"
+          ],
+          "properties": {
+            "week_schedule_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slot_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "icon": {
+          "type": "string",
+          "default": "",
+          "description": "Local activity icon key, for example tabler:calendar. Empty uses the default icon."
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "day_start_slot_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "day_end_slot_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slot_events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "start_slot_id",
+              "end_slot_id"
+            ],
+            "properties": {
+              "start_slot_id": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "end_slot_id": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+          },
+          "uniqueItems": true,
+          "description": "Editor-only labels. No leading or trailing whitespace. Not exported to runtime."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "scope"
+            ],
+            "properties": {
+              "scope": {
+                "const": "week_private"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "owner"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "owner"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "week_schedule": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "days"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "days": {
+          "type": "object",
+          "required": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "properties": {
+            "mon": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tue": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "wed": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "thu": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "fri": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sat": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sun": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "icon": {
+          "type": "string",
+          "default": "",
+          "description": "Local activity icon key, for example tabler:calendar. Empty uses the default icon."
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        }
+      },
+      "additionalProperties": false
+    },
+    "week_sequence": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "week_schedule_ids",
+        "day_overrides"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "week_schedule_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/uuid"
+          }
+        },
+        "day_overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/day_override"
+          }
+        },
+        "icon": {
+          "type": "string",
+          "default": "",
+          "description": "Local activity icon key, for example tabler:calendar. Empty uses the default icon."
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "start_weekday": {
+          "type": "string",
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "default": "mon"
+        },
+        "end_weekday": {
+          "type": "string",
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "default": "sun"
+        },
+        "event_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sequence_event_group"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "day_override": {
+      "type": "object",
+      "required": [
+        "week_number",
+        "weekday",
+        "day_schedule_id"
+      ],
+      "properties": {
+        "week_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "day_schedule_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/conditionGroup"
+        },
+        {
+          "$ref": "#/$defs/conditionComparison"
+        }
+      ]
+    },
+    "conditionGroup": {
+      "type": "object",
+      "required": [
+        "kind",
+        "mode",
+        "items"
+      ],
+      "properties": {
+        "kind": {
+          "const": "group"
+        },
+        "mode": {
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "conditionComparison": {
+      "type": "object",
+      "required": [
+        "kind",
+        "operand_a",
+        "comparator",
+        "operand_b"
+      ],
+      "properties": {
+        "operand_a": {
+          "$ref": "#/$defs/operand"
+        },
+        "comparator": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">="
+          ]
+        },
+        "operand_b": {
+          "$ref": "#/$defs/operand"
+        },
+        "kind": {
+          "const": "comparison"
+        }
+      },
+      "additionalProperties": false
+    },
+    "operand_node": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/group_node"
+        },
+        {
+          "$ref": "#/$defs/value_node"
+        }
+      ]
+    },
+    "group_node": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "parent_id",
+        "order",
+        "node_type"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "node_type": {
+          "const": "group"
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ],
+          "default": "environment"
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "value_node": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "parent_id",
+        "order",
+        "node_type",
+        "value_type",
+        "read_only"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "node_type": {
+          "const": "value"
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "number",
+            "string",
+            "boolean"
+          ]
+        },
+        "read_only": {
+          "type": "boolean",
+          "default": false
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ],
+          "default": "environment"
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "initial_value": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ],
+          "description": "Constant initial value. When omitted, defaults to 0, empty string or false according to value_type."
+        },
+        "min_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
+        },
+        "max_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
+        },
+        "integer_only": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "min_value"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_value"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "integer_only"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "integer_only": {
+                "const": true
+              }
+            },
+            "required": [
+              "integer_only"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "integer"
+              },
+              "min_value": {
+                "type": "integer"
+              },
+              "max_value": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "operand": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference_operand"
+        },
+        {
+          "$ref": "#/$defs/constant_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        }
+      ]
+    },
+    "reference_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "reference_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "reference"
+        },
+        "reference_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "constant_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "const": "constant"
+        },
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "expression_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "operator",
+        "operand_a",
+        "operand_b"
+      ],
+      "properties": {
+        "type": {
+          "const": "expression"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "+",
+            "-",
+            "*",
+            "/"
+          ]
+        },
+        "operand_a": {
+          "$ref": "#/$defs/numeric_operand"
+        },
+        "operand_b": {
+          "$ref": "#/$defs/numeric_operand"
+        }
+      },
+      "additionalProperties": false
+    },
+    "numeric_operand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "reference_id"
+          ],
+          "properties": {
+            "type": {
+              "const": "reference"
+            },
+            "reference_id": {
+              "$ref": "#/$defs/uuid"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "const": "constant"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        }
+      ]
+    },
+    "computed_definition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scalar_computed_definition"
+        },
+        {
+          "$ref": "#/$defs/branched_computed_definition"
+        }
+      ]
+    },
+    "task_definition": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "parameters"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_parameter": {
+      "type": "object",
+      "required": [
+        "id",
+        "display_name",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "variable_reference",
+            "event_reference",
+            "enum"
+          ]
+        },
+        "value_type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "access": {
+          "enum": [
+            "read",
+            "write",
+            "read_write"
+          ]
+        },
+        "event_kind": {
+          "enum": [
+            "any",
+            "probability"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$"
+              }
+            },
+            "required": [
+              "display_name",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "enum_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "variable_reference"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value_type",
+              "access"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "value_type"
+                  ]
+                },
+                {
+                  "required": [
+                    "access"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "event_reference"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "event_kind"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "event_kind"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "enum"
+              }
+            }
+          },
+          "then": {
+            "oneOf": [
+              {
+                "required": [
+                  "options"
+                ],
+                "not": {
+                  "required": [
+                    "enum_id"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "enum_id"
+                ],
+                "not": {
+                  "required": [
+                    "options"
+                  ]
+                }
+              }
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "required": [
+                    "enum_id"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "task_use": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "arguments"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/task_argument"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "parameter_reference_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "parameter_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "parameter_reference"
+        },
+        "parameter_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_operand": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference_operand"
+        },
+        {
+          "$ref": "#/$defs/parameter_reference_operand"
+        },
+        {
+          "$ref": "#/$defs/constant_operand"
+        },
+        {
+          "$ref": "#/$defs/scoped_expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        }
+      ]
+    },
+    "scoped_numeric_operand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "reference_id"
+          ],
+          "properties": {
+            "type": {
+              "const": "reference"
+            },
+            "reference_id": {
+              "$ref": "#/$defs/uuid"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/parameter_reference_operand"
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "const": "constant"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/scoped_expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        }
+      ]
+    },
+    "scoped_expression_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "operator",
+        "operand_a",
+        "operand_b"
+      ],
+      "properties": {
+        "type": {
+          "const": "expression"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "+",
+            "-",
+            "*",
+            "/"
+          ]
+        },
+        "operand_a": {
+          "$ref": "#/$defs/scoped_numeric_operand"
+        },
+        "operand_b": {
+          "$ref": "#/$defs/scoped_numeric_operand"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_task_use": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "arguments"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/scoped_task_argument"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_macro_sequence": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "parameters",
+        "steps",
+        "mode"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "task"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_action"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "mode": {
+          "const": "sequence"
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/task_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/scoped_task_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_condition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scoped_conditionGroup"
+        },
+        {
+          "$ref": "#/$defs/scoped_conditionComparison"
+        }
+      ]
+    },
+    "scoped_conditionGroup": {
+      "type": "object",
+      "required": [
+        "kind",
+        "mode",
+        "items"
+      ],
+      "properties": {
+        "kind": {
+          "const": "group"
+        },
+        "mode": {
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scoped_condition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_conditionComparison": {
+      "type": "object",
+      "required": [
+        "kind",
+        "operand_a",
+        "comparator",
+        "operand_b"
+      ],
+      "properties": {
+        "operand_a": {
+          "$ref": "#/$defs/scoped_operand"
+        },
+        "comparator": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">="
+          ]
+        },
+        "operand_b": {
+          "$ref": "#/$defs/scoped_operand"
+        },
+        "kind": {
+          "const": "comparison"
+        }
+      },
+      "additionalProperties": false
+    },
+    "macro_branch": {
+      "type": "object",
+      "required": [
+        "condition",
+        "task"
+      ],
+      "properties": {
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_task_use"
+            },
+            {
+              "$ref": "#/$defs/scoped_task_macro_use"
+            },
+            {
+              "$ref": "#/$defs/scoped_set_variable"
+            },
+            {
+              "$ref": "#/$defs/scoped_target_variable_operation"
+            },
+            {
+              "$ref": "#/$defs/flow_control_task"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_macro_branch": {
+      "type": "object",
+      "required": [
+        "mode",
+        "display_name",
+        "parameters",
+        "branches"
+      ],
+      "properties": {
+        "mode": {
+          "const": "branch"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/macro_branch"
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ]
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_macro": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/task_macro_sequence"
+        },
+        {
+          "$ref": "#/$defs/task_macro_branch"
+        },
+        {
+          "$ref": "#/$defs/task_macro_conditional"
+        },
+        {
+          "$ref": "#/$defs/task_macro_priority"
+        }
+      ]
+    },
+    "expression_macro": {
+      "type": "object",
+      "required": [
+        "display_name",
+        "value_type",
+        "definition"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value_type": {
+          "enum": [
+            "number",
+            "boolean"
+          ]
+        },
+        "definition": {
+          "$ref": "#/$defs/computed_definition"
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ],
+          "default": "application"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "number",
+                      "branch"
+                    ]
+                  },
+                  "branches": {
+                    "items": {
+                      "properties": {
+                        "result": {
+                          "properties": {
+                            "kind": {
+                              "const": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "boolean",
+                      "branch"
+                    ]
+                  },
+                  "branches": {
+                    "items": {
+                      "properties": {
+                        "result": {
+                          "properties": {
+                            "kind": {
+                              "const": "boolean"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "expression_macro_reference": {
+      "type": "object",
+      "required": [
+        "type",
+        "expression_macro_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "expression_macro_reference"
+        },
+        "expression_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "set_variable": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id",
+        "value"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "set_variable",
+            "increment_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "value": {
+          "$ref": "#/$defs/operand"
+        },
+        "random_amplitude": {
+          "$ref": "#/$defs/numeric_operand",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "constant"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/numeric_operand"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "random_amplitude"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "scoped_set_variable": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id",
+        "value"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "set_variable",
+            "increment_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "value": {
+          "$ref": "#/$defs/scoped_operand"
+        },
+        "random_amplitude": {
+          "$ref": "#/$defs/scoped_numeric_operand",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "constant"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/scoped_numeric_operand"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "random_amplitude"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "scoped_task_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scoped_task_use"
+        },
+        {
+          "$ref": "#/$defs/scoped_set_variable"
+        },
+        {
+          "$ref": "#/$defs/scoped_target_variable_operation"
+        },
+        {
+          "$ref": "#/$defs/flow_control_task"
+        },
+        {
+          "$ref": "#/$defs/scoped_task_macro_use"
+        },
+        {
+          "$ref": "#/$defs/adjust_probability_event"
+        }
+      ]
+    },
+    "environment_info": {
+      "type": "object",
+      "required": [
+        "id",
+        "display_name",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "variable_reference_argument": {
+      "type": "object",
+      "required": [
+        "type",
+        "reference_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "variable_reference"
+        },
+        "reference_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_argument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operand"
+        },
+        {
+          "$ref": "#/$defs/variable_reference_argument"
+        },
+        {
+          "$ref": "#/$defs/event_reference"
+        },
+        {
+          "$ref": "#/$defs/current_event_reference"
+        }
+      ]
+    },
+    "scoped_task_argument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scoped_operand"
+        },
+        {
+          "$ref": "#/$defs/variable_reference_argument"
+        },
+        {
+          "$ref": "#/$defs/event_reference"
+        },
+        {
+          "$ref": "#/$defs/current_event_reference"
+        }
+      ]
+    },
+    "target_variable_operation": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "toggle_variable",
+            "reset_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_target_variable_operation": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "toggle_variable",
+            "reset_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scalar_computed_definition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "expression"
+          ],
+          "properties": {
+            "kind": {
+              "const": "number"
+            },
+            "expression": {
+              "$ref": "#/$defs/numeric_operand"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "condition"
+          ],
+          "properties": {
+            "kind": {
+              "const": "boolean"
+            },
+            "condition": {
+              "$ref": "#/$defs/condition"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "computed_branch": {
+      "type": "object",
+      "required": [
+        "condition",
+        "result"
+      ],
+      "properties": {
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/scalar_computed_definition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "branched_computed_definition": {
+      "type": "object",
+      "required": [
+        "kind",
+        "branches"
+      ],
+      "properties": {
+        "kind": {
+          "const": "branch"
+        },
+        "branches": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/computed_branch"
+          },
+          "contains": {
+            "type": "object",
+            "required": [
+              "condition"
+            ],
+            "properties": {
+              "condition": {
+                "type": "null"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "sequence_event_date": {
+      "type": "object",
+      "required": [
+        "week_number",
+        "weekday"
+      ],
+      "properties": {
+        "week_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "sequence_event_group": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "day_schedule_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "start": {
+              "$ref": "#/$defs/sequence_event_date"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "icon": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "once"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "day_schedule_id",
+            "start",
+            "priority"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "day_schedule_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "start": {
+              "$ref": "#/$defs/sequence_event_date"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "icon": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "periodic"
+            },
+            "end": {
+              "$ref": "#/$defs/sequence_event_date"
+            },
+            "count_filter": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "all"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "day"
+                    },
+                    "day_schedule_id": {
+                      "$ref": "#/$defs/uuid"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "day_schedule_id"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "tag"
+                    },
+                    "tag": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "tag"
+                  ],
+                  "additionalProperties": false
+                }
+              ],
+              "default": {
+                "kind": "all"
+              }
+            },
+            "interval_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "day_schedule_id",
+            "start",
+            "priority",
+            "end",
+            "interval_days"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "day_schedule_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "start": {
+              "$ref": "#/$defs/sequence_event_date"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "icon": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "probability"
+            },
+            "end": {
+              "$ref": "#/$defs/sequence_event_date"
+            },
+            "count_filter": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "all"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "day"
+                    },
+                    "day_schedule_id": {
+                      "$ref": "#/$defs/uuid"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "day_schedule_id"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "tag"
+                    },
+                    "tag": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "tag"
+                  ],
+                  "additionalProperties": false
+                }
+              ],
+              "default": {
+                "kind": "all"
+              }
+            },
+            "probability_percent": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "cooldown_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "day_schedule_id",
+            "start",
+            "priority",
+            "end",
+            "probability_percent",
+            "cooldown_days"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "flow_control_task": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "schedule_takeover"
+        },
+        "condition": {
+          "$ref": "#/$defs/scoped_condition"
+        },
+        "scope": {
+          "enum": [
+            "slot",
+            "day"
+          ]
+        },
+        "target": {
+          "enum": [
+            "main",
+            "lower_priority"
+          ]
+        }
+      },
+      "required": [
+        "builtin",
+        "condition",
+        "scope",
+        "target"
+      ],
+      "additionalProperties": false
+    },
+    "task_macro_conditional": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "conditional"
+        },
+        "condition": {
+          "$ref": "#/$defs/scoped_condition"
+        },
+        "task": {
+          "$ref": "#/$defs/scoped_task_action"
+        }
+      },
+      "required": [
+        "display_name",
+        "parameters",
+        "mode",
+        "condition",
+        "task"
+      ],
+      "additionalProperties": false,
+      "description": "Legacy import-only form. Converted to a sequence with eligibility and one task step."
+    },
+    "task_macro_priority": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "icon": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "display_name",
+        "parameters",
+        "mode",
+        "candidates"
+      ],
+      "additionalProperties": false
+    },
+    "slot_branch": {
+      "type": "object",
+      "required": [
+        "icon",
+        "display_name",
+        "branches"
+      ],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "default": ""
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/branch"
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ]
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "mode": {
+          "const": "branch"
+        }
+      },
+      "additionalProperties": false
+    },
+    "slot_priority": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "default": ""
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_key": {
+          "type": "string",
+          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
+        },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "icon",
+        "display_name",
+        "mode",
+        "candidates"
+      ],
+      "additionalProperties": false
+    },
+    "event_reference": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "event_reference"
+        },
+        "event_group_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "required": [
+        "type",
+        "event_group_id"
+      ],
+      "additionalProperties": false
+    },
+    "current_event_reference": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "current_event_reference"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "event_argument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/event_reference"
+        },
+        {
+          "$ref": "#/$defs/current_event_reference"
+        },
+        {
+          "$ref": "#/$defs/parameter_reference_operand"
+        }
+      ]
+    },
+    "event_property_operand": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "event_property"
+        },
+        "event": {
+          "$ref": "#/$defs/event_argument"
+        },
+        "property": {
+          "enum": [
+            "probability_percent",
+            "cooldown_days",
+            "cooldown_remaining"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "event",
+        "property"
+      ],
+      "additionalProperties": false
+    },
+    "adjust_probability_event": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "adjust_probability_event"
+        },
+        "event": {
+          "$ref": "#/$defs/event_argument"
+        },
+        "property": {
+          "oneOf": [
+            {
+              "enum": [
+                "probability_percent",
+                "cooldown_days"
+              ]
+            },
+            {
+              "$ref": "#/$defs/parameter_reference_operand"
+            }
+          ]
+        },
+        "operation": {
+          "oneOf": [
+            {
+              "enum": [
+                "set",
+                "increase"
+              ]
+            },
+            {
+              "$ref": "#/$defs/parameter_reference_operand"
+            }
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/scoped_numeric_operand"
+        }
+      },
+      "required": [
+        "builtin",
+        "event",
+        "property",
+        "operation",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "enum_definition_node": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "enum": [
+            "group",
+            "enum"
+          ]
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "icon": {
+          "type": "string"
+        },
+        "engine_key": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ]
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/uuid"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$"
+              }
+            },
+            "required": [
+              "display_name",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "node_type",
+        "display_name",
+        "scope",
+        "parent_id",
+        "order"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "node_type": {
+                "const": "enum"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "options"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "options"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

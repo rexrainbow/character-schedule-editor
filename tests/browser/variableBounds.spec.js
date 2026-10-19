@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { referenceFixture } from '../referenceFixture.js';
 import { builtinVariableFixture } from '../builtinVariableFixture.js';
-import { compileProject } from '../../src/model.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, exportProject, switchMode } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 async function load(page, draft) {
   await page.goto('/');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'bounds.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compileProject(draft).data)) });

@@ -1,7 +1,7 @@
 import { navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
-import { translator } from '../../src/i18n.js';
-import example from '../../src/sequence-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
+import example from '../../src/examples/sequence-example.json' with { type: 'json' };
 
 async function expectSingleScrollArea(page, selector) {
   const result = await page.locator(selector).evaluate((element) => {
@@ -27,7 +27,8 @@ test('single toolbar, action menus and one editor scroll area across desktop and
   await expect(page.locator('.workspace-nav')).toHaveCount(0);
   await page.locator('.sidebar').getByRole('button', { name: 'Add day' }).click();
   await expectSingleScrollArea(page, '.day-cells');
-  expect(await page.locator('.day-cells').evaluate((element) => element.clientHeight)).toBeGreaterThan(850);
+  // Leave room for the day tag controls and collapsed event row above the grid.
+  expect(await page.locator('.day-cells').evaluate((element) => element.clientHeight)).toBeGreaterThan(page.viewportSize().height * 0.7);
   await page.getByRole('button', { name: 'Project menu', exact: true }).click();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toHaveCount(0);

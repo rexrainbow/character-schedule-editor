@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/state-example.json' with { type: 'json' };
-import { projectToDraft } from '../../src/model.js';
-import { compileEnvironment, createEnvironmentInfo } from '../../src/environmentModel.js';
+import example from '../../src/examples/state-example.json' with { type: 'json' };
+import { projectToDraft } from '../../src/core/model.js';
+import { compileEnvironment, createEnvironmentInfo } from '../../src/core/environmentModel.js';
 import { exportProject, switchMode } from './navigation.js';
 
 function fixtures() {

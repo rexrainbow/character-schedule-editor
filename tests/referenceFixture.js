@@ -1,9 +1,9 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
-import { createProject, createDay } from '../src/model.js';
-import { addOperandNode } from '../src/operandModel.js';
-import { createTask, createParameter } from '../src/taskModel.js';
-import { createTaskMacro } from '../src/taskMacroModel.js';
-import { createEnvironmentInfo } from '../src/environmentModel.js';
+import { createProject, createDay } from '../src/core/model.js';
+import { addOperandNode } from '../src/core/operandModel.js';
+import { createTask, createParameter } from '../src/core/taskModel.js';
+import { createTaskMacro } from '../src/core/taskMacroModel.js';
+import { createEnvironmentInfo } from '../src/core/environmentModel.js';
 
 export function referenceFixture() {
   const draft = createProject(); draft.environment = createEnvironmentInfo('Reference environment');

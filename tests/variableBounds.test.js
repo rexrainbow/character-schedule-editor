@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileEnvironment, validateEnvironment, createProjectWithEnvironment } from '../src/environmentModel.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { changeOperandType, duplicateOperandSubtree } from '../src/operandModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileEnvironment, validateEnvironment, createProjectWithEnvironment } from '../src/core/environmentModel.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { changeOperandType, duplicateOperandSubtree } from '../src/core/operandModel.js';
+import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
 
 test('optional numeric bounds survive both layers, project/environment/runtime exports and copies', () => {
   const { draft, number, text } = builtinVariableFixture();

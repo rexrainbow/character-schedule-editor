@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { priorityMacroFixture } from '../priorityMacroFixture.js';
-import { compileProject } from '../../src/model.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
 async function load(page) {
   const fixture = priorityMacroFixture(); await page.goto('/'); const compiled = compileProject(fixture.draft); expect(compiled.errors).toEqual([]);

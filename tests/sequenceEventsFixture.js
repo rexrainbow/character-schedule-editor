@@ -1,7 +1,7 @@
-import { createProject, createDay, createSlot, assignCell } from '../src/model.js';
-import { createWeek } from '../src/weekModel.js';
-import { createSequence, addSequenceRow } from '../src/sequenceModel.js';
-import { newEventGroup, positionDate } from '../src/sequenceEvents.js';
+import { createProject, createDay, createSlot, assignCell } from '../src/core/model.js';
+import { createWeek } from '../src/core/weekModel.js';
+import { createSequence, addSequenceRow } from '../src/core/sequenceModel.js';
+import { newEventGroup, positionDate } from '../src/core/sequenceEvents.js';
 
 export function sequenceEventsFixture() {
   let draft = createProject();
@@ -16,5 +16,5 @@ export function sequenceEventsFixture() {
   return { draft, sequence, main, eventDay, activity };
 }
 export function rule(sequence, dayId, start = 0, end = 20, interval = 7, priority = 0) {
-  return { ...newEventGroup(sequence, start), dayId, end: positionDate(end), interval, priority };
+  return { ...newEventGroup(sequence, start), dayId, kind: interval === 0 ? 'once' : 'periodic', end: positionDate(end), interval, priority };
 }

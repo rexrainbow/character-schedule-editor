@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { computedBranchFixture, compare, constant } from '../computedBranchFixture.js';
-import { addComputedNode } from '../../src/operandModel.js';
-import { compileProject } from '../../src/model.js';
+import { addComputedNode } from '../../src/core/operandModel.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 
 async function load(page) {
   const f = computedBranchFixture();

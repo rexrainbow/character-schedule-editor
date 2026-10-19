@@ -1,0 +1,111 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { eventCounts, eventGroupErrors, duplicateEventGroup } from '../src/core/sequenceEvents.js';
+import { eventReferencesTo, eventUsageErrors } from '../src/core/eventReferences.js';
+import { daySimulationPlan, simulateSequenceDay } from '../src/core/daySimulationModel.js';
+import { simulateSlot, createSimulationEvaluator, simulationInitialValues } from '../src/core/simulationModel.js';
+import { translator } from '../src/i18n/index.js';
+import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment } from '../src/core/environmentModel.js';
+import { changeMacroParameterType, deleteMacroParameter, macroParameterReferences } from '../src/core/taskMacroModel.js';
+const t = translator('en');
+const constant = (value) => ({ type: 'constant', value });
+function fixture() {
+  const f = sequenceEventsFixture();
+  const group = { ...rule(f.sequence, f.eventDay.id), kind: 'probability', probability_percent: 10, cooldown_days: 7, icon: 'tabler:heart', display_name: 'Cold', engine_key: 'cold' };
+  f.sequence.eventGroups = [group];
+  f.draft.builtinTasks = { adjust_probability_event: { engine_key: 'events.adjust' } };
+  return { ...f, group };
+}
+const adjust = (value, property = 'probability_percent', operation = 'set', event = { type: 'current_event_reference' }) => ({ builtin: 'adjust_probability_event', event, value: constant(value), property, operation });
+test('three canonical variants round-trip; runtime excludes icons and includes probability configuration', () => {
+  const { draft, sequence, eventDay, group } = fixture();
+  sequence.eventGroups.push(rule(sequence, eventDay.id, 1, 1, 0), rule(sequence, eventDay.id));
+  const project = compileProject(draft); assert.deepEqual(project.errors, []);
+  const [probability, once, periodic] = project.data.week_sequences[sequence.id].event_groups;
+  assert.equal(probability.icon, 'tabler:heart'); assert.equal(probability.interval_days, undefined);
+  assert.equal(once.end, undefined); assert.equal(once.count_filter, undefined); assert.equal(once.interval_days, undefined);
+  assert.equal(periodic.probability_percent, undefined);
+  assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
+  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.sequences[sequence.id].event_groups[0].icon, undefined);
+  assert.equal(runtime.data.sequences[sequence.id].event_groups[0].cooldown_days, 7);
+  const copy = duplicateEventGroup(group, draft.days); assert.notEqual(copy.id, group.id); assert.equal(copy.icon, group.icon);
+  for (const [key, value] of [['probability_percent', 101], ['probability_percent', -1], ['cooldown_days', .5], ['cooldown_days', -1]]) {
+    const bad = structuredClone(project.data); bad.week_sequences[sequence.id].event_groups[0][key] = value;
+    assert.ok(validateDocument(bad).length);
+  }
+});
+test('single-day simulation makes no random or historical inference and choices cannot bypass eligible dates', () => {
+  const { draft, sequence, group } = fixture();
+  assert.equal(daySimulationPlan(draft, sequence.id, 0).probabilityEvents.length, 1);
+  assert.equal(daySimulationPlan(draft, sequence.id, 0).layers.filter((layer) => layer.type === 'event').length, 0);
+  const choices = { [group.id]: true };
+  assert.equal(daySimulationPlan(draft, sequence.id, 0, t, choices).layers[0].groupId, group.id);
+  group.countFilter = { kind: 'tag', tag: 'Absent' };
+  assert.equal(daySimulationPlan(draft, sequence.id, 0, t, choices).probabilityEvents.length, 0);
+  assert.equal(daySimulationPlan(draft, sequence.id, 0, t, choices).layers.filter((layer) => layer.type === 'event').length, 0);
+  assert.deepEqual(eventCounts(sequence, group, draft), { total: 0, active: 0 });
+});
+test('adjustments clamp probability, preserve today’s plan, expose reads, and reject fractional cooldown', () => {
+  const { draft, sequence, activity, group } = fixture();
+  activity.branches = [{ condition: null, task: adjust(150) }];
+  assert.deepEqual(compileProject(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft).errors, []);
+  const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
+  assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 100);
+  assert.equal(result.eventValues[group.id].cooldown_remaining, 7);
+  assert.equal(group.probability_percent, 10); assert.ok(result.plan.layers.some((layer) => layer.groupId === group.id));
+  const engine = createSimulationEvaluator(draft, simulationInitialValues(draft), simulationInitialValues(draft), t, null, { sequenceId: sequence.id });
+  assert.equal(engine.operand({ type: 'event_property', event: { type: 'event_reference', event_group_id: group.id }, property: 'probability_percent' }, { parameters: [], values: {} }, '/', []), 10);
+  activity.branches[0].task = adjust(.5, 'cooldown_days');
+  assert.ok(simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true }).errors.some((error) => error.key === 'invalidEventCooldown'));
+  assert.ok(simulateSlot(draft, activity.id).errors.some((error) => error.key === 'eventDayContextRequired'));
+});
+test('event parameter contracts round-trip through environments and cannot be weakened while used internally', () => {
+  const { draft, sequence, activity, group } = fixture();
+  draft.environment = createEnvironmentInfo('Engine');
+  const parameter = { id: crypto.randomUUID(), display_name: 'Event', type: 'event_reference', event_kind: 'probability' };
+  draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine event task', parameters: [parameter] }];
+  const environment = compileEnvironment(draft); assert.deepEqual(environment.errors, []);
+  const imported = createProjectWithEnvironment('Imported', 3, environment.data);
+  assert.equal(imported.tasks[0].parameters[0].event_kind, 'probability');
+  const macro = { id: crypto.randomUUID(), display_name: 'Read event', mode: 'sequence', parameters: [parameter], steps: [{ id: crypto.randomUUID(), task: adjust(5, 'probability_percent', 'increase', { type: 'parameter_reference', parameter_id: parameter.id }) }] };
+  draft.taskMacros = [macro];
+  assert.equal(macroParameterReferences(macro, parameter.id).length, 1);
+  assert.ok(changeMacroParameterType(draft, macro.id, parameter.id, { event_kind: 'any' }).blocked.length);
+  assert.throws(() => deleteMacroParameter(draft, macro.id, parameter.id), /macroParameterInUse/);
+  macro.steps[0].task.value = { type: 'event_property', event: { type: 'parameter_reference', parameter_id: parameter.id }, property: 'cooldown_days' };
+  assert.equal(macroParameterReferences(macro, parameter.id).length, 2);
+  activity.branches = [{ condition: null, task: { task_macro_id: macro.id, arguments: { [parameter.id]: { type: 'event_reference', event_group_id: group.id } } } }];
+  assert.deepEqual(compileRuntime(draft).errors, []);
+  const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
+  assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 17);
+});
+test('event references forward through macro parameters, export, and block invalid kinds and missing targets', () => {
+  const { draft, sequence, activity, group } = fixture();
+  const parameter = { id: crypto.randomUUID(), display_name: 'Event', type: 'event_reference', event_kind: 'probability' };
+  const macro = { id: crypto.randomUUID(), display_name: 'Raise chance', mode: 'sequence', parameters: [parameter], steps: [{ id: crypto.randomUUID(), task: adjust(5, 'probability_percent', 'increase', { type: 'parameter_reference', parameter_id: parameter.id }) }] };
+  draft.taskMacros = [macro];
+  activity.branches = [{ condition: null, task: { task_macro_id: macro.id, arguments: { [parameter.id]: { type: 'event_reference', event_group_id: group.id } } } }];
+  assert.deepEqual(compileProject(draft).errors, []);
+  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.task_macros[macro.id].parameters[0].event_kind, 'probability');
+  assert.equal(runtime.data.task_macros[macro.id].steps[0].event_operation, 'adjust_probability');
+  const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
+  assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 15);
+  assert.equal(eventReferencesTo(draft, [group.id]).length, 1);
+  group.kind = 'periodic'; assert.ok(eventUsageErrors(draft).some((error) => error.key === 'probabilityEventRequired'));
+  sequence.eventGroups = []; assert.ok(compileProject(draft).errors.some((error) => error.key === 'missingEventReference'));
+});
+test('current-event references fail for main days and explicit references cannot cross sequences', () => {
+  const { draft, sequence, activity, main, group } = fixture();
+  main.slotIds[0] = activity.id; activity.branches = [{ condition: null, task: adjust(20) }];
+  assert.ok(simulateSequenceDay(draft, sequence.id, 0).errors.some((error) => error.key === 'currentEventMissing'));
+  const other = { ...structuredClone(sequence), id: crypto.randomUUID(), eventGroups: [{ ...structuredClone(group), id: crypto.randomUUID() }] }; draft.sequences.push(other);
+  activity.branches[0].task = adjust(20, 'probability_percent', 'set', { type: 'event_reference', event_group_id: other.eventGroups[0].id });
+  assert.ok(simulateSequenceDay(draft, sequence.id, 0).errors.some((error) => error.key === 'crossSequenceEvent'));
+  assert.deepEqual(eventGroupErrors(sequence, draft.days), []);
+});

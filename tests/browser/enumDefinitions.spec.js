@@ -1,0 +1,78 @@
+import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { enumDefinitionsFixture } from '../enumDefinitionsFixture.js';
+import { compileProject } from '../../src/core/model.js';
+import { navigate, exportProject, switchMode } from './navigation.js';
+import { translator } from '../../src/i18n/index.js';
+async function load(page, draft) {
+  await page.goto('/'); const result = compileProject(draft); expect(result.errors).toEqual([]);
+  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'shared-enums.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(result.data)) });
+}
+async function save(page) { const pending = page.waitForEvent('download'); await exportProject(page); return JSON.parse(await readFile(await (await pending).path(), 'utf8')); }
+test('both modes expose enum definitions, nested creation and task references use the shared catalog', async ({ page }) => {
+  const { draft } = enumDefinitionsFixture(); await load(page, draft); await navigate(page, 'enums', 'en', 'environment');
+  await expect(page.getByRole('tab', { name: 'Enum definitions', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('button', { name: 'Add group', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Enum name', exact: true }).fill('Calendar');
+  await page.getByRole('button', { name: 'Add enum', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Enum name', exact: true }).fill('Office weekday');
+  await page.getByRole('textbox', { name: 'Option name', exact: true }).fill('Monday');
+  await page.getByRole('textbox', { name: 'Option value', exact: true }).fill('Monday');
+  await page.getByRole('button', { name: 'Add option', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Option name', exact: true }).nth(1).fill('Tuesday');
+  await page.getByRole('textbox', { name: 'Option value', exact: true }).nth(1).fill('Tuesday');
+  await expect(page.locator('.node-path')).toContainText('Calendar.Office weekday');
+  await page.screenshot({ path: 'test-results/shared-enum-desktop.png' });
+  await navigate(page, 'tasks'); await page.getByRole('button', { name: 'Add task', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Visit');
+  await page.getByRole('button', { name: 'Add parameter', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Parameter type', exact: true }).selectOption('enum');
+  await page.getByRole('combobox', { name: 'Option source', exact: true }).selectOption('reference');
+  await page.getByRole('button', { name: 'Choose enum definition', exact: true }).click();
+  const picker = page.getByRole('dialog');
+  await expect(picker.getByRole('treeitem', { name: 'Event operation', exact: true })).toHaveCount(0);
+  await picker.getByRole('searchbox', { name: 'Search enum definitions', exact: true }).fill('Office');
+  await picker.getByRole('treeitem', { name: 'Office weekday', exact: true }).click();
+  const data = await save(page), task = Object.values(data.tasks).find((item) => item.display_name === 'Visit');
+  const sourceId = Object.keys(data.enum_definitions).find((id) => data.enum_definitions[id].display_name === 'Office weekday');
+  expect(task.parameters[0].enum_id).toBe(sourceId); expect(task.parameters[0].options).toBeUndefined();
+  await navigate(page, 'enums'); await page.getByRole('treeitem', { name: 'Office weekday', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Enum name', exact: true })).toBeDisabled();
+  await expect(page.getByRole('textbox', { name: 'Option value', exact: true }).first()).toBeDisabled();
+});
+test('live enum option names reach callers, referenced subtree deletion is blocked and simulation resolves sources', async ({ page }) => {
+  const { draft, propertyEnumId } = enumDefinitionsFixture(); await load(page, draft); await navigate(page, 'enums', 'en', 'environment');
+  await page.getByRole('treeitem', { name: 'Event property', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Option name', exact: true }).first().fill('Chance percent');
+  await page.getByRole('treeitem', { name: 'Time', exact: true }).click();
+  page.once('dialog', (dialog) => dialog.accept()); await page.getByRole('button', { name: 'Delete definition', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('This change would invalidate enum references');
+  await expect(page.getByRole('treeitem', { name: 'Event property', exact: true })).toBeVisible();
+  await navigate(page, 'slots');
+  await expect(page.getByRole('combobox', { name: 'Argument: Property input', exact: true })).toContainText('Chance percent');
+  expect((await save(page)).enum_definitions[propertyEnumId].options[0].display_name).toBe('Chance percent');
+  await switchMode(page, 'simulation'); await page.getByRole('combobox', { name: 'Simulation target', exact: true }).selectOption('day');
+  await page.getByRole('combobox', { name: 'Occurrence: Cold', exact: true }).selectOption('true');
+  await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
+  await expect(page.locator('.simulation-results')).toContainText('Simulation completed');
+  await expect(page.locator('.simulation-results')).toContainText('Cold.probability_percent');
+});
+test('application enum creation, source selection and readonly provided definitions fit Chinese mobile', async ({ page }) => {
+  const { draft } = enumDefinitionsFixture(); await load(page, draft); await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('zh-TW'); const t = translator('zh-TW');
+  await navigate(page, 'enums', 'zh-TW');
+  await page.getByRole('treeitem', { name: 'Event operation', exact: true }).click();
+  await page.getByRole('textbox', { name: t('enumDefinitionName'), exact: true }).fill('操作列舉');
+  await page.getByRole('treeitem', { name: 'Weekday', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: t('enumDefinitionName'), exact: true })).toBeDisabled();
+  await navigate(page, 'taskMacros', 'zh-TW');
+  await page.getByRole('button', { name: t('chooseEnumDefinition'), exact: true }).nth(1).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('treeitem', { name: '操作列舉', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('treeitem', { name: 'Weekday', exact: true })).toBeVisible();
+  await expect(dialog.locator('.modal-footer')).toBeInViewport();
+  await page.screenshot({ path: 'test-results/shared-enum-picker-mobile.png' });
+  expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await dialog.getByRole('treeitem', { name: '操作列舉', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

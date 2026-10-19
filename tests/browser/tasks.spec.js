@@ -2,8 +2,8 @@ import { selectFirstDefinedTask } from './taskHelpers.js';
 import { exportProject, navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/task-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/task-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 
 async function load(page) {
   await page.goto('/');
@@ -94,6 +94,7 @@ test('computed references are type-filtered, new parameters require values, swit
   await load(page); await navigate(page, 'slots');
   await branch(page).getByRole('button', { name: 'Argument: Ready', exact: true }).click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: 'Reference', exact: true }).click();
   await dialog.getByRole('textbox', { name: 'Search variables', exact: true }).fill('can_act');
   await expect(dialog.getByRole('treeitem', { name: 'can_act', exact: true })).toBeVisible();
   await dialog.getByRole('textbox', { name: 'Search variables', exact: true }).fill('adjusted_energy');

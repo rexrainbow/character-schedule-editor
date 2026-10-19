@@ -4,10 +4,10 @@ import { readFile } from 'node:fs/promises';
 import { builtinVariableFixture } from '../builtinVariableFixture.js';
 import { referenceFixture } from '../referenceFixture.js';
 import { computedBranchFixture, numeric } from '../computedBranchFixture.js';
-import { compileProject } from '../../src/model.js';
-import { createProjectWithEnvironment } from '../../src/environmentModel.js';
-import { createTaskMacro } from '../../src/taskMacroModel.js';
-import { translator } from '../../src/i18n.js';
+import { compileProject } from '../../src/core/model.js';
+import { createProjectWithEnvironment } from '../../src/core/environmentModel.js';
+import { createTaskMacro } from '../../src/core/taskMacroModel.js';
+import { translator } from '../../src/i18n/index.js';
 import { switchMode, exportProject } from './navigation.js';
 
 async function load(page, draft) {

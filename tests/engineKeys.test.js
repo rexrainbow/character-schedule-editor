@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { compileProject, projectToDraft, validateDocument, duplicateSlot, duplicateDay } from '../src/model.js';
-import { duplicateWeek } from '../src/weekModel.js';
-import { duplicateSequence } from '../src/sequenceModel.js';
-import { duplicateTask } from '../src/taskModel.js';
-import { duplicateTaskMacro } from '../src/taskMacroModel.js';
-import { duplicateOperandSubtree } from '../src/operandModel.js';
-import { engineKeyEntries, engineKeyConflicts } from '../src/engineKeyModel.js';
+import { compileProject, projectToDraft, validateDocument, duplicateSlot, duplicateDay } from '../src/core/model.js';
+import { duplicateWeek } from '../src/core/weekModel.js';
+import { duplicateSequence } from '../src/core/sequenceModel.js';
+import { duplicateTask } from '../src/core/taskModel.js';
+import { duplicateTaskMacro } from '../src/core/taskMacroModel.js';
+import { duplicateOperandSubtree } from '../src/core/operandModel.js';
+import { engineKeyEntries, engineKeyConflicts } from '../src/core/engineKeyModel.js';
 
-const load = (name) => JSON.parse(readFileSync(new URL(`../src/${name}.json`, import.meta.url), 'utf8'));
+const load = (name) => JSON.parse(readFileSync(new URL(`../src/examples/${name}.json`, import.meta.url), 'utf8'));
 test('engine metadata round-trips for all entity types and duplicates remain valid imports/exports', () => {
   for (const file of ['task-macro-example', 'state-example', 'sequence-example']) {
     const data = load(file);

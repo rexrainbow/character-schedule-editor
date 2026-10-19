@@ -2,8 +2,8 @@ import { exportProject, navigate } from './navigation.js';
 import { defineSimpleTask, selectFirstDefinedTask } from './taskHelpers.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/computed-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/computed-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 
 async function exported(page) {
   const wait = page.waitForEvent('download'); await exportProject(page);

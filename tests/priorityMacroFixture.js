@@ -1,5 +1,5 @@
 import { builtinVariableFixture } from './builtinVariableFixture.js';
-import { createTaskMacro, createCandidate, createTaskStep } from '../src/taskMacroModel.js';
+import { createTaskMacro, createCandidate, createTaskStep } from '../src/core/taskMacroModel.js';
 export const constant = (value) => ({ type: 'constant', value });
 export const parameter = (id) => ({ type: 'parameter_reference', parameter_id: id });
 export const reference = (id) => ({ type: 'reference', reference_id: id });

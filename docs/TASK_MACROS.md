@@ -1,5 +1,7 @@
 # 任務巨集與共通資格條件
 
+參數另支援「選項」型別。可定義選項名稱及字串值，呼叫時以 dropdown 選擇，或轉傳相容巨集參數。選項參數在比較式中視為字串，完整規則見 [ENUM_PARAMETERS.md](./ENUM_PARAMETERS.md)。
+
 任務巨集屬於應用層，具有 UUID、display_name、icon、engine_key、參數介面及可選的資格條件。模式只決定通過資格條件後如何執行。
 
 | mode | 介面名稱 | 行為 |

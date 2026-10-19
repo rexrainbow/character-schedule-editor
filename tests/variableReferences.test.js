@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileProject, projectToDraft } from '../src/model.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { changeReadOnly, changeOperandType, deleteOperandNode, argumentErrors } from '../src/operandModel.js';
-import { changeParameterType } from '../src/taskModel.js';
-import { changeMacroParameterType, duplicateTaskMacro, deleteMacroParameter } from '../src/taskMacroModel.js';
-import { compileEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
+import { compileProject, projectToDraft } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { changeReadOnly, changeOperandType, deleteOperandNode, argumentErrors } from '../src/core/operandModel.js';
+import { changeParameterType } from '../src/core/taskModel.js';
+import { changeMacroParameterType, duplicateTaskMacro, deleteMacroParameter } from '../src/core/taskMacroModel.js';
+import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { referenceFixture } from './referenceFixture.js';
 
 test('reference arguments and forwarded macro contracts round-trip, exporting opaque engine/application references', () => {

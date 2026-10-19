@@ -1,9 +1,9 @@
 import { exportProject, navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/task-sequence-example.json' with { type: 'json' };
-import plain from '../../src/task-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/task-sequence-example.json' with { type: 'json' };
+import plain from '../../src/examples/task-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 
 const [sequenceId, sequence] = Object.entries(example.task_macros)[0];
 const [taskId, task] = Object.entries(example.tasks).find(([, task]) => task.display_name === 'Move');

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/task-macro-example.json' with { type: 'json' };
-import { addBranch, compileProject, moveBranch, projectToDraft, removeBranch, validateDocument } from '../src/model.js';
-import { applyComputedDefinition, changeOperandType, deleteOperandNode, formatCondition, nodeReferences } from '../src/operandModel.js';
-import { changeMacroMode, changeMacroParameterType, createTaskMacro, deleteMacroParameter, deleteTaskMacro, duplicateTaskMacro, macroParameterReferences, macroUses } from '../src/taskMacroModel.js';
-import { changeParameterType, deleteParameter, taskUses } from '../src/taskModel.js';
+import example from '../src/examples/task-macro-example.json' with { type: 'json' };
+import { addBranch, compileProject, moveBranch, projectToDraft, removeBranch, validateDocument } from '../src/core/model.js';
+import { applyComputedDefinition, changeOperandType, deleteOperandNode, formatCondition, nodeReferences } from '../src/core/operandModel.js';
+import { changeMacroMode, changeMacroParameterType, createTaskMacro, deleteMacroParameter, deleteTaskMacro, duplicateTaskMacro, macroParameterReferences, macroUses } from '../src/core/taskMacroModel.js';
+import { changeParameterType, deleteParameter, taskUses } from '../src/core/taskModel.js';
 
 const constant = (value) => ({ type: 'constant', value });
 function setup() { const draft = projectToDraft(example); return { draft, branch: draft.taskMacros.find((m) => m.mode === 'branch'), sequence: draft.taskMacros.find((m) => m.mode === 'sequence') }; }

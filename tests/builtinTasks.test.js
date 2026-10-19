@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/state-example.json' with { type: 'json' };
-import { projectToDraft, compileProject, validateDocument } from '../src/model.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { setVariableDefinition, changeBuiltinDefinition } from '../src/builtinTasks.js';
-import { translator } from '../src/i18n.js';
+import example from '../src/examples/state-example.json' with { type: 'json' };
+import { projectToDraft, compileProject, validateDocument } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { setVariableDefinition, changeBuiltinDefinition } from '../src/gui/hooks/builtinTasks.js';
+import { translator } from '../src/i18n/index.js';
 
 test('builtin metadata persists only custom fields, retaining language fallback and fixed parameter roles', () => {
   const en = translator('en'), zh = translator('zh-TW');

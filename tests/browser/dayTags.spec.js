@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sequenceEventsFixture } from '../sequenceEventsFixture.js';
-import { compileProject, createDay } from '../../src/model.js';
+import { compileProject, createDay } from '../../src/core/model.js';
 import { navigate, exportProject } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 async function load(page) {
   const f = sequenceEventsFixture(); f.main.tags = ['Main', 'Work']; f.draft.days.find((day) => day.id === f.eventDay.id).tags = ['Event', 'Work'];
   f.draft.days.push(createDay(f.draft, 'Rest'));

@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sequenceEventsFixture, rule } from '../sequenceEventsFixture.js';
 import { builtinVariableFixture } from '../builtinVariableFixture.js';
-import { addProgressDefinitions } from '../../src/progressEnvironment.js';
-import { translator } from '../../src/i18n.js';
-import { compileProject } from '../../src/model.js';
+import { addProgressDefinitions } from '../../src/core/progressEnvironment.js';
+import { translator } from '../../src/i18n/index.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
 
 function fixture() {

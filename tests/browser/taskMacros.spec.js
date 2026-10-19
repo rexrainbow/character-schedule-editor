@@ -1,8 +1,8 @@
 import { exportProject, navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/task-macro-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/task-macro-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 
 const [branchId, branchMacro] = Object.entries(example.task_macros).find(([, m]) => m.mode === 'branch');
 const [sequenceId, sequenceMacro] = Object.entries(example.task_macros).find(([, m]) => m.mode === 'sequence');

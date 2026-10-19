@@ -1,10 +1,10 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/example.json' with { type: 'json' };
-import { documentToDraft, compileDraft, validateDocument, addBranch, moveBranch, removeBranch, duplicateSlot, idPattern } from '../src/model.js';
-import { resolveLocale, messages } from '../src/i18n.js';
-import { createProject, projectToDraft, compileProject, createDay, duplicateDay, referenceCount, deleteSlotAndReferences, assignCell, applySlotEdit, taskSummary } from '../src/model.js';
+import example from '../src/examples/example.json' with { type: 'json' };
+import { documentToDraft, compileDraft, validateDocument, addBranch, moveBranch, removeBranch, duplicateSlot, idPattern } from '../src/core/model.js';
+import { resolveLocale, messages } from '../src/i18n/index.js';
+import { createProject, projectToDraft, compileProject, createDay, duplicateDay, referenceCount, deleteSlotAndReferences, assignCell, applySlotEdit, taskSummary } from '../src/core/model.js';
 
 test('project example is valid against the bundled schema', () => {
   assert.deepEqual(validateDocument(example), []);

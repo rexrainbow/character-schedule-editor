@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { createProject, compileProject, projectToDraft } from '../src/model.js';
-import { addOperandNode } from '../src/operandModel.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { createProject, compileProject, projectToDraft } from '../src/core/model.js';
+import { addOperandNode } from '../src/core/operandModel.js';
 
 function example(name) {
-  const data = JSON.parse(readFileSync(new URL(`../src/${name}.json`, import.meta.url), 'utf8'));
+  const data = JSON.parse(readFileSync(new URL(`../src/examples/${name}.json`, import.meta.url), 'utf8'));
   const draft = projectToDraft(data);
   draft.builtinTasks = { set_variable: { engine_key: 'task_assignment' } };
   for (const [id, node] of Object.entries(draft.operandNodes)) if (node.source !== 'computed') node.engine_key = 'var_' + id;

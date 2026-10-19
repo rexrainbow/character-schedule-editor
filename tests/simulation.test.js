@@ -1,10 +1,10 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { simulateSlot, simulationInitialValues, evaluateSimulationExpressions } from '../src/simulationModel.js';
-import { createProject } from '../src/model.js';
-import { createTaskMacro } from '../src/taskMacroModel.js';
-import { addComputedNode } from '../src/operandModel.js';
+import { simulateSlot, simulationInitialValues, evaluateSimulationExpressions } from '../src/core/simulationModel.js';
+import { createProject } from '../src/core/model.js';
+import { createTaskMacro } from '../src/core/taskMacroModel.js';
+import { addComputedNode } from '../src/core/operandModel.js';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
 import { referenceFixture } from './referenceFixture.js';
 const constant = (value) => ({ type: 'constant', value });

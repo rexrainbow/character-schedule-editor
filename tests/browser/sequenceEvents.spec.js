@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sequenceEventsFixture, rule } from '../sequenceEventsFixture.js';
-import { compileProject } from '../../src/model.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, exportProject } from './navigation.js';
-import { translator } from '../../src/i18n.js';
-import { addSequenceRow } from '../../src/sequenceModel.js';
+import { translator } from '../../src/i18n/index.js';
+import { addSequenceRow } from '../../src/core/sequenceModel.js';
 
 async function load(page, draft) {
   await page.goto('/'); const result = compileProject(draft); expect(result.errors).toEqual([]);
@@ -21,7 +21,8 @@ test('central manager edits complete recurring groups with calendar dates and is
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
   await dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
-  await expect(dialog.getByRole('button', { name: 'Choose event end date', exact: true })).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Choose event end date', exact: true })).toHaveCount(0);
+  await dialog.getByRole('combobox', { name: 'Event type', exact: true }).selectOption('periodic');
   await dialog.getByRole('spinbutton', { name: 'Interval (matching dates)', exact: true }).fill('');
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
   await dialog.getByRole('spinbutton', { name: 'Interval (matching dates)', exact: true }).fill('7');
@@ -181,9 +182,9 @@ test('tag counting updates recurrence, calendar markers, summaries and runtime t
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
   await dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
-  await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toBeDisabled();
+  await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toHaveCount(0);
   await expect(dialog.getByRole('checkbox')).toHaveCount(0);
-  await dialog.getByRole('combobox', { name: 'Execution mode', exact: true }).selectOption('repeat');
+  await dialog.getByRole('combobox', { name: 'Event type', exact: true }).selectOption('periodic');
   await dialog.getByRole('spinbutton', { name: 'Interval (matching dates)', exact: true }).fill('3');
   await dialog.getByRole('combobox', { name: 'Count dates by', exact: true }).selectOption('tag');
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
@@ -220,9 +221,8 @@ test('count-day references block deletion until changed; missing tags retain zer
   dialog = page.getByRole('dialog'); await expect(dialog).toContainText('No matching dates in this event range.');
   await expect(dialog.getByRole('combobox', { name: 'Tag to count', exact: true })).toHaveValue('Missing');
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeEnabled();
-  await dialog.getByRole('combobox', { name: 'Execution mode', exact: true }).selectOption('once');
-  await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toHaveValue('all');
-  await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toBeDisabled();
+  await dialog.getByRole('combobox', { name: 'Event type', exact: true }).selectOption('once');
+  await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toHaveCount(0);
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
 });
 

@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
-import { eventOccurs, eventCounts, eventGroupErrors, eventTooltip, duplicateEventGroup, eventsOnDate, countDayReferences } from '../src/sequenceEvents.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { changeWeekCell, deleteSharedDay } from '../src/weekModel.js';
-import { daySimulationPlan } from '../src/daySimulationModel.js';
-import { WEEKDAYS } from '../src/scheduleConstants.js';
-import { translator } from '../src/i18n.js';
+import { eventOccurs, eventCounts, eventGroupErrors, eventTooltip, duplicateEventGroup, eventsOnDate, countDayReferences } from '../src/core/sequenceEvents.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { changeWeekCell, deleteSharedDay } from '../src/core/weekModel.js';
+import { daySimulationPlan } from '../src/core/daySimulationModel.js';
+import { WEEKDAYS } from '../src/core/scheduleConstants.js';
+import { translator } from '../src/i18n/index.js';
 function fixture() {
   const f = sequenceEventsFixture(); f.main.tags = ['Work'];
   f.draft.weeks.forEach((week) => WEEKDAYS.forEach((day, index) => { week.days[day] = index < 5 ? f.main.id : null; }));
@@ -23,7 +23,7 @@ test('tag counting runs on eligible ranks 1,4,7 and defers ineligible starts wit
   assert.deepEqual(hits(weekend, sequence, draft), [7, 10, 15, 18]);
   const cropped = { ...sequence, startWeekday: 'sat', endWeekday: 'wed' };
   assert.deepEqual(eventCounts(cropped, group, draft), { total: 4, active: 2 });
-  const once = { ...weekend, interval: 0, end: { ...weekend.start } };
+  const once = { ...weekend, kind: 'once', interval: 0, end: { ...weekend.start } };
   assert.deepEqual(hits(once, sequence, draft), [5]);
 });
 

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/example.json' with { type: 'json' };
-import { clone, compileProject, createDay, idPattern, projectToDraft, validateDocument } from '../src/model.js';
-import { changeWeekCell, createWeek, deleteSharedDay, deleteWeek, setWeekDay } from '../src/weekModel.js';
-import { addSequenceRow, createSequence, dayOverrideReferenceCount, duplicateSequence, duplicateSequenceRow, moveSequenceRow, removeSequenceRow, replaceSequenceWeek, resolveSequenceDay, setSequenceOverride, weekSequenceReferenceCount } from '../src/sequenceModel.js';
+import example from '../src/examples/example.json' with { type: 'json' };
+import { clone, compileProject, createDay, idPattern, projectToDraft, validateDocument } from '../src/core/model.js';
+import { changeWeekCell, createWeek, deleteSharedDay, deleteWeek, setWeekDay } from '../src/core/weekModel.js';
+import { addSequenceRow, createSequence, dayOverrideReferenceCount, duplicateSequence, duplicateSequenceRow, moveSequenceRow, removeSequenceRow, replaceSequenceWeek, resolveSequenceDay, setSequenceOverride, weekSequenceReferenceCount } from '../src/core/sequenceModel.js';
 
 function setup() {
   let draft = projectToDraft(example);

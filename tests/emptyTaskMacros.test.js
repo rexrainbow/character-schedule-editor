@@ -1,9 +1,9 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, compileProject, projectToDraft } from '../src/model.js';
-import { createTaskMacro } from '../src/taskMacroModel.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
+import { createProject, compileProject, projectToDraft } from '../src/core/model.js';
+import { createTaskMacro } from '../src/core/taskMacroModel.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 
 test('both empty macro modes round-trip and export callable runtime placeholders with names', () => {
   const draft = createProject();

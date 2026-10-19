@@ -1,4 +1,4 @@
-import { createSlot, branchFromData } from '../src/model.js';
+import { createSlot, branchFromData } from '../src/core/model.js';
 
 // Existing action tests start with a task branch; new activities start empty in the app.
 export function createActionSlot(slots, name) {

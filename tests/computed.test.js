@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/example.json' with { type: 'json' };
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { addComputedNode, addOperandNode, applyComputedDefinition, changeOperandType, computedErrors, defaultDefinition, deleteOperandNode, duplicateOperandSubtree, nodeReferences, subtreeReferences, treeErrors } from '../src/operandModel.js';
+import example from '../src/examples/example.json' with { type: 'json' };
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { addComputedNode, addOperandNode, applyComputedDefinition, changeOperandType, computedErrors, defaultDefinition, deleteOperandNode, duplicateOperandSubtree, nodeReferences, subtreeReferences, treeErrors } from '../src/core/operandModel.js';
 
 const c = (value) => ({ type: 'constant', value });
 const ref = (reference_id) => ({ type: 'reference', reference_id });

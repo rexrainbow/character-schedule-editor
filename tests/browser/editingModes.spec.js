@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/task-example.json' with { type: 'json' };
+import example from '../../src/examples/task-example.json' with { type: 'json' };
 import { exportProject, navigate, switchMode } from './navigation.js';
 
 async function load(page) {
@@ -70,7 +70,7 @@ test('user task assignments can write writable environment values and read appli
   await branch.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:set_variable');
   await branch.getByRole('button', { name: 'Target variable', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('heading', { name: 'Environment variables', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Variables', exact: true })).toBeVisible();
   await expect(dialog.getByRole('heading', { name: 'Application variables', exact: true })).toBeVisible();
   await dialog.getByRole('textbox', { name: 'Search variables', exact: true }).fill('energy');
   await dialog.getByRole('treeitem', { name: 'energy', exact: true }).click();

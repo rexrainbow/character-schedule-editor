@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { priorityMacroFixture } from '../priorityMacroFixture.js';
-import { compileProject, createDay } from '../../src/model.js';
+import { compileProject, createDay } from '../../src/core/model.js';
 import { navigate } from './navigation.js';
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 async function load(page) {
   const fixture = priorityMacroFixture(), day = createDay(fixture.draft, 'Routine'); day.slotIds[0] = fixture.slot.id; fixture.draft.days = [day];
   await page.goto('/'); await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'logic.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compileProject(fixture.draft).data)) });
@@ -48,4 +48,29 @@ test('Chinese mobile day-cell editor shows the same overview without committing 
   await page.keyboard.press('Escape'); await navigate(page, 'slots', 'zh-TW');
   await expect(page.locator('.logic-overview pre')).toContainText('Choose activity');
   await expect(page.locator('.logic-overview pre')).not.toContainText(t('scheduleTakeover'));
+});
+
+test('macro overview follows selection and edits with shared depth controls in English and Chinese mobile', async ({ page }) => {
+  await load(page); await navigate(page, 'taskMacros');
+  const toggle = page.getByRole('button', { name: 'Logic overview', exact: true }), text = page.locator('.logic-overview pre');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false'); await toggle.click();
+  await expect(text).toContainText('IF (Engine.Counter >= Amount)');
+  await expect(text).toContainText('Increase value (Engine.Counter, Amount)');
+  await page.locator('.operand-sidebar').getByRole('button', { name: /Choose activity/ }).click();
+  await expect(text).toContainText('Eligible increase (Amount: 20)'); await expect(text).not.toContainText('Increase value');
+  const depth = page.getByRole('combobox', { name: 'Expansion depth', exact: true });
+  await depth.selectOption('one'); await expect(text).toContainText('Increase value (Engine.Counter, 20)');
+  await depth.selectOption('all');
+  await page.locator('.operand-sidebar').getByRole('button', { name: /Eligible increase/ }).click();
+  await page.getByRole('textbox', { name: 'Parameter name', exact: true }).fill('Energy cost');
+  await expect(text).toContainText('IF (Engine.Counter >= Energy cost)');
+  await expect(text).toContainText('Increase value (Engine.Counter, Energy cost)');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW'); const t = translator('zh-TW');
+  await expect(page.getByRole('combobox', { name: t('logicDepth'), exact: true })).toHaveValue('all');
+  await expect(text).toContainText(t('incrementVariable'));
+  await text.scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/macro-logic-overview-mobile.png' });
+  await page.getByRole('button', { name: t('logicOverview'), exact: true }).click(); await expect(text).toHaveCount(0);
 });

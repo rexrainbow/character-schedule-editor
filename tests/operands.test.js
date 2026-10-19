@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/example.json' with { type: 'json' };
-import { compileDraft, compileProject, createProject, documentToDraft, projectToDraft, validateDocument } from '../src/model.js';
-import { addOperandNode, changeOperandType, childrenOf, conditionErrors, deleteOperandNode, duplicateOperandSubtree, moveOperandNode, nodePath, nodeReferences, subtreeIds, treeErrors } from '../src/operandModel.js';
+import example from '../src/examples/example.json' with { type: 'json' };
+import { compileDraft, compileProject, createProject, documentToDraft, projectToDraft, validateDocument } from '../src/core/model.js';
+import { addOperandNode, changeOperandType, childrenOf, conditionErrors, deleteOperandNode, duplicateOperandSubtree, moveOperandNode, nodePath, nodeReferences, subtreeIds, treeErrors } from '../src/core/operandModel.js';
 
 function setup() {
   const draft = projectToDraft(example), nodes = draft.operandNodes;

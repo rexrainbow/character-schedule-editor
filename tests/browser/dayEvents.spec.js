@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { createProject, createDay, createSlot, compileProject } from '../../src/model.js';
-import { createWeek } from '../../src/weekModel.js';
-import { createSequence, addSequenceRow } from '../../src/sequenceModel.js';
+import { createProject, createDay, createSlot, compileProject } from '../../src/core/model.js';
+import { createWeek } from '../../src/core/weekModel.js';
+import { createSequence, addSequenceRow } from '../../src/core/sequenceModel.js';
 import { navigate, exportProject } from './navigation.js';
 
 async function load(page) {

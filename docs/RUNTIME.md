@@ -1,8 +1,12 @@
 # Runtime data v1
 
+共用列舉以頂層 enum_definitions 保存；參數可用 enum_id 引用，也可繼續以 options 自訂選項。Runtime catalog 不含群組或圖示。詳見 [ENUM_DEFINITIONS.md](./ENUM_DEFINITIONS.md)。
+
+任務與巨集的參數支援 `type: "enum"`，需附帶非空 `options: [{display_name, value}]`。呼叫可使用合法字串常數或相容的 enum 參數引用。內建調整機率事件的 property、operation 現在也能是參數引用，須先在巨集作用域解析後執行。完整契約見 [ENUM_PARAMETERS.md](./ENUM_PARAMETERS.md)。
+
 事件組以 count_filter 正向選擇全部日期、指定日行程或指定標籤。先套用 Day Override 取得主要來源，再判斷計數資格；不符合的日期不計數也不執行。從事件起點起，在第 1、1+N、1+2N… 個符合日期執行，序列邊界只裁切執行，不重設相位。Runtime 日行程與內嵌匿名日皆包含 tags。單次事件只比對起點。詳見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 
-sequences 可包含 event_groups，保存事件組 UUID、共用日行程 UUID、固定周次／星期起訖、interval_days（0 單次）及整數 priority。Engine 在每個日內位置，以高優先權到 0、主要日行程、負優先權的順序合併；相同值依陣列建立順序，不去重。序列執行範圍只裁切執行，不改變週期相位。格式及完整契約見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
+sequences 可包含 event_groups，保存事件組 UUID、名稱、共用日行程 UUID、固定周次／星期及整數 priority。以 kind 區分 once（單次，只有 start）、periodic（起訖、interval_days ≥ 1、count_filter）、probability（起訖、probability_percent、cooldown_days、count_filter）。Engine 於每日任務開始前決定事件，再在每個日內位置，以高優先權到 0、主要日行程、負優先權的順序合併；相同值依陣列建立順序，不去重。序列執行範圍只裁切執行，不改變週期相位。事件 icon 只保存在專案，runtime 不輸出。格式及完整契約見 [PROBABILITY_EVENTS.md](./PROBABILITY_EVENTS.md) 及 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 
 日行程及匿名內嵌日可含 day_start_slot_id、day_end_slot_id 及 slot_events，各值引用同一份 slots。事件不增加每日時段數，執行位置順序與空值規則見 [DAY_EVENTS.md](./DAY_EVENTS.md)。未指定主時段時仍可執行該時段事件；不存在日行程時沒有對應事件。
 
@@ -16,7 +20,7 @@ expression_macros.definition 也支援 `{kind: "branch", branches: [{condition, 
 
 使用者模式的「匯出執行資料／Export runtime data」產生 `character-schedule-runtime.json`，供 engine 載入執行。這不是可重新編輯的專案檔；可編輯資料請另外使用左側專案選單的「匯出專案」。
 
-獨立 JSON Schema 位於 [src/runtime.schema.json](../src/runtime.schema.json)，編譯器為 [src/runtimeModel.js](../src/runtimeModel.js)。Schema 可用 `npm.cmd run schema:runtime` 重新產生；產生器沿用專案的運算式與條件式定義，僅保留 runtime 用到的定義，不依賴外部 Schema 檔案。
+獨立 JSON Schema 位於 [src/schemas/runtime.schema.json](../src/schemas/runtime.schema.json)，編譯器為 [src/core/runtimeModel.js](../src/core/runtimeModel.js)。Schema 可用 `npm.cmd run schema:runtime` 重新產生；產生器沿用專案的運算式與條件式定義，僅保留 runtime 用到的定義，不依賴外部 Schema 檔案。
 
 ## 根結構
 

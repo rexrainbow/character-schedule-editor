@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/task-example.json' with { type: 'json' };
+import example from '../../src/examples/task-example.json' with { type: 'json' };
 import { exportProject, navigate } from './navigation.js';
 
 async function exported(page) {

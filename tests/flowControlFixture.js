@@ -1,9 +1,9 @@
 import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
-import { createDay, createSlot } from '../src/model.js';
-import { setDayAssignment } from '../src/dayEvents.js';
-import { createTakeover } from '../src/builtinTasks.js';
-import { createTaskMacro } from '../src/taskMacroModel.js';
+import { createDay, createSlot } from '../src/core/model.js';
+import { setDayAssignment } from '../src/core/dayEvents.js';
+import { createTakeover } from '../src/gui/hooks/builtinTasks.js';
+import { createTaskMacro } from '../src/core/taskMacroModel.js';
 
 export function flowControlFixture(options = {}, target = { index: 0, edge: 'start' }, controller = 'High') {
   const { draft, sequence } = sequenceEventsFixture(), vars = builtinVariableFixture();

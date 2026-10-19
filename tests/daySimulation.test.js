@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
-import { daySimulationPlan, simulateSequenceDay, progressBindings } from '../src/daySimulationModel.js';
-import { simulationInitialValues } from '../src/simulationModel.js';
-import { addProgressDefinitions } from '../src/progressEnvironment.js';
-import { translator } from '../src/i18n.js';
-import { setDayAssignment } from '../src/dayEvents.js';
+import { daySimulationPlan, simulateSequenceDay, progressBindings } from '../src/core/daySimulationModel.js';
+import { simulationInitialValues } from '../src/core/simulationModel.js';
+import { addProgressDefinitions } from '../src/core/progressEnvironment.js';
+import { translator } from '../src/i18n/index.js';
+import { setDayAssignment } from '../src/core/dayEvents.js';
 import { referenceFixture } from './referenceFixture.js';
 
 test('every phase interleaves priority-sorted events and main, preserving equal-priority creation order', () => {

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { createWeek, deleteWeek } from '../src/weekModel.js';
-import { createSequence, addSequenceRow, removeSequenceRow, duplicateSequence, moveSequenceRow } from '../src/sequenceModel.js';
-import { sequenceDate, sequenceRange, setSequenceBoundary } from '../src/sequenceRange.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
+import { createProject, compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { createWeek, deleteWeek } from '../src/core/weekModel.js';
+import { createSequence, addSequenceRow, removeSequenceRow, duplicateSequence, moveSequenceRow } from '../src/core/sequenceModel.js';
+import { sequenceDate, sequenceRange, setSequenceBoundary } from '../src/core/sequenceRange.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 
 function fixture() {
   const draft = createProject(); draft.weeks = [createWeek(draft, 'First'), createWeek(draft, 'Last')];

@@ -1,8 +1,8 @@
 import { exportProject, navigate } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import example from '../../src/state-example.json' with { type: 'json' };
-import { translator } from '../../src/i18n.js';
+import example from '../../src/examples/state-example.json' with { type: 'json' };
+import { translator } from '../../src/i18n/index.js';
 const branch = (page) => page.getByRole('article', { name: 'Branch 1', exact: true });
 const dialog = (page) => page.getByRole('dialog');
 const idFor = (name) => Object.keys(example.operand_nodes).find((id) => example.operand_nodes[id].display_name === name);

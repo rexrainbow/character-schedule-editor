@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { sequenceEventsFixture, rule } from '../sequenceEventsFixture.js';
-import { compileProject } from '../../src/model.js';
-import { eventTooltip } from '../../src/sequenceEvents.js';
-import { translator } from '../../src/i18n.js';
+import { compileProject } from '../../src/core/model.js';
+import { eventTooltip } from '../../src/core/sequenceEvents.js';
+import { translator } from '../../src/i18n/index.js';
 import { navigate } from './navigation.js';
 
 async function load(page) {

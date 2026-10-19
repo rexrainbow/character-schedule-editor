@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { builtinVariableFixture } from '../builtinVariableFixture.js';
-import { compileProject } from '../../src/model.js';
+import { compileProject } from '../../src/core/model.js';
 import { navigate, exportProject } from './navigation.js';
 
 async function load(page) {
@@ -17,7 +17,7 @@ async function download(page, action) {
 
 test('new builtin definitions lock structure and persist custom names/keys without ordinary tasks', async ({ page }) => {
   await load(page); await navigate(page, 'tasks');
-  for (const [name, rows] of [['Increase value', 2], ['Toggle boolean', 1], ['Reset initial value', 1]]) {
+  for (const [name, rows] of [['Increase value', 3], ['Toggle boolean', 1], ['Reset initial value', 1]]) {
     await page.locator('.operand-sidebar').getByRole('button', { name, exact: true }).click();
     await expect(page.getByRole('textbox', { name: 'Display name', exact: true })).toHaveValue(name);
     await expect(page.locator('.parameter-row')).toHaveCount(rows);

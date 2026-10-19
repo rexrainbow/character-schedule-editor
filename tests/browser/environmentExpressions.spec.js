@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { createProject, compileProject } from '../../src/model.js';
-import { createProjectWithEnvironment } from '../../src/environmentModel.js';
-import { addOperandNode, addComputedNode } from '../../src/operandModel.js';
+import { createProject, compileProject } from '../../src/core/model.js';
+import { createProjectWithEnvironment } from '../../src/core/environmentModel.js';
+import { addOperandNode, addComputedNode } from '../../src/core/operandModel.js';
 import { navigate, exportProject } from './navigation.js';
 
 async function load(page, draft) {

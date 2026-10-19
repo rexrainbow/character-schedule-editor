@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { priorityMacroFixture, constant, reference } from './priorityMacroFixture.js';
-import { createTaskMacro, createTaskStep, changeMacroMode } from '../src/taskMacroModel.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
-import { addOperandNode } from '../src/operandModel.js';
+import { createTaskMacro, createTaskStep, changeMacroMode } from '../src/core/taskMacroModel.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { addOperandNode } from '../src/core/operandModel.js';
 const comparison = (value) => ({ kind: 'comparison', operand_a: constant(value), comparator: '==', operand_b: constant(true) });
 const call = (id) => ({ task_macro_id: id, arguments: {} });
 const step = (task) => ({ ...createTaskStep(), task });

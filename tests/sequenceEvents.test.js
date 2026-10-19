@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { moveSequenceRow, duplicateSequenceRow, removeSequenceRow, duplicateSequence, replaceSequenceWeek } from '../src/sequenceModel.js';
-import { deleteSharedDay, deleteWeek, changeWeekCell } from '../src/weekModel.js';
-import { setSequenceBoundary } from '../src/sequenceRange.js';
-import { datePosition, changeEventStart, eventsOnDate, eventCounts, eventGroupErrors, positionDate, duplicateEventGroup, eventTooltip } from '../src/sequenceEvents.js';
-import { engineKeyEntries, engineKeyConflicts } from '../src/engineKeyModel.js';
-import { translator } from '../src/i18n.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { moveSequenceRow, duplicateSequenceRow, removeSequenceRow, duplicateSequence, replaceSequenceWeek } from '../src/core/sequenceModel.js';
+import { deleteSharedDay, deleteWeek, changeWeekCell } from '../src/core/weekModel.js';
+import { setSequenceBoundary } from '../src/core/sequenceRange.js';
+import { datePosition, changeEventStart, eventsOnDate, eventCounts, eventGroupErrors, positionDate, duplicateEventGroup, eventTooltip } from '../src/core/sequenceEvents.js';
+import { engineKeyEntries, engineKeyConflicts } from '../src/core/engineKeyModel.js';
+import { translator } from '../src/i18n/index.js';
 import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
 
 test('periods anchor to the fixed sequence date; active bounds do not reset their phase; priorities are stable', () => {
@@ -31,7 +31,7 @@ test('event groups round-trip and export runtime rules referencing complete shar
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups, project.data.week_sequences[sequence.id].event_groups.map(({ engine_key, ...group }) => group));
+  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups, project.data.week_sequences[sequence.id].event_groups.map(({ engine_key, icon, ...group }) => group));
   assert.ok(runtime.data.days[eventDay.id].day_start_slot_id);
   for (const mutate of [
     (g) => { g.interval_days = -1; }, (g) => { g.priority = .5; }, (g) => { g.end.week_number = 4; },

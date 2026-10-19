@@ -1,4 +1,4 @@
-import { translator } from '../../src/i18n.js';
+import { translator } from '../../src/i18n/index.js';
 
 export async function exportProject(page) {
   const t = translator(await page.locator('html').getAttribute('lang'));

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../src/expression-example.json' with { type: 'json' };
-import { compileProject, duplicateSlot, projectToDraft, validateDocument } from '../src/model.js';
-import { changeOperandType, conditionErrors, deleteOperandNode, formatOperand, nodeReferences, operandAt, operandErrors, replaceOperand, wrapExpression } from '../src/operandModel.js';
+import example from '../src/examples/expression-example.json' with { type: 'json' };
+import { compileProject, duplicateSlot, projectToDraft, validateDocument } from '../src/core/model.js';
+import { changeOperandType, conditionErrors, deleteOperandNode, formatOperand, nodeReferences, operandAt, operandErrors, replaceOperand, wrapExpression } from '../src/core/operandModel.js';
 
 const constant = (value) => ({ type: 'constant', value });
 const expression = (a, operator, b) => ({ type: 'expression', operator, operand_a: a, operand_b: b });

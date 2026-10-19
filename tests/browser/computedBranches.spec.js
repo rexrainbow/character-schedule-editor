@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { computedBranchFixture, numeric } from '../computedBranchFixture.js';
-import { addComputedNode } from '../../src/operandModel.js';
-import { compileProject } from '../../src/model.js';
-import { translator } from '../../src/i18n.js';
+import { addComputedNode } from '../../src/core/operandModel.js';
+import { compileProject } from '../../src/core/model.js';
+import { translator } from '../../src/i18n/index.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
 
 async function load(page, draft) {

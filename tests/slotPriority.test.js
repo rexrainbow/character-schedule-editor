@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { priorityMacroFixture, constant, reference } from './priorityMacroFixture.js';
-import { compileProject, projectToDraft, duplicateSlot, validateDocument, taskSummary } from '../src/model.js';
-import { compileRuntime } from '../src/runtimeModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
-import { nodeReferences, changeOperandType, deleteOperandNode } from '../src/operandModel.js';
-import { macroUses, deleteTaskMacro, deleteMacroParameter } from '../src/taskMacroModel.js';
-import { compileEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
+import { compileProject, projectToDraft, duplicateSlot, validateDocument, taskSummary } from '../src/core/model.js';
+import { compileRuntime } from '../src/core/runtimeModel.js';
+import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { nodeReferences, changeOperandType, deleteOperandNode } from '../src/core/operandModel.js';
+import { macroUses, deleteTaskMacro, deleteMacroParameter } from '../src/core/taskMacroModel.js';
+import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { flowControlFixture } from './flowControlFixture.js';
-import { simulateSequenceDay } from '../src/daySimulationModel.js';
+import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
 
 function fixture() {
   const result = priorityMacroFixture(), { draft, slot, priority } = result;

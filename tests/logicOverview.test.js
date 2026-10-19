@@ -1,11 +1,12 @@
-import { createTakeover } from '../src/builtinTasks.js';
+import { createTakeover } from '../src/gui/hooks/builtinTasks.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { slotLogicText } from '../src/logicOverviewModel.js';
-import { translator } from '../src/i18n.js';
+import { slotLogicText, taskMacroLogicText } from '../src/core/logicOverviewModel.js';
+import { translator } from '../src/i18n/index.js';
 import { priorityMacroFixture, constant, parameter, reference } from './priorityMacroFixture.js';
-import { createTaskMacro, createTaskStep } from '../src/taskMacroModel.js';
+import { createTaskMacro, createTaskStep } from '../src/core/taskMacroModel.js';
 const t = translator('en');
+function renderMacro(f, macro, depth = 'summary') { return taskMacroLogicText(macro, { nodes: f.draft.operandNodes, macros: f.draft.taskMacros, tasks: f.draft.tasks, builtinTasks: f.draft.builtinTasks, depth, t }); }
 function render(fixture, depth = 'summary') { return slotLogicText(fixture.slot, { nodes: fixture.draft.operandNodes, macros: fixture.draft.taskMacros, tasks: fixture.draft.tasks, builtinTasks: fixture.draft.builtinTasks, depth, t }); }
 
 test('priority summary substitutes eligibility arguments, preserves first-match order and marks entries after fallback', () => {
@@ -51,4 +52,32 @@ test('empty and partial drafts remain readable, cycles stop and string arguments
   f.eligible.steps[0].task = { task_macro_id: f.eligible.id, arguments: { [f.amount.id]: constant('a "quoted" value') } };
   const text = render(f, 'all');
   assert.match(text, /Circular reference; expansion stopped/); assert.ok(text.includes(JSON.stringify('a "quoted" value')));
+});
+
+test('macro overview starts at its body, retains parameter names and expands referenced macros by depth', () => {
+  const f = priorityMacroFixture(), before = structuredClone(f.draft);
+  assert.equal(renderMacro(f, f.eligible), 'IF (Engine.Counter >= Amount)\n  1. Increase value (Engine.Counter, Amount)');
+  assert.match(renderMacro(f, f.priority), /IF \(Engine.Counter >= 20\) → Eligible increase \(Amount: 20\)/);
+  assert.doesNotMatch(renderMacro(f, f.priority), /Increase value/);
+  assert.match(renderMacro(f, f.priority, 'one'), /1\. Increase value \(Engine.Counter, 20\)/);
+  assert.deepEqual(f.draft, before);
+  const wrapper = createTaskMacro('Wrapper');
+  wrapper.steps = [{ ...createTaskStep(), task: { task_macro_id: f.priority.id, arguments: {} } }];
+  f.draft.taskMacros.push(wrapper);
+  assert.equal(renderMacro(f, wrapper), '1. Choose activity');
+  assert.match(renderMacro(f, wrapper, 'one'), /Eligible increase/);
+  assert.doesNotMatch(renderMacro(f, wrapper, 'one'), /Increase value/);
+  assert.match(renderMacro(f, wrapper, 'all'), /Increase value \(Engine.Counter, 20\)/);
+});
+
+test('macro overview handles branches, empty bodies and self references without running them', () => {
+  const f = priorityMacroFixture(), branch = createTaskMacro('Branch', 'branch');
+  branch.branches[0].task = { task_macro_id: f.eligible.id, arguments: { [f.amount.id]: constant(5) } };
+  assert.doesNotMatch(renderMacro(f, branch), /ELSE →/);
+  assert.match(renderMacro(f, branch), /Eligible increase \(Amount: 5\)/);
+  branch.branches = []; assert.equal(renderMacro(f, branch), 'No actions');
+  const empty = createTaskMacro('Empty'); assert.equal(renderMacro(f, empty), 'No actions');
+  empty.steps = [{ ...createTaskStep(), task: { task_macro_id: empty.id, arguments: {} } }];
+  f.draft.taskMacros.push(empty);
+  assert.match(renderMacro(f, empty, 'all'), /Circular reference; expansion stopped/);
 });

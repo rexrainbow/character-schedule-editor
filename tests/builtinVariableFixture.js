@@ -1,8 +1,8 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
-import { createProject } from '../src/model.js';
-import { addOperandNode } from '../src/operandModel.js';
-import { createEnvironmentInfo } from '../src/environmentModel.js';
-import { createTaskMacro } from '../src/taskMacroModel.js';
+import { createProject } from '../src/core/model.js';
+import { addOperandNode } from '../src/core/operandModel.js';
+import { createEnvironmentInfo } from '../src/core/environmentModel.js';
+import { createTaskMacro } from '../src/core/taskMacroModel.js';
 
 export function builtinVariableFixture() {
   const draft = createProject(); draft.environment = createEnvironmentInfo('Variable tasks');

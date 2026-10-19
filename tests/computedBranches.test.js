@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { compileEnvironment, createProjectWithEnvironment, prepareEnvironmentImport } from '../src/environmentModel.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
-import { changeComputedMode, applyComputedDefinition, duplicateOperandSubtree, deleteOperandNode, changeOperandType, computedErrors } from '../src/operandModel.js';
-import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues } from '../src/simulationModel.js';
+import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { compileEnvironment, createProjectWithEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
+import { changeComputedMode, applyComputedDefinition, duplicateOperandSubtree, deleteOperandNode, changeOperandType, computedErrors } from '../src/core/operandModel.js';
+import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
 import { computedBranchFixture, constant, numeric, boolean } from './computedBranchFixture.js';
 
 test('numeric and boolean branch definitions preserve project/environment/runtime structure and typed results', () => {

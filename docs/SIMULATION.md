@@ -1,6 +1,6 @@
 # 行程模擬
 
-專案選單提供第三種「模擬模式」，支援單一時段行程與周序列某日的全天模擬。求值器獨立於 React，位於 `src/simulationModel.js`；全天計畫與執行位於 `src/daySimulationModel.js`，共用同一套條件、計算式與任務求值邏輯。
+專案選單提供第三種「模擬模式」，支援單一時段行程與周序列某日的全天模擬。求值器獨立於 React，位於 `src/core/simulationModel.js`；全天計畫與執行位於 `src/core/daySimulationModel.js`，共用同一套條件、計算式與任務求值邏輯。
 
 ## 操作
 

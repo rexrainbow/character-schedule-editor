@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, compileProject, projectToDraft, validateDocument } from '../src/model.js';
-import { addOperandNode, changeOperandType, duplicateOperandSubtree } from '../src/operandModel.js';
-import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/environmentModel.js';
-import { compileRuntime, validateRuntimeDocument } from '../src/runtimeModel.js';
+import { createProject, compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { addOperandNode, changeOperandType, duplicateOperandSubtree } from '../src/core/operandModel.js';
+import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment, prepareEnvironmentImport, validateEnvironment } from '../src/core/environmentModel.js';
+import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 
 function fixture() {
   const draft = createProject(); draft.environment = createEnvironmentInfo('Initial values');
