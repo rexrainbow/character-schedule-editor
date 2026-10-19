@@ -2,15 +2,15 @@ import { isComputed, macroEligibility, nodePath } from './operandModel.js';
 import { builtinTaskDefinition, isBuiltinFlowTask } from './builtinTaskModel.js';
 
 // Static explanation only: never evaluates conditions or changes project data.
-export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, depth = 'summary', t }) {
-  return logicText(slot, { nodes, tasks, macros, builtinTasks, depth, t });
+export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], depth = 'summary', t }) {
+  return logicText(slot, { nodes, tasks, macros, builtinTasks, events, depth, t });
 }
 
 export function taskMacroLogicText(macro, options) {
   return logicText(null, options, macro);
 }
 
-function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, depth = 'summary', t }, rootMacro) {
+function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], depth = 'summary', t }, rootMacro) {
   const limit = depth === 'all' ? 64 : depth === 'one' ? 1 : 0;
   const lines = [], taskStack = new Set(), expressionStack = new Set();
   let operations = 0, truncated = false;
@@ -22,7 +22,7 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, de
     if (value?.type === 'constant') return typeof value.value === 'string' ? JSON.stringify(value.value) : ['number', 'boolean'].includes(typeof value.value) && (typeof value.value !== 'number' || Number.isFinite(value.value)) ? String(value.value) : missing();
     if (value?.type === 'parameter_reference') return scope[value.parameter_id] ?? missing();
     if (value?.type === 'current_event_reference') return t('currentEvent');
-    if (value?.type === 'event_reference') return `${t('eventReferences')} [${value.event_group_id}]`;
+    if (value?.type === 'event_reference') return events.find((event) => event.id === value.event_group_id)?.name ?? `${t('eventReferences')} [${value.event_group_id}]`;
     if (value?.type === 'event_property') return `${operand(value.event, scope, remaining, level + 1)}.${t(`eventProperty_${value.property}`)}`;
     if (value?.type === 'reference' || value?.type === 'variable_reference') return nodePath(nodes, value.reference_id) || missing();
     if (value?.type === 'expression') return `(${operand(value.operand_a, scope, remaining, level + 1)} ${value.operator || '?'} ${operand(value.operand_b, scope, remaining, level + 1)})`;

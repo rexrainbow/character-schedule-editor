@@ -109,4 +109,4 @@ const result = project.transaction(tx => {
 
 ## 序列化與平台邊界
 
-`toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。呼叫端確認無錯誤後，Web 產生下載、Node.js 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast；尚未加入 Node.js 檔案介面。
+`toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。`exportReport({ includeUnreferenced })` 使用相同結果格式，`data` 為 Markdown 行程報告字串，詳見 [REPORT.md](./REPORT.md)。呼叫端確認無錯誤後，Web 產生下載、Node.js 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast；尚未加入 Node.js 檔案介面。

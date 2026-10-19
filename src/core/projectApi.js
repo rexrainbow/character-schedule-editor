@@ -15,6 +15,7 @@ import { compileEnvironment, prepareEnvironmentImport, createProjectWithEnvironm
 import { compileRuntime } from './runtimeModel.js';
 import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { translator } from '../i18n/index.js';
+import { compileReport } from './reportModel.js';
 
 const clone = (value) => structuredClone(value);
 function freeze(value) {
@@ -234,6 +235,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
     toDocument: () => compileProject(snapshot),
     exportRuntime: () => compileRuntime(snapshot, t),
     exportEnvironment: () => compileEnvironment(snapshot),
+    exportReport: (options = {}) => compileReport(snapshot, { ...options, t }),
     transaction: (callback, { validate = true } = {}) => {
       if (batching) { const errors = [issue('nestedProjectTransaction')]; failures.push(...errors); return result(false, null, errors); }
       if (callback.constructor?.name === 'AsyncFunction') return result(false, null, [issue('asyncProjectTransaction')]);

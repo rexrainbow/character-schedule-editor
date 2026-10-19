@@ -1,4 +1,5 @@
 import useProject from './hooks/useProject.js';
+import ReportExportDialog from './dialogs/ReportExportDialog.jsx';
 import { editProject } from '../core/projectApi.js';
 import EnumDefinitionsEditor from './editors/EnumDefinitionsEditor.jsx';
 import { eventCatalog } from '../core/eventReferences.js';
@@ -43,6 +44,7 @@ export default function App() {
   const engineKeys = useMemo(() => engineKeyEntries(draft), [draft]);
   const [initialized, setInitialized] = useState(false);
   const [settings, setSettings] = useState(null);
+  const [reportDialog, setReportDialog] = useState(false);
   const [mode, setMode] = useState('user');
   const [modeTabs, setModeTabs] = useState({ user: 'days', environment: 'operands', simulation: 'simulation' });
   const [simulation, setSimulation] = useState(null);
@@ -235,6 +237,15 @@ export default function App() {
     setTimeout(() => URL.revokeObjectURL(url), 1000); setOperationIssues([]); setNotice({ key: 'runtimeExported' });
   }
 
+  function exportReport(options) {
+    const result = editProject(draft, t).exportReport(options);
+    if (result.errors.length) return result.errors;
+    const url = URL.createObjectURL(new Blob([result.data], { type: 'text/markdown;charset=utf-8' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'character-schedule-report.md'; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000); setOperationIssues([]); setNotice({ key: 'reportExported' });
+    return [];
+  }
+
   return <EnumDefinitionsContext.Provider value={draft.enumNodes ?? {}}><EventCatalogContext.Provider value={eventCatalog(draft)}><BuiltinTasksContext.Provider value={draft.builtinTasks}><EngineKeysContext.Provider value={engineKeys}><TaskMacrosContext.Provider value={draft.taskMacros}><TaskContext.Provider value={draft.tasks}><div className="app-shell" data-mode={mode}>
     <header className="app-header"><div className="project-identity"><GitBranch size={21} /><h1 title={initialized ? draft.project.name : t('title')}>{initialized ? draft.project.name : t('title')}</h1>{initialized && mode === 'environment' && <span className="environment-badge" title={t('environmentMode')}>{t('environmentBadge')}</span>}{initialized && mode === 'simulation' && <span className="environment-badge simulation-badge" title={t('simulationMode')}>{t('simulationBadge')}</span>}<ActionMenu label={t('projectMenu')} icon={ChevronDown} items={[{ label: t('settings'), icon: Settings2, disabled: !initialized, onClick: () => setSettings('existing') }, { label: t('newProject'), icon: FolderPlus, onClick: newProject }, { separator: true }, { label: t('import'), icon: Upload, onClick: () => fileInput.current.click() }, { label: t('export'), icon: Download, disabled: !initialized, onClick: exportFile }, ...(initialized ? [{ separator: true }, { label: t('userMode'), checked: mode === 'user', onClick: () => setMode('user') }, { label: t('environmentMode'), checked: mode === 'environment', onClick: () => setMode('environment') }, { label: t('simulationMode'), checked: mode === 'simulation', onClick: () => setMode('simulation') }] : [])]} /></div>
       {initialized && <><nav className="header-tabs" aria-label={t('editorPage')}><div role="tablist">{EDITOR_PAGES.map((page) => <button key={page} role="tab" aria-selected={tab === page} onClick={() => setTab(page)}>{pageLabel(page)}</button>)}</div></nav><select className="mobile-page-picker" aria-label={t('editorPage')} value={tab} onChange={(event) => setTab(event.target.value)}>{EDITOR_PAGES.map((page) => <option key={page} value={page}>{pageLabel(page)}</option>)}</select></>}
@@ -257,10 +268,11 @@ export default function App() {
         {tab === 'slots' && activeSlot ? <SlotEditor onOpenMacro={(id) => { setMode('user'); setModeTabs((previous) => ({ ...previous, user: 'taskMacros' })); setEditorViews((previous) => ({ ...previous, 'user:taskMacros': { ...previous['user:taskMacros'], selected: id, search: '' } })); }} onReturnDay={returnDay ? returnToDay : undefined} returnDayName={returnDay?.name} tasks={draft.tasks} operandNodes={draft.operandNodes} slot={activeSlot} t={t} onChange={(slot) => commitResult(editProject(draft, t).slots.replace(slot.id, slot))} onDuplicate={copySlot} onDelete={deleteSlot} />
           : tab === 'days' && activeDay ? <DayEditor days={publicDays} onOpenSlot={openReferencedSlot} restorePosition={dayRestore} day={activeDay} slots={draft.slots} t={t} onChange={(day) => commitResult(editProject(draft, t).days.update(day.id, day))} onDuplicate={copyDay} onDelete={deleteDay} onCell={(index) => setCellDialog({ dayId: activeDay.id, index })} />
             : tab === 'weeks' && activeWeek ? <WeekEditor onOpenDay={openReferencedDay} highlight={weekHighlight} key={activeWeek.id} week={activeWeek} draft={draft} t={t} onChange={(week) => commitResult(editProject(draft, t).weeks.update(week.id, week))} onDuplicate={copyWeek} onDelete={removeWeek} onDay={(weekday) => setDaySelector({ weekId: activeWeek.id, weekday })} onCell={(weekday, index) => setWeekCellDialog({ weekId: activeWeek.id, weekday, index })} />
-              : tab === 'sequences' && activeSequence ? <SequenceEditor onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
+              : tab === 'sequences' && activeSequence ? <SequenceEditor onReport={() => setReportDialog(true)} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
               : <div className="empty-state"><Layers3 size={40} /><h2>{t(view.empty)}</h2><p>{t(view.hint)}</p><button className="button primary" onClick={addItem}><Plus size={16} />{t(view.add)}</button></div>}
       </div></main></div> : <main className="welcome"><div className="empty-state"><FolderPlus size={40} /><h2>{t('welcome')}</h2><p>{t('welcomeHint')}</p><div className="welcome-actions"><button className="button primary" onClick={() => setSettings('new')}>{t('newProject')}</button><button className="button secondary" onClick={() => fileInput.current.click()}>{t('import')}</button></div></div></main>}
     <footer className="app-footer" title={t('unsaved')}><span>{t('unsaved')}</span></footer>
+    {reportDialog && <ReportExportDialog t={t} onExport={exportReport} onClose={() => setReportDialog(false)} />}
     {settings === 'existing' && <ProjectSettings draft={draft} t={t} onSave={saveSettings} onClose={() => setSettings(null)} />}
     {settings === 'new' && <NewProjectDialog t={t} onCreate={createNewProject} onClose={() => setSettings(null)} />}
     {environmentSettings && <EnvironmentSettings draft={draft} t={t} onClose={() => setEnvironmentSettings(false)} onSave={(environment, count) => { if (commitResult(editProject(draft, t).environment.update(environment, count))) setEnvironmentSettings(false); }} />}

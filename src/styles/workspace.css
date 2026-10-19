@@ -455,3 +455,4 @@ body { min-width: 360px; font-size: 15px; }
 .event-engine-field .engine-key-field { width: 100%; flex: initial; }
 .event-engine-field .engine-key-field input { width: 100%; }
 .event-group-item small { white-space: pre-line; }
+.report-export-options { gap: 8px; margin-top: 14px; }

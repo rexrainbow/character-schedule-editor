@@ -1,5 +1,7 @@
 # Character Schedule Editor
 
+周序列操作選單可匯出 Markdown 行程報告，依序列出全專案周序列、事件、日行程與完整展開的時段任務邏輯，詳見 [REPORT.md](./REPORT.md)。
+
 原始碼依資料核心、GUI、Schema、範例、語系與樣式分目錄，目錄用途詳見 [SOURCE_LAYOUT.md](./SOURCE_LAYOUT.md)。
 
 Web 編輯器資料操作已整併至可供 Node.js 共用的 Project API，包含物件操作、引用保護、批次交易、快照訂閱與序列化；GUI 仍保留獨立的表單草稿及互動狀態。詳見 [PROJECT_API.md](./PROJECT_API.md)。
