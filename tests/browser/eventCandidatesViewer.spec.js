@@ -51,10 +51,10 @@ test('read-only viewer shows only event candidates, weights, configured position
   await expect(dialog.locator('.event-candidate-choice').first()).toContainText('33.3%');
   await expect(dialog).not.toContainText('Not a candidate');
   await expect(dialog.locator('input, select, textarea')).toHaveCount(0);
-  await expect(dialog.locator('.event-candidate-position')).toHaveText(['Day start event', 'Slot 1 start event', 'Release slot 1', 'Slot 1', 'Slot 1 end event', 'Slot 2', 'Slot 3']);
+  await expect(dialog.locator('.event-candidate-position')).toHaveText(['Day start event', 'Slot 1 start event', 'Slot 1', 'Slot 1 end event', 'Slot 2', 'Slot 3']);
   await expect(dialog).toContainText('Always release');
   await dialog.getByRole('button', { name: 'Show all positions', exact: true }).click();
-  await expect(dialog.locator('.event-candidate-position')).toContainText(['Day start event', 'Slot 1 start event', 'Release slot 1']);
+  await expect(dialog.locator('.event-candidate-position')).toContainText(['Day start event', 'Slot 1 start event', 'Slot 1']);
   await dialog.getByRole('button', { name: 'Show configured positions only', exact: true }).click();
   await dialog.locator('.event-candidate-choice').getByText('Workday', { exact: true }).click();
   await expect(dialog.locator('.event-candidate-position')).toHaveText(['Slot 1', 'Slot 2', 'Slot 3']);

@@ -42,13 +42,12 @@ export default function DayEditor({ day, days = [], slots, nodes = {}, onChange,
       <div style={{ height: totalHeight, position: 'relative' }}>
         {day.slotIds.slice(first, end).map((slotId, offset) => {
           const index = first + offset; const slot = lookup.get(slotId);
-          const eventCount = [day.slotEvents?.[index]?.startId, day.slotEvents?.[index]?.endId].filter(Boolean).length;
           return <div key={index} className="day-time-block" style={{ position: 'absolute', top: offsets[index], height: rowHeights[index] - 10 }}>
             {(showEvents || day.slotEvents?.[index]?.startId) && event({ index, edge: 'start' })}
             {(showEvents || day.slotReleases?.[index]) && <button type="button" className={`day-slot-release ${day.slotReleases?.[index] ? 'configured' : ''}`} aria-label={t('releaseSlotFor', { count: index + 1 })} onClick={() => setReleaseIndex(index)}>{day.slotReleases?.[index] ? <><strong>{t('releaseSlot')}</strong><span>{day.slotReleases[index].condition == null ? t('releaseUnconditional') : formatCondition(day.slotReleases[index].condition, nodes)}</span></> : <><Plus size={14} />{t('addSlotRelease')}</>}</button>}
             <div className={`day-cell ${slot ? '' : 'empty-cell'}`} style={{ height: 102 }}>
             <button className="day-cell-main" aria-label={t('cell', { count: index + 1 })} onClick={() => onCell(index)}><span className="cell-number">{t('cell', { count: index + 1 })}</span><SlotCellContent slot={slot} t={t} /></button>
-            {(eventCount > 0 || day.slotReleases?.[index]) && <span className="day-event-count">{eventCount > 0 && t('slotEventCount', { count: eventCount })}{day.slotReleases?.[index] && `${eventCount ? ' · ' : ''}${t('releaseSlot')}`}</span>}
+            {day.slotReleases?.[index] && <span className="day-event-count">{t('releaseSlot')}</span>}
             {slot && <button className="icon-button day-slot-open" title={t('openSlotEditor')} aria-label={t('openSlotFor', { count: index + 1, name: slot.name })} onClick={() => open(slot)}><ExternalLink size={16} /></button>}
             </div>{(showEvents || day.slotEvents?.[index]?.endId) && event({ index, edge: 'end' })}
           </div>;

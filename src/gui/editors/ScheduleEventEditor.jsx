@@ -11,7 +11,7 @@ import { WEEKDAYS } from '../../core/scheduleConstants.js';
 
 export default function ScheduleEventEditor({ value, definition, nodes, parameters, onChange, t }) {
   const draft = useContext(ScheduleDraftContext), days = (draft?.days ?? []).filter((day) => !day.scope || day.scope === 'shared');
-  const group = { ...eventDaySourceFromData(value), display_name: value.display_name, icon: value.icon };
+  const group = { ...eventDaySourceFromData(value), display_name: value.display_name, icon: value.icon, executionMode: value.execution_mode };
   const cache = useRef({}), trigger = useRef(null), [view, setView] = useState(null);
   const label = (id) => definition?.parameters.find((p) => p.id === id)?.display_name ?? t(`scheduleField_${id}`);
   function source(change) {

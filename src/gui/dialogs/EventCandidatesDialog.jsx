@@ -1,24 +1,27 @@
 import SelectionDialog from './SelectionDialog.jsx';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, SlotInfo } from '../components/ui.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
 import { eventDayCandidates, eventDaySourceMode } from '../../core/eventDaySource.js';
 import { eventGroupName } from '../../core/sequenceEvents.js';
 import { dayAssignments, assignmentLabel } from '../../core/dayEvents.js';
-import { formatCondition } from '../../core/operandModel.js';
+import SlotReleasePreview from '../components/SlotReleasePreview.jsx';
+import { eventExecutionMode } from '../../core/slotRelease.js';
 import useVisibleRows from '../hooks/useVisibleRows.js';
 
 function EventCandidatesContent({ draft, group, view, onViewChange, onOpenDay, onOpenSlot, t }) {
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 720px)').matches);
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 720px)'), update = () => setNarrow(query.matches);
+    query.addEventListener('change', update); return () => query.removeEventListener('change', update);
+  }, []);
   const candidates = eventDayCandidates(group), mode = eventDaySourceMode(group);
   const days = new Map(draft.days.map((day) => [day.id, day])), slots = new Map(draft.slots.map((slot) => [slot.id, slot]));
   const selectedId = candidates.some((item) => item.dayId === view.selectedId) ? view.selectedId : candidates[0]?.dayId;
   const day = days.get(selectedId), listRef = useRef(null);
-  const entries = useMemo(() => day ? dayAssignments(day).flatMap((entry) => [
-    ...(view.showAll || typeof entry.target === 'number' || entry.id != null ? [entry] : []),
-    ...(typeof entry.target === 'object' && entry.target.edge === 'start' && (view.showAll || day.slotReleases?.[entry.target.index]) ? [{ release: day.slotReleases?.[entry.target.index], releaseIndex: entry.target.index, path: `/slot_releases/${entry.target.index}` }] : []),
-  ]) : [], [day, view.showAll]);
-  const heights = useMemo(() => entries.map((entry) => entry.releaseIndex !== undefined ? 86 : typeof entry.target === 'number' ? 110 : 66), [entries]);
+  const entries = useMemo(() => day ? dayAssignments(day).filter((entry) => view.showAll || typeof entry.target === 'number' || entry.id != null) : [], [day, view.showAll]);
+  const heights = useMemo(() => entries.map((entry) => typeof entry.target === 'number' ? day.slotReleases?.[entry.target] ? narrow ? 192 : 130 : 110 : 66), [entries, day, narrow]);
   const { ref, first, end, offsets, totalHeight, onScroll } = useVisibleRows(entries.length, heights, 0, `${selectedId}:${!!view.showAll}`);
   useEffect(() => {
     if (ref.current) { ref.current.scrollTop = view.scrollTop ?? 0; onScroll({ currentTarget: ref.current }); }
@@ -49,11 +52,11 @@ function EventCandidatesContent({ draft, group, view, onViewChange, onOpenDay, o
             <button className="button secondary event-visibility" aria-expanded={!!view.showAll} onClick={() => onViewChange({ ...view, showAll: !view.showAll, scrollTop: 0 })}>{view.showAll ? <ChevronUp size={15} /> : <ChevronDown size={15} />}{t(view.showAll ? 'showConfiguredPositions' : 'showAllPositions')}</button>
             <div className="event-candidate-rows" ref={ref} onScroll={onScroll}><div style={{ height: totalHeight, position: 'relative' }}>
               {entries.slice(first, end).map((entry, offset) => {
-                const index = first + offset, slot = slots.get(entry.id), release = entry.releaseIndex !== undefined;
-                return <div key={entry.path} className={`event-candidate-row ${release ? 'release' : typeof entry.target === 'number' ? 'main' : 'boundary'}`} style={{ position: 'absolute', top: offsets[index], height: heights[index] - 8 }}>
-                  <span className="event-candidate-position">{release ? t('releaseSlotFor', { count: entry.releaseIndex + 1 }) : assignmentLabel(entry.target, t)}</span>
-                  <div className="event-candidate-value">{release ? entry.release ? entry.release.condition == null ? t('releaseUnconditional') : formatCondition(entry.release.condition, draft.operandNodes) : t('unassigned') : slot ? <SlotInfo slot={slot} t={t} /> : t('unassigned')}</div>
-                  {slot && onOpenSlot && <button className="icon-button" aria-label={typeof entry.target === 'number' ? t('openSlotFor', { count: entry.target + 1, name: slot.name }) : t('openEventSlot', { event: assignmentLabel(entry.target, t), name: slot.name })} title={t('openSlotEditor')} onClick={() => navigate('slot', slot)}><ExternalLink size={16} /></button>}
+                const index = first + offset, slot = slots.get(entry.id), main = typeof entry.target === 'number';
+                const content = <><div className="event-candidate-value">{slot ? <SlotInfo slot={slot} t={t} /> : t('unassigned')}</div>{slot && onOpenSlot && <button className="icon-button" aria-label={main ? t('openSlotFor', { count: entry.target + 1, name: slot.name }) : t('openEventSlot', { event: assignmentLabel(entry.target, t), name: slot.name })} title={t('openSlotEditor')} onClick={() => navigate('slot', slot)}><ExternalLink size={16} /></button>}</>;
+                return <div key={entry.path} className={`event-candidate-row ${main ? 'main' : 'boundary'}`} style={{ position: 'absolute', top: offsets[index], height: heights[index] - 8 }}>
+                  <span className="event-candidate-position">{assignmentLabel(entry.target, t)}</span>
+                  {main ? <SlotReleasePreview release={day.slotReleases?.[entry.target]} assigned={!!slot} nodes={draft.operandNodes} active={eventExecutionMode(group) !== 'overlay'} t={t}>{content}</SlotReleasePreview> : content}
                 </div>;
               })}
             </div></div>

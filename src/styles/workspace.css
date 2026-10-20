@@ -298,6 +298,26 @@ body { min-width: 360px; font-size: 15px; }
 .day-preview-slot-open { flex: 0 0 32px; width: 32px; height: 32px; margin-left: auto; }
 .day-preview-index { color: #b5a8cf; min-width: 20px; }
 .day-preview-slots .slot-icon { width: 24px; height: 24px; flex: 0 0 24px; }
+.slot-release-preview { display: flex; align-self: stretch; align-items: stretch; gap: 8px; flex: 1; min-width: 0; max-width: 100%; text-align: left; }
+.release-assignment { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.release-state { display: flex; flex-direction: column; justify-content: center; gap: 4px; flex: 1; min-width: 0; padding: 8px; border: 1px solid #877044; border-radius: 6px; background: #332c21; color: #f0d5ae; overflow-wrap: anywhere; }
+.release-state-heading, .release-unreachable-warning { display: flex; align-items: center; gap: 5px; }
+.release-state-heading svg, .release-unreachable-warning svg { flex-shrink: 0; }
+.release-state-condition { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.release-state small { color: #b9b4aa; }
+.release-unreachable-warning { color: #ffcb8a; font-size: 12px; }
+.slot-release-preview.unreachable .release-assignment { opacity: .45; }
+.slot-release-preview.inactive .release-state { border-style: dashed; background: #28282d; color: #beb9ab; }
+.day-preview-slots li, .event-candidate-row, .week-cell { container: release-cell / inline-size; }
+@container release-cell (max-width: 520px) {
+  .slot-release-preview.has-assignment { flex-direction: column; }
+}
+.week-cell .slot-release-preview { gap: 2px; padding: 3px; }
+.week-cell .release-assignment .cell-content { padding: 2px; }
+.week-cell .release-state { padding: 3px; gap: 1px; font-size: 11px; }
+.week-cell .release-state-heading svg { width: 12px; height: 12px; }
+.week-cell .release-state-condition { -webkit-line-clamp: 1; font-size: 10px; }
+.week-cell .release-state small { font-size: 10px; }
 .day-cell-main { display: flex; align-items: stretch; width: 100%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; }
 .day-time-block { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 .event-day-source { display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 1px solid var(--border, #393d50); border-radius: 8px; }

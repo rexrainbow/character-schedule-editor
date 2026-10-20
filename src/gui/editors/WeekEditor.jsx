@@ -1,3 +1,4 @@
+import SlotReleasePreview from '../components/SlotReleasePreview.jsx';
 import EngineKeyField from '../components/EngineKeyField.jsx';
 import DayReferencePreview from '../components/DayReferencePreview.jsx';
 import { useEffect, useState } from 'react';
@@ -39,7 +40,7 @@ export default function WeekEditor({ week, draft, onChange, onDuplicate, onDelet
         {Array.from({ length: end - first }, (_, offset) => first + offset).map((index) => <div className="matrix-grid week-grid-row" key={index} style={{ top: index * rowHeight, height: rowHeight }}>
           <div className="matrix-row-label">{t('cell', { count: index + 1 })}</div>{WEEKDAYS.map((weekday) => {
             const day = days.get(week.days[weekday]); const slot = slots.get(day?.slotIds[index]);
-            const cell = <button className={`week-cell ${slot ? '' : 'empty-cell'}`} key={weekday} aria-label={t('weekCell', { weekday: t(weekday), count: index + 1 })} onClick={() => onCell(weekday, index)}><SlotCellContent slot={slot} t={t} /></button>;
+            const cell = <button className={`week-cell ${slot ? '' : 'empty-cell'}`} key={weekday} aria-label={t('weekCell', { weekday: t(weekday), count: index + 1 })} onClick={() => onCell(weekday, index)}><SlotReleasePreview release={day?.slotReleases?.[index]} assigned={!!slot} nodes={draft.operandNodes} active={false} t={t}><SlotCellContent slot={slot} t={t} /></SlotReleasePreview></button>;
             return showEvents ? <div className="week-event-stack" key={weekday}>{event(weekday, { index, edge: 'start' })}{cell}{event(weekday, { index, edge: 'end' })}</div> : cell;
           })}
         </div>)}
