@@ -7,6 +7,28 @@ import { translator } from '../src/i18n/index.js';
 import { reportFixture } from './reportFixture.js';
 const t = translator('en');
 
+test('day metadata reports custom tags and all intended uses in both locales, including defaults and unclassified days', () => {
+  const f = reportFixture();
+  const main = f.draft.days.find((day) => day.id === f.main.id);
+  main.purposes = ['main', 'overlay', 'interrupt'];
+  main.tags = ['Office', '<tag>|[custom]'];
+  f.draft.days.find((day) => day.id === f.eventDay.id).purposes = [];
+  delete f.unusedDay.purposes;
+  const before = structuredClone(f.draft);
+  const section = (text, id) => text.split(`<a id="day-${id}"></a>`)[1].split('<a id=')[0];
+  const en = compileReport(f.draft, { includeUnreferenced: true }).data;
+  assert.ok(section(en, main.id).includes(String.raw`- Tags: Office, &lt;tag&gt;\|\[custom\]`));
+  assert.match(section(en, main.id), /- Intended uses: Main, Overlay event, Interrupt event/);
+  assert.match(section(en, f.eventDay.id), /- Tags: —\n- Intended uses: Unclassified/);
+  assert.match(section(en, f.unusedDay.id), /- Intended uses: Main/);
+  const privateDay = f.draft.days.find((day) => day.scope === 'week_private');
+  assert.match(section(en, privateDay.id), /- Intended uses: Main/);
+  const zh = compileReport(f.draft, { t: translator('zh-TW') }).data;
+  assert.match(section(zh, main.id), /- 適用用途: 主要, 疊加事件, 中斷事件/);
+  assert.match(section(zh, f.eventDay.id), /- 標籤: —\n- 適用用途: 未分類/);
+  assert.deepEqual(f.draft, before);
+});
+
 test('report resolves date boundaries, overrides, event candidates and per-phase priority order without executing', () => {
   const f = reportFixture(), before = structuredClone(f.draft), report = compileReport(f.draft);
   assert.deepEqual(report.errors, []); const text = report.data;

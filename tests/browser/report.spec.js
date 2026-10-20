@@ -27,6 +27,7 @@ test('last sequence action exports all sequences as linked Markdown without chan
   const text = await readFile(await download.path(), 'utf8');
   expect(text).toContain('# Project schedule report: Daily routine'); expect(text).toContain('### Second sequence');
   expect(text).toContain('Day 1 / Thursday'); expect(text).toContain('Probability candidate');
+  expect(text).toContain('- Tags: Office\n- Intended uses: Main');
   expect(text).toContain('## Events'); expect(text).toContain('## Day schedules'); expect(text).toContain('## Slot schedules and task logic');
   expect(text).toContain('Adjust probability event (Cold'); expect(text).not.toContain('Unused slot');
   await expect(dialog).toHaveCount(0);
@@ -47,6 +48,7 @@ test('Chinese mobile report options fit, cancel keeps content unchanged, and unr
   const pending = page.waitForEvent('download'); await dialog.getByRole('button', { name: t('reportDownload'), exact: true }).click();
   const text = await readFile(await (await pending).path(), 'utf8');
   expect(text).toContain('## 周序列'); expect(text).toContain('## 事件'); expect(text).toContain('## 日行程');
+  expect(text).toContain('- 標籤: Office\n- 適用用途: 主要');
   expect(text).toContain('Unused slot'); expect(text).toContain('未引用'); expect(text).toContain('機率候選');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

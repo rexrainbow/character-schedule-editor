@@ -8,6 +8,8 @@ import { resolveSequenceDay } from './sequenceModel.js';
 import { eventsOnDate, eventCounts, eventGroupName, eventDateLabel } from './sequenceEvents.js';
 import { eventCatalog, eventKind } from './eventReferences.js';
 import { dayAssignments, assignmentLabel } from './dayEvents.js';
+import { dayUses } from './dayUses.js';
+import { dayTags } from './dayTags.js';
 import { slotEntries } from './operandModel.js';
 import { slotLogicText } from './logicOverviewModel.js';
 import { translator } from '../i18n/index.js';
@@ -103,11 +105,13 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   const referencedSlots = new Set(draft.days.filter((day) => referencedDays.has(day.id)).flatMap((day) => dayAssignments(day).map((entry) => entry.id).filter(Boolean)));
   const days = draft.days.filter((day) => includeUnreferenced || referencedDays.has(day.id));
   const slots = draft.slots.filter((slot) => includeUnreferenced || referencedSlots.has(slot.id));
+  const uses = dayUses(draft);
   push(`## ${escape(t('reportDays'))}`, '');
   if (!days.length) push(escape(t('reportNoReferencedDays')), '');
   for (const day of days) {
     heading(3, `day-${day.id}`, `${dayNames.get(day.id)}${referencedDays.has(day.id) ? '' : ` [${t('reportUnreferenced')}]`}`);
-    if (day.tags?.length) field('dayTags', day.tags.map(escape).join(', '));
+    field('dayTags', dayTags(day).length ? dayTags(day).map(escape).join(', ') : '—');
+    field('dayUses', uses[day.id].roles.map((role) => escape(t(`dayUse_${role}`))).join(', '));
     for (const entry of dayAssignments(day)) {
       const slot = draft.slots.find((item) => item.id === entry.id);
       if (entry.id !== null || typeof entry.target === 'number') push(`- ${escape(assignmentLabel(entry.target, t))}: ${slot ? link(slotNames.get(slot.id), `slot-${slot.id}`) : escape(t('unassigned'))}`);
