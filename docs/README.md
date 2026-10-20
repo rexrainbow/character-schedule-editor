@@ -1,5 +1,7 @@
 # Character Schedule Editor
 
+Node.js 專案服務與 MCP stdio 入口已加入，支援共用命令、批次交易、版本檢查與專案讀寫。GUI 即時同步尚未接入，啟動與工具說明見 [MCP_SERVER.md](./MCP_SERVER.md)。
+
 日行程可手動複選適用用途「主要／疊加事件／中斷事件」，未選擇則為「未分類」。清單依用途分群，選取器依情境預設篩選，也可顯示全部用途，詳見 [DAY_USES.md](./DAY_USES.md)。事件容器決定中斷對象，日行程在時段開始後設定「放行本時段」，詳見 [SLOT_RELEASE.md](./SLOT_RELEASE.md)。
 
 周序列操作選單可匯出 Markdown 行程報告，依序列出全專案周序列、事件、日行程與完整展開的時段任務邏輯，詳見 [REPORT.md](./REPORT.md)。

@@ -2,10 +2,10 @@
 
 檔案位置已依 [原始碼目錄](./SOURCE_LAYOUT.md) 整理，純 JS 核心集中於 `src/core/`，React 整合位於 `src/gui/`。
 
-`src/core/projectApi.js` 是 Web 與 Node.js 共用的記憶體專案操作入口。這次重構包含 Project API、GUI 中的資料操作整併，以及 React 訂閱介面；未新增 CLI、MCP 或 Node.js 檔案讀寫。
+`src/core/projectApi.js` 是 Web 與 Node.js 共用的記憶體專案操作入口。`core/commands.js` 將其包裝為可傳輸的白名單命令；Node 專案服務與 MCP stdio 入口見 [MCP_SERVER.md](./MCP_SERVER.md)。GUI 仍使用本地 session，尚未接入服務同步。
 
 ```text
-React GUI / 未來 CLI 或 MCP
+React GUI / Node.js MCP 服務
              ↓
       createProjectSession
              ↓
@@ -111,7 +111,7 @@ const result = project.transaction(tx => {
 
 ## 序列化與平台邊界
 
-`toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。`exportReport({ includeUnreferenced })` 使用相同結果格式，`data` 為 Markdown 行程報告字串，詳見 [REPORT.md](./REPORT.md)。呼叫端確認無錯誤後，Web 產生下載、Node.js 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast；尚未加入 Node.js 檔案介面。
+`toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。`exportReport({ includeUnreferenced })` 使用相同結果格式，`data` 為 Markdown 行程報告字串，詳見 [REPORT.md](./REPORT.md)。呼叫端確認無錯誤後，Web 產生下載、Node.js 由 `node/projectFiles.js` 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast。
 
 [事件的多日行程來源與手動模擬選擇](./EVENT_DAY_SOURCES.md)
 
