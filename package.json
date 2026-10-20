@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "mcp": "node src/node/main.js",
+    "serve": "node src/node/main.js --web --no-stdio",
     "test": "node --test tests/*.test.js",
     "icons:build": "node scripts/build-icons.mjs",
     "schema:runtime": "node scripts/build-runtime-schema.mjs",

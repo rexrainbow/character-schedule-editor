@@ -13,7 +13,9 @@ src/
 │  ├─ main.js               # MCP stdio 啟動入口
 │  ├─ projectService.js     # 專案狀態、版本、請求佇列與通知
 │  ├─ projectFiles.js       # 受根目錄限制的讀檔與原子寫檔
-│  └─ mcp/                 # MCP 工具與 Schema resources
+│  ├─ mcp/                 # MCP 工具與 Schema resources
+│  └─ web/                 # 本機 GUI 靜態入口、HTTP/SSE、stdio bridge
+├─ browser/                # 瀏覽器遠端工作副本與提交佇列
 ├─ gui/
 │  ├─ App.jsx              # Web 應用程式、導覽與平台操作
 │  ├─ editors/             # 行程、變數、巨集、任務與運算式編輯介面
@@ -38,4 +40,4 @@ import { createProjectSession } from './src/core/projectApi.js';
 
 測試仍位於根目錄的 `tests/`，瀏覽器測試位於 `tests/browser/`，生成工具位於 `scripts/`。Schema 產生器的輸入及輸出均使用 `src/schemas/`，圖示產生器使用 `src/icons/`；建置結果仍輸出至 `dist/`。
 
-Node 服務與共用命令的操作方式見 [MCP_SERVER.md](./MCP_SERVER.md)。本階段未加入 GUI 即時同步；純網頁版仍獨立運作。Project API 用法詳見 [PROJECT_API.md](./PROJECT_API.md)。
+Node 服務與共用命令見 [MCP_SERVER.md](./MCP_SERVER.md)，GUI 即時同步與兩種啟動方式見 [GUI_SYNC.md](./GUI_SYNC.md)。GitHub Pages 固定使用純網頁模式。Project API 用法詳見 [PROJECT_API.md](./PROJECT_API.md)。

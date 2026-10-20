@@ -2,7 +2,7 @@
 
 目前提供 MCP stdio 入口、Node 專案檔案服務及 Web／Node 共用命令層。服務每個程序持有一份專案，沿用既有 Project API 的驗證、模式限制、引用保護、批次交易與匯出功能。
 
-此階段沒有 HTTP／WebSocket 服務，也尚未連接 GUI 即時同步。`npm run dev` 與 GitHub Pages 仍是獨立的純網頁編輯器；MCP 改動不會自動顯示在已開啟的網頁，可先存檔再於網頁匯入。多個 MCP server 程序亦不共享記憶體。
+已支援本機 GUI 即時同步，啟動方式見 [GUI_SYNC.md](./GUI_SYNC.md)。`npm run dev` 與 GitHub Pages 維持獨立的純網頁模式。需要同步時，MCP 與 GUI 必須連到同一個服務；不同的獨立程序不共享記憶體。
 
 ## 安裝與啟動
 
@@ -37,6 +37,9 @@ npm run mcp -- --root C:/mywork/electron-app/character-schedule-editor
 - `--mode user|environment|simulation|all`：預設 user；environment 編輯環境，all 完整維護，simulation 禁止修改。
 - `--language en|zh-TW`：預設 en，影響報告與內建顯示名稱。
 - `--help`：顯示使用方式後退出。
+- `--web --port 5175`：同時提供本機同步 GUI。
+- `--web --no-stdio`：僅啟動本機服務，供 GUI 與 MCP bridge 連線；對應 `npm run serve`。
+- `--connect http://127.0.0.1:5175`：以 MCP stdio bridge 連到既有服務，不建立另一份專案。
 
 `--root` 預設目前工作目錄，必須是已存在的目錄。檔案路徑可為此目錄內的相對或絕對路徑，不能跨出目錄；也檢查 symlink／junction 的實際位置。目的地的父目錄須已存在。專案、環境、runtime 使用 `.json`，報告使用 `.md`。
 
@@ -124,7 +127,7 @@ Schema resources：`schedule://schema/project`、`schedule://schema/environment`
 
 新建／開檔遇到未儲存內容會拒絕，除非明確提供 `discardChanges:true`。失敗的匯入、驗證或存檔保留目前工作資料。匯出不會清除 dirty；匯出有 path 時需 expectedRevision，無 path 時直接回傳資料。不能用 runtime 等匯出覆蓋目前開啟的專案檔。
 
-## 程式結構與後續同步
+## 程式結構與 GUI 同步
 
 ```text
 MCP client → node/mcp/tools.js → node/projectService.js
@@ -145,8 +148,8 @@ const result = executeCommand(projectSession, {
 });
 ```
 
-`projectService.subscribe(listener)` 提供已提交的 changed／mode／new／opened／saved 通知，供下一階段的網頁同步轉接使用。服務不暴露可直接改寫的 session。尚未建立 `node/web/` 或遠端 browser client，避免與仍使用同步 session 的 GUI 混淆。
+`projectService.subscribe(listener)` 提供已提交的 changed／mode／new／opened／saved／imported 通知。`node/web/` 提供 HTTP、SSE 與 stdio bridge；`browser/remoteProjectClient.js` 將 GUI 工作副本的變動送入同一服務。服務不暴露可直接改寫的 session。
 
-後續 GUI 連線版會把修改提交到同一個 projectService，再訂閱版本通知；純網頁版仍保留瀏覽器內的 session。表單未套用草稿、衝突提示及非同步提交需要另外接入，不會靠重新讀取檔案自動覆蓋 GUI。
+連線 GUI 保留未套用表單、顯示提交狀態，衝突與斷線時保留本機輸入。服務可保存 GUI 未完成欄位，MCP 修改仍以完整驗證交易執行；存檔／匯出也必須通過驗證。詳見 [GUI_SYNC.md](./GUI_SYNC.md)。
 
 MCP 入口採用官方 SDK 的 [stdio server](https://ts.sdk.modelcontextprotocol.io/server#stdio)；SDK 及 Node 檔案模組只從 `src/node/` 引用，不加入純網頁建置。

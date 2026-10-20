@@ -50,3 +50,17 @@ test('real MCP stdio process discovers tools, edits a probability event, saves, 
   assert.equal((await call('project_query', { command: { object: 'events', action: 'list', sequenceId: sequence.id } })).structuredContent.value.length, 1);
   assert.equal(stderr, '');
 });
+
+test('stdio --web exposes a GUI sharing the same project instance', { timeout: 20000 }, async (t) => {
+  const root = await directory(t), client = new Client({ name: 'combined-test', version: '1.0.0' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [entry, '--root', root, '--web', '--port', '0'], stderr: 'pipe' });
+  await client.connect(transport); t.after(() => client.close());
+  const call = async (name, args = {}) => (await client.callTool({ name, arguments: args })).structuredContent;
+  const status = await call('project_status'); assert.match(status.webUrl, /^http:\/\/127\.0\.0\.1:/);
+  assert.match(await (await fetch(status.webUrl)).text(), /window\.__SCHEDULE_CONNECTION__/);
+  const config = await (await fetch(`${status.webUrl}/__schedule/config`)).json();
+  const id = crypto.randomUUID();
+  const response = await fetch(`${status.webUrl}/__schedule/api/guiChanges`, { method: 'POST', headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json', 'X-Schedule-Instance': config.instanceId }, body: JSON.stringify({ expectedRevision: status.revision, mode: 'user', changes: [{ collection: 'days', kind: 'put', id, value: { id, name: 'GUI shared day', icon: 'tabler:calendar', slotIds: [null, null, null] } }] }) });
+  assert.equal((await response.json()).ok, true);
+  assert.equal((await call('project_query', { command: { object: 'days', action: 'get', id } })).value.name, 'GUI shared day');
+});

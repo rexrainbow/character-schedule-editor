@@ -4,6 +4,9 @@ import { dayUses, DAY_USES, matchesDayUse } from '../core/dayUses.js';
 import DayListOptions from './components/DayListOptions.jsx';
 import { DayUseChips } from './components/DayUses.jsx';
 import useProject from './hooks/useProject.js';
+import ConnectionStatus from './components/ConnectionStatus.jsx';
+import ServerFileDialog from './dialogs/ServerFileDialog.jsx';
+import { ProjectConnectionContext } from './contexts/ProjectConnectionContext.js';
 import ReportExportDialog from './dialogs/ReportExportDialog.jsx';
 import { editProject } from '../core/projectApi.js';
 import EnumDefinitionsEditor from './editors/EnumDefinitionsEditor.jsx';
@@ -45,7 +48,8 @@ import { dayReferenceCount, sharedDays } from '../core/weekModel.js';
 const MODE_PAGES = { user: ['days', 'weeks', 'sequences', 'slots', 'operands', 'enums', 'expressions', 'taskMacros'], environment: ['operands', 'enums', 'expressions', 'tasks'], simulation: ['simulation'] };
 
 export default function App() {
-  const [project, draft] = useProject();
+  const [project, draft, connection] = useProject();
+  const [serverFileDialog, setServerFileDialog] = useState(null);
   const engineKeys = useMemo(() => engineKeyEntries(draft), [draft]);
   const [initialized, setInitialized] = useState(false);
   const [settings, setSettings] = useState(null);
@@ -89,6 +93,7 @@ export default function App() {
   const [notice, setNotice] = useState(null);
   const [operationIssues, setOperationIssues] = useState([]);
   const [dirty, setDirty] = useState(false);
+  const projectDirty = connection ? !!(connection.dirty || connection.localChanges || connection.pending) : dirty;
   const fileInput = useRef(null), environmentInput = useRef(null);
   const [environmentSettings, setEnvironmentSettings] = useState(false);
   const [environmentPreview, setEnvironmentPreview] = useState(null);
@@ -120,9 +125,23 @@ export default function App() {
     window.addEventListener('languagechange', update); return () => window.removeEventListener('languagechange', update);
   }, []);
   useEffect(() => {
-    const guard = (event) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } };
+    const guard = (event) => { if (projectDirty) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', guard); return () => window.removeEventListener('beforeunload', guard);
-  }, [dirty]);
+  }, [projectDirty]);
+  useEffect(() => { if (connection?.ready) { setInitialized(true); setSimulation((previous) => previous ? { ...previous, result: null } : previous); } }, [connection?.ready, connection?.externalStamp]);
+  useEffect(() => {
+    if (!connection?.ready) return;
+    const missing = selectedDay && !draft.days.some((item) => item.id === selectedDay) || selectedSlot && !draft.slots.some((item) => item.id === selectedSlot) || selectedWeek && !draft.weeks.some((item) => item.id === selectedWeek) || selectedSequence && !draft.sequences.some((item) => item.id === selectedSequence);
+    if (missing) { setNotice({ key: 'remoteObjectRemoved' }); setSelectedDay(null); setSelectedSlot(null); setSelectedWeek(null); setSelectedSequence(null); }
+  }, [connection?.externalStamp]);
+
+  async function reloadServer() {
+    if ((connection.localChanges || connection.conflict) && !window.confirm(t('remoteReloadConfirm'))) return;
+    const result = await project.reload();
+    if (!result.ok) return;
+    setSettings(null); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null); setEnvironmentSettings(false); setEnvironmentPreview(null); setReportDialog(false); setServerFileDialog(null);
+    setNotice(null); setOperationIssues([]); resetNavigation();
+  }
 
   function commit(next) {
     if (next === draft) return;
@@ -209,8 +228,10 @@ export default function App() {
   function copySequence() { const result = editProject(draft, t).sequences.duplicate(activeSequence.id); const sequence = result.value; commit(result.draft); setSelectedSequence(sequence.id); resetSearch(); }
   function removeSequence() { if (window.confirm(t('deleteSequenceConfirm', { name: activeSequence.name }))) { if (commitResult(editProject(draft, t).sequences.remove(activeSequence.id))) setSelectedSequence(null); } }
   function saveSettings(settings) { if (commitResult(editProject(draft, t).settings.update(settings))) setSettings(null); }
-  function createNewProject(next) {
-    project.reset(next); setDirty(true); setNotice(null); setOperationIssues([]); setInitialized(true); setSettings(null); setSelectedSlot(null); setSelectedDay(null); setSelectedWeek(null); setSelectedSequence(null);
+  async function createNewProject(next) {
+    const result = await project.reset(next);
+    if (!result.ok) { setOperationIssues(result.errors); setNotice({ key: 'projectOperationBlocked', error: true }); return; }
+    setDirty(true); setNotice(null); setOperationIssues([]); setInitialized(true); setSettings(null); setSelectedSlot(null); setSelectedDay(null); setSelectedWeek(null); setSelectedSequence(null);
     resetNavigation(); setSearches({ slots: '', days: '', weeks: '', sequences: '' }); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null);
   }
   function exportEnvironmentFile() {
@@ -231,15 +252,17 @@ export default function App() {
       setEnvironmentPreview({ data, result: project.environment.previewImport(data) });
     } catch { setOperationIssues([]); setNotice({ key: 'parseError', error: true }); }
   }
-  function newProject() { if (!dirty || window.confirm(t('newProjectConfirm'))) setSettings('new'); }
+  function newProject() { if (!projectDirty || window.confirm(t('newProjectConfirm'))) setSettings('new'); }
   async function importFile(event) {
     const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
     try {
       const data = JSON.parse((await file.text()).replace(/^\uFEFF/, ''));
       const errors = validateDocument(data);
       if (errors.length) { setOperationIssues(errors); setNotice({ key: 'importInvalid', error: true, issueTitle: 'errorsForImport' }); return; }
-      if (dirty && !window.confirm(t('importConfirm'))) return;
-      project.loadDocument(data); setSelectedSlot(null); setSelectedDay(null); setSelectedWeek(null); setSelectedSequence(null); setSearches({ slots: '', days: '', weeks: '', sequences: '' }); resetNavigation();
+      if (projectDirty && !window.confirm(t('importConfirm'))) return;
+      const result = await project.loadDocument(data);
+      if (!result.ok) { setOperationIssues(result.errors); setNotice({ key: 'importInvalid', error: true }); return; }
+      setSelectedSlot(null); setSelectedDay(null); setSelectedWeek(null); setSelectedSequence(null); setSearches({ slots: '', days: '', weeks: '', sequences: '' }); resetNavigation();
       setInitialized(true); setSettings(null); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null); setEnvironmentSettings(false); setEnvironmentPreview(null); setDirty(false); setOperationIssues([]); setNotice({ key: 'imported' });
     } catch { setOperationIssues([]); setNotice({ key: 'parseError', error: true }); }
   }
@@ -268,8 +291,10 @@ export default function App() {
     return [];
   }
 
-  return <ScheduleDraftContext.Provider value={draft}><EnumDefinitionsContext.Provider value={draft.enumNodes ?? {}}><EventCatalogContext.Provider value={eventCatalog(draft)}><BuiltinTasksContext.Provider value={draft.builtinTasks}><EngineKeysContext.Provider value={engineKeys}><TaskMacrosContext.Provider value={draft.taskMacros}><TaskContext.Provider value={draft.tasks}><div className="app-shell" data-mode={mode}>
-    <header className="app-header"><div className="project-identity"><GitBranch size={21} /><h1 title={initialized ? draft.project.name : t('title')}>{initialized ? draft.project.name : t('title')}</h1>{initialized && mode === 'environment' && <span className="environment-badge" title={t('environmentMode')}>{t('environmentBadge')}</span>}{initialized && mode === 'simulation' && <span className="environment-badge simulation-badge" title={t('simulationMode')}>{t('simulationBadge')}</span>}<ActionMenu label={t('projectMenu')} icon={ChevronDown} items={[{ label: t('settings'), icon: Settings2, disabled: !initialized, onClick: () => setSettings('existing') }, { label: t('newProject'), icon: FolderPlus, onClick: newProject }, { separator: true }, { label: t('import'), icon: Upload, onClick: () => fileInput.current.click() }, { label: t('export'), icon: Download, disabled: !initialized, onClick: exportFile }, ...(initialized ? [{ separator: true }, { label: t('userMode'), checked: mode === 'user', onClick: () => setMode('user') }, { label: t('environmentMode'), checked: mode === 'environment', onClick: () => setMode('environment') }, { label: t('simulationMode'), checked: mode === 'simulation', onClick: () => setMode('simulation') }] : [])]} /></div>
+  if (connection && !connection.ready) return <div className="remote-loading"><h1>{t('title')}</h1><p role="status">{t(connection.error ? 'remoteDisconnected' : 'remoteLoading')}</p><button className="button secondary" onClick={reloadServer}>{t('remoteRetry')}</button></div>;
+
+  return <ProjectConnectionContext.Provider value={connection}><ScheduleDraftContext.Provider value={draft}><EnumDefinitionsContext.Provider value={draft.enumNodes ?? {}}><EventCatalogContext.Provider value={eventCatalog(draft)}><BuiltinTasksContext.Provider value={draft.builtinTasks}><EngineKeysContext.Provider value={engineKeys}><TaskMacrosContext.Provider value={draft.taskMacros}><TaskContext.Provider value={draft.tasks}><div className="app-shell" data-mode={mode} key={connection?.resetEpoch ?? 0} data-connection={connection ? "remote" : "local"}>
+    <header className="app-header"><div className="project-identity"><GitBranch size={21} /><h1 title={initialized ? draft.project.name : t('title')}>{initialized ? draft.project.name : t('title')}</h1>{initialized && mode === 'environment' && <span className="environment-badge" title={t('environmentMode')}>{t('environmentBadge')}</span>}{initialized && mode === 'simulation' && <span className="environment-badge simulation-badge" title={t('simulationMode')}>{t('simulationBadge')}</span>}<ActionMenu label={t('projectMenu')} icon={ChevronDown} items={[{ label: t('settings'), icon: Settings2, disabled: !initialized, onClick: () => setSettings('existing') }, { label: t('newProject'), icon: FolderPlus, onClick: newProject }, ...(connection ? [{ label: t('remoteOpen'), icon: Upload, onClick: () => setServerFileDialog('open') }, { label: t('remoteSave'), icon: Download, onClick: () => setServerFileDialog('save') }] : []), { separator: true }, { label: t('import'), icon: Upload, onClick: () => fileInput.current.click() }, { label: t('export'), icon: Download, disabled: !initialized, onClick: exportFile }, ...(initialized ? [{ separator: true }, { label: t('userMode'), checked: mode === 'user', onClick: () => setMode('user') }, { label: t('environmentMode'), checked: mode === 'environment', onClick: () => setMode('environment') }, { label: t('simulationMode'), checked: mode === 'simulation', onClick: () => setMode('simulation') }] : [])]} /></div>
       {initialized && <><nav className="header-tabs" aria-label={t('editorPage')}><div role="tablist">{EDITOR_PAGES.map((page) => <button key={page} role="tab" aria-selected={tab === page} onClick={() => setTab(page)}>{pageLabel(page)}</button>)}</div></nav><select className="mobile-page-picker" aria-label={t('editorPage')} value={tab} onChange={(event) => setTab(event.target.value)}>{EDITOR_PAGES.map((page) => <option key={page} value={page}>{pageLabel(page)}</option>)}</select></>}
       <div className="header-actions"><label className="language-picker"><Globe2 size={16} /><select aria-label={t('language')} value={preference} onChange={(e) => setPreference(e.target.value)}><option value="system">{t('system')}</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></label>
         {initialized && mode === 'environment' && <ActionMenu label={t('environmentActions')} icon={Settings2} items={[{ label: t('environmentSettings'), icon: Settings2, onClick: () => setEnvironmentSettings(true) }, { label: t('importEnvironment'), icon: Upload, onClick: () => environmentInput.current.click() }, { label: t('exportEnvironment'), icon: Download, onClick: exportEnvironmentFile }]} />}
@@ -295,7 +320,9 @@ export default function App() {
               : tab === 'sequences' && activeSequence ? <SequenceEditor candidateView={candidateView} onCandidateViewChange={setCandidateView} onReport={() => setReportDialog(true)} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
               : <div className="empty-state"><Layers3 size={40} /><h2>{t(view.empty)}</h2><p>{t(view.hint)}</p><button className="button primary" onClick={addItem}><Plus size={16} />{t(view.add)}</button></div>}
       </div></main></div> : <main className="welcome"><div className="empty-state"><FolderPlus size={40} /><h2>{t('welcome')}</h2><p>{t('welcomeHint')}</p><div className="welcome-actions"><button className="button primary" onClick={() => setSettings('new')}>{t('newProject')}</button><button className="button secondary" onClick={() => fileInput.current.click()}>{t('import')}</button></div></div></main>}
-    <footer className="app-footer" title={t('unsaved')}><span>{t('unsaved')}</span></footer>
+    {connection && <ConnectionStatus connection={connection} onReload={reloadServer} onExport={exportFile} t={t} />}
+    <footer className="app-footer" title={connection?.file ?? t('unsaved')}><span>{connection ? [t(projectDirty ? 'remoteUnsaved' : 'remoteSaved'), connection.file?.split(/[\\/]/).at(-1) ?? t('remoteNoFile')].join(' · ') : t('unsaved')}</span></footer>
+    {serverFileDialog && <ServerFileDialog kind={serverFileDialog} project={project} connection={connection} onOpened={() => { resetNavigation(); setOperationIssues([]); setNotice(null); }} onClose={() => setServerFileDialog(null)} t={t} />}
     {reportDialog && <ReportExportDialog t={t} onExport={exportReport} onClose={() => setReportDialog(false)} />}
     {settings === 'existing' && <ProjectSettings draft={draft} t={t} onSave={saveSettings} onClose={() => setSettings(null)} />}
     {settings === 'new' && <NewProjectDialog t={t} onCreate={createNewProject} onClose={() => setSettings(null)} />}
@@ -304,5 +331,5 @@ export default function App() {
     {cellDialog && <SlotDialog draft={draft} day={draft.days.find((day) => day.id === cellDialog.dayId)} index={cellDialog.index} t={t} onCommit={commit} onClose={() => setCellDialog(null)} />}
     {weekCellDialog && <WeekSlotDialog draft={draft} {...weekCellDialog} t={t} onCommit={commit} onClose={() => setWeekCellDialog(null)} />}
     {daySelector && <DaySelector draft={draft} week={draft.weeks.find((week) => week.id === daySelector.weekId)} weekday={daySelector.weekday} t={t} onCommit={commit} onClose={() => setDaySelector(null)} />}
-  </div></TaskContext.Provider></TaskMacrosContext.Provider></EngineKeysContext.Provider></BuiltinTasksContext.Provider></EventCatalogContext.Provider></EnumDefinitionsContext.Provider></ScheduleDraftContext.Provider>;
+  </div></TaskContext.Provider></TaskMacrosContext.Provider></EngineKeysContext.Provider></BuiltinTasksContext.Provider></EventCatalogContext.Provider></EnumDefinitionsContext.Provider></ScheduleDraftContext.Provider></ProjectConnectionContext.Provider>;
 }

@@ -6,6 +6,7 @@ import { Plus, X } from 'lucide-react';
 import SlotIcon from './SlotIcon.jsx';
 import { taskSummary } from '../../core/model.js';
 import { IconDialogContext } from '../contexts/iconDialogContext.js';
+import { ProjectConnectionContext } from '../contexts/ProjectConnectionContext.js';
 
 export function IconButton({ icon: Icon, label, onClick, disabled = false, danger = false }) {
   return <button type="button" className={`icon-button ${danger ? 'danger' : ''}`} title={label} aria-label={label} disabled={disabled} onClick={onClick}><Icon size={16} /></button>;
@@ -16,7 +17,7 @@ export function FieldError({ show, t, message = 'requiredText' }) {
 }
 
 export function Issues({ errors, t }) {
-  return <ul className="issues">{errors.map((error, index) => <li key={index}><code>{error.path}</code><span>{t(error.key, { field: error.field })}</span></li>)}</ul>;
+  return <ul className="issues">{errors.map((error, index) => <li key={index}><code>{error.path}</code><span>{error.key ? t(error.key, { field: error.field }) : error.message ?? error.code}</span></li>)}</ul>;
 }
 
 export function SlotInfo({ slot, t }) {
@@ -32,6 +33,7 @@ export function SlotCellContent({ slot, t }) {
 }
 
 export function Dialog({ title, subtitle, children, footer, onClose, t, wide = false, className = '' }) {
+  const connection = useContext(ProjectConnectionContext);
   const ref = useRef(null);
   const headingId = useId();
   const [view, setView] = useState(null);
@@ -42,7 +44,7 @@ export function Dialog({ title, subtitle, children, footer, onClose, t, wide = f
   }, []);
   const close = view?.onClose ?? onClose;
   return <dialog ref={ref} className={`modal ${(view?.wide ?? wide) ? 'modal-wide' : ''} ${view?.className ?? className}`} aria-labelledby={headingId} onCancel={(e) => { e.preventDefault(); close(); }}>
-    <div className="modal-header"><div><h2 id={headingId}>{view?.title ?? title}</h2>{!view && subtitle && <p>{subtitle}</p>}</div><IconButton icon={X} label={t('close')} onClick={close} /></div>
+    <div className="modal-header"><div><h2 id={headingId}>{view?.title ?? title}</h2>{!view && subtitle && <p>{subtitle}</p>}{connection && (connection.remoteUpdates || connection.conflict || !connection.connected) && <p className="connection-draft-hint" role="status">{t(connection.conflict ? 'remoteConflict' : !connection.connected ? 'remoteDisconnected' : 'remoteDraftHeld')}</p>}</div><IconButton icon={X} label={t('close')} onClick={close} /></div>
     <div className="modal-body" hidden={!!view}><IconDialogContext.Provider value={setView}>{children}</IconDialogContext.Provider></div>
     {view && <div className="modal-body">{view.children}</div>}
     <div className="modal-footer">{view?.footer ?? footer}</div>

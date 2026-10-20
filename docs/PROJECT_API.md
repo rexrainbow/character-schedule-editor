@@ -2,7 +2,7 @@
 
 檔案位置已依 [原始碼目錄](./SOURCE_LAYOUT.md) 整理，純 JS 核心集中於 `src/core/`，React 整合位於 `src/gui/`。
 
-`src/core/projectApi.js` 是 Web 與 Node.js 共用的記憶體專案操作入口。`core/commands.js` 將其包裝為可傳輸的白名單命令；Node 專案服務與 MCP stdio 入口見 [MCP_SERVER.md](./MCP_SERVER.md)。GUI 仍使用本地 session，尚未接入服務同步。
+`src/core/projectApi.js` 是 Web 與 Node.js 共用的記憶體專案操作入口。`core/commands.js` 將其包裝為可傳輸的白名單命令；Node 專案服務與 MCP stdio 入口見 [MCP_SERVER.md](./MCP_SERVER.md)。GUI 在純網頁模式使用本地 session，在本機服務模式使用遠端工作副本，詳見 [GUI_SYNC.md](./GUI_SYNC.md)。
 
 ```text
 React GUI / Node.js MCP 服務

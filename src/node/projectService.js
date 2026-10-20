@@ -3,15 +3,18 @@ import { createProject } from '../core/model.js';
 import { commandCatalog, inspectCommand, executeCommand, executeBatch } from '../core/commands.js';
 import { translator } from '../i18n/index.js';
 import { createProjectFiles, serviceError } from './projectFiles.js';
+import { applyDraftChanges, stringifyWire } from '../core/draftChanges.js';
 
 /** One authoritative project per service; all requests, including I/O, are queued. */
 export async function createProjectService({ root = process.cwd(), mode = 'user', language = 'en' } = {}) {
   const files = await createProjectFiles(root);
-  const session = createProjectSession(undefined, { mode, validation: 'strict', t: translator(language) });
-  let revision = 0, file = null, fileHash, baseline = JSON.stringify(session.toDocument().data), queue = Promise.resolve();
+  const session = createProjectSession(undefined, { mode, validation: 'draft', t: translator(language) });
+  const instanceId = crypto.randomUUID();
+  let webUrl = null;
+  let revision = 0, file = null, fileHash, baseline = stringifyWire(session.getSnapshot()), queue = Promise.resolve();
   const listeners = new Set();
-  const dirty = () => JSON.stringify(session.toDocument().data) !== baseline;
-  const status = () => ({ revision, mode: session.getMode(), file, dirty: dirty(), root: files.root });
+  const dirty = () => stringifyWire(session.getSnapshot()) !== baseline;
+  const status = () => ({ instanceId, webUrl, revision, mode: session.getMode(), file, dirty: dirty(), root: files.root });
   function notify(kind) { for (const listener of [...listeners]) { try { listener({ kind, ...status() }); } catch { /* Subscribers cannot invalidate edits. */ } } }
   session.subscribe(() => { revision++; });
   function expected(value, required = true) {
@@ -40,13 +43,17 @@ export async function createProjectService({ root = process.cwd(), mode = 'user'
   }
   const api = {
     status: () => request(() => ok()),
+    state: () => request(() => ok(structuredClone(session.getSnapshot()))),
+    setWebUrl: (url) => { webUrl = url; },
     commands: (object) => commandCatalog().filter((item) => !object || item.object === object),
     subscribe: (listener) => { listeners.add(listener); return () => listeners.delete(listener); },
     execute: ({ command, expectedRevision } = {}) => request(() => {
       const checked = inspectCommand(command);
       if (!checked.ok) return wrap(checked);
       expected(expectedRevision, checked.mutates);
-      const oldRevision = revision, result = executeCommand(session, command);
+      const oldRevision = revision;
+      const batch = checked.mutates ? executeBatch(session, [command]) : null;
+      const result = batch ? batch.ok ? { ...batch.value[0], warnings: batch.warnings } : batch : executeCommand(session, command);
       if (revision !== oldRevision) notify('changed');
       return wrap(result);
     }),
@@ -67,14 +74,15 @@ export async function createProjectService({ root = process.cwd(), mode = 'user'
       const draft = createProject();
       if (name !== undefined) draft.project.name = name;
       draft.project.settings.slots_per_day = slotsPerDay;
+      const validated = createProjectSession(draft).validate(); if (validated.errors.length) return wrap({ ok: false, errors: validated.errors });
       const result = session.reset(draft); if (!result.ok) return wrap(result);
-      file = null; fileHash = undefined; baseline = JSON.stringify(session.toDocument().data); notify('new'); return ok();
+      file = null; fileHash = undefined; baseline = stringifyWire(session.getSnapshot()); notify('new'); return ok();
     }),
     openProject: ({ path, expectedRevision, discardChanges = false } = {}) => request(async () => {
       expected(expectedRevision); protectDraft(discardChanges);
       const loaded = await files.readProject(path), result = session.loadDocument(loaded.data);
       if (!result.ok) return wrap(result);
-      file = loaded.path; fileHash = loaded.hash; baseline = JSON.stringify(session.toDocument().data); notify('opened'); return ok();
+      file = loaded.path; fileHash = loaded.hash; baseline = stringifyWire(session.getSnapshot()); notify('opened'); return ok();
     }),
     saveProject: ({ path, expectedRevision, overwrite = false } = {}) => request(async () => {
       expected(expectedRevision);
@@ -83,7 +91,22 @@ export async function createProjectService({ root = process.cwd(), mode = 'user'
       const canonical = await files.pathFor(target), result = exported('project');
       if (result.errors.length) return wrap({ ok: false, errors: result.errors });
       const saved = await files.write(canonical, JSON.stringify(result.data, null, 2) + '\n', { expectedHash: canonical === file ? fileHash : undefined, overwrite });
-      file = saved.path; fileHash = saved.hash; baseline = JSON.stringify(result.data); notify('saved'); return ok({ path: file });
+      file = saved.path; fileHash = saved.hash; baseline = stringifyWire(session.getSnapshot()); notify('saved'); return ok({ path: file });
+    }),
+    guiChanges: ({ changes, mode, expectedRevision } = {}) => request(() => {
+      expected(expectedRevision);
+      if (!['user', 'environment', 'simulation'].includes(mode)) throw serviceError('invalidProjectMode', 'Invalid GUI editing mode.');
+      const previousMode = session.getMode(), oldRevision = revision;
+      let result;
+      try { session.setMode(mode); result = session.replaceDraft(applyDraftChanges(session.getSnapshot(), changes)); }
+      finally { session.setMode(previousMode); }
+      if (revision !== oldRevision) notify('changed');
+      return wrap(result);
+    }),
+    guiImport: ({ data, expectedRevision, discardChanges = false } = {}) => request(() => {
+      expected(expectedRevision); protectDraft(discardChanges);
+      const result = session.loadDocument(data); if (!result.ok) return wrap(result);
+      file = null; fileHash = undefined; baseline = null; notify('imported'); return ok();
     }),
     exportData: ({ format, path, expectedRevision, overwrite = false, includeUnreferenced = false } = {}) => request(async () => {
       expected(expectedRevision, !!path);

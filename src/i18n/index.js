@@ -484,6 +484,25 @@ Object.assign(messages['zh-TW'], {
   deleteSubtreeConfirm: '確定刪除「{name}」及其所有子節點（共 {count} 個節點）？', nodeInUse: '請先修改引用此子樹的條件、計算定義或任務參數，再刪除此子樹。', typeChangeBlocked: '以下條件、計算定義或任務參數將不相容，因此未修改型別：',
 });
 
+Object.assign(messages.en, {
+  remoteConnection: 'Local project connection', remoteConnected: 'Connected to local project', remoteDisconnected: 'Connection lost. Your local inputs are retained; no changes will be resubmitted automatically.',
+  remoteSubmitting: 'Submitting…', remoteConflict: 'The server changed before this edit could be submitted. Your local edits are retained. Export them or load the server version.',
+  remoteDraftHeld: 'The server has updates. This form is retained; cancel to load the latest version. Applying this older form will keep your edit locally for conflict review.',
+  remoteReload: 'Load server version', remoteRetry: 'Reconnect', remoteExportLocal: 'Export local project', remoteReloadConfirm: 'Discard local unsubmitted edits and load the current server version?',
+  remoteLoading: 'Connecting to local project…', remoteOpen: 'Open server project', remoteSave: 'Save server project', remotePath: 'Project file path', remotePathHint: 'Path inside the server project directory: {root}',
+  remoteOverwrite: 'Allow replacing another existing file', remoteNoFile: 'No server file selected', remoteUnsaved: 'Unsaved changes', remoteSaved: 'Saved / no changes',
+  remoteObjectRemoved: 'The selected object was removed remotely. Showing an available item.',
+});
+Object.assign(messages['zh-TW'], {
+  remoteConnection: '本機專案連線', remoteConnected: '已連線至本機專案', remoteDisconnected: '連線中斷。本機輸入已保留，不會自動重新提交。',
+  remoteSubmitting: '提交中…', remoteConflict: '提交前伺服器已有變更。本機編輯已保留，可先匯出，或載入伺服器版本。',
+  remoteDraftHeld: '伺服器已有更新，目前表單草稿已保留；取消後載入新版。套用舊表單時會保留為本機編輯，供處理衝突。',
+  remoteReload: '載入伺服器版本', remoteRetry: '重新連線', remoteExportLocal: '匯出本機專案', remoteReloadConfirm: '捨棄尚未提交的本機編輯，載入目前伺服器版本？',
+  remoteLoading: '正在連線至本機專案…', remoteOpen: '開啟伺服器專案', remoteSave: '儲存伺服器專案', remotePath: '專案檔案路徑', remotePathHint: '伺服器專案目錄內的路徑：{root}',
+  remoteOverwrite: '允許取代其他既有檔案', remoteNoFile: '尚未選擇伺服器檔案', remoteUnsaved: '尚未儲存的修改', remoteSaved: '已儲存／無修改',
+  remoteObjectRemoved: '目前選取的物件已被遠端移除，已顯示其他可用項目。',
+});
+
 export function translator(locale) {
   const t = (key, params = {}) => (messages[locale][key] ?? messages.en[key] ?? key)
     .replace(/\{(\w+)\}/g, (_, name) => params[name] ?? '');
