@@ -1,4 +1,4 @@
-import { createTakeover } from '../src/gui/hooks/builtinTasks.js';
+import { createRelease } from '../src/gui/hooks/builtinTasks.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { slotLogicText, taskMacroLogicText } from '../src/core/logicOverviewModel.js';
@@ -37,11 +37,11 @@ test('computed conditions expand with ALL/ANY and branch results without evaluat
     { condition: null, result: { kind: 'boolean', condition: { kind: 'comparison', operand_a: constant(false), comparator: '==', operand_b: constant(true) } } },
   ] } };
   f.slot.branches[0].condition = { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', operand_a: { type: 'expression_macro_reference', expression_macro_id: expressionId }, comparator: '==', operand_b: constant(true) }] };
-  f.slot.branches.push({ condition: null, task: createTakeover() });
+  f.slot.branches.push({ condition: null, task: createRelease() });
   assert.match(render(f), /ALL\(Can work == true\)/);
   assert.match(render(f, 'all'), /Can work \{ IF \(ANY\(Engine.Counter >= 10\)\) → true == true; ELSE → false == true \}/);
-  assert.match(render(f, 'all'), /ELSE → Schedule takeover/);
-  assert.match(render(f, 'all'), /Withdraw: Rest of today/);
+  assert.match(render(f, 'all'), /ELSE → Release this slot/);
+  assert.match(render(f, 'all'), /Always release/);
 });
 
 test('empty and partial drafts remain readable, cycles stop and string arguments retain quoting', () => {

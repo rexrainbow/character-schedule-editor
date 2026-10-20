@@ -1,3 +1,5 @@
+import { scheduledDayReferences } from './scheduledEvents.js';
+import { eventDayIds, eventDaySourceMode } from './eventDaySource.js';
 import { clearEngineKey } from './engineKeyModel.js';
 import { clone, compileDraft, nextSlotId } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
@@ -46,6 +48,7 @@ export function changeWeekCell(draft, weekId, weekday, index, slotId, editedSlot
     id: nextSlotId(draft.days), name: `${weekday} custom`, scope: 'week_private', icon: current?.icon ?? 'tabler:calendar',
     owner: { week_schedule_id: weekId, weekday },
     slotIds: current ? [...current.slotIds] : Array(draft.project.settings.slots_per_day).fill(null),
+    ...(current?.purposes === undefined ? {} : { purposes: [...current.purposes] }),
     ...(current?.tags === undefined ? {} : { tags: [...current.tags] }),
     ...(current ? clone(dayEventsFromData(dayEventsToData(current))) : {}),
   };
@@ -78,10 +81,11 @@ export function dayReferenceCount(draft, dayId) {
 }
 
 export function deleteSharedDay(draft, dayId) {
+  if (scheduledDayReferences(draft, dayId).length) throw new Error('scheduledDayInUse');
   if (countDayReferences(draft, dayId).length) throw new Error('eventCountDayInUse');
   if (isPrivateDay(draft.days.find((day) => day.id === dayId))) throw new Error('Private days belong to weeks');
   return { ...draft, days: draft.days.filter((day) => day.id !== dayId),
-    sequences: (draft.sequences ?? []).map((sequence) => ({ ...sequence, ...(sequence.eventGroups === undefined ? {} : { eventGroups: sequence.eventGroups.filter((group) => group.dayId !== dayId) }), rows: sequence.rows.map((row) => ({ ...row,
+    sequences: (draft.sequences ?? []).map((sequence) => ({ ...sequence, ...(sequence.eventGroups === undefined ? {} : { eventGroups: sequence.eventGroups.map((group) => eventDaySourceMode(group) === 'fixed' ? group : { ...group, dayCandidates: group.dayCandidates.filter((item) => item.dayId !== dayId) }).filter((group) => !eventDayIds(group).includes(dayId) && eventDayIds(group).length) }), rows: sequence.rows.map((row) => ({ ...row,
       overrides: Object.fromEntries(Object.entries(row.overrides).filter(([, id]) => id !== dayId)) })) })),
     weeks: draft.weeks.map((week) => ({ ...week, days: Object.fromEntries(WEEKDAYS.map((weekday) => [weekday, week.days[weekday] === dayId ? null : week.days[weekday]])) })) };
 }

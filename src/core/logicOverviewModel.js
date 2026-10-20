@@ -2,15 +2,15 @@ import { isComputed, macroEligibility, nodePath } from './operandModel.js';
 import { builtinTaskDefinition, isBuiltinFlowTask } from './builtinTaskModel.js';
 
 // Static explanation only: never evaluates conditions or changes project data.
-export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], depth = 'summary', t }) {
-  return logicText(slot, { nodes, tasks, macros, builtinTasks, events, depth, t });
+export function slotLogicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], days = [], depth = 'summary', t }) {
+  return logicText(slot, { nodes, tasks, macros, builtinTasks, events, days, depth, t });
 }
 
 export function taskMacroLogicText(macro, options) {
   return logicText(null, options, macro);
 }
 
-function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], depth = 'summary', t }, rootMacro) {
+function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], days = [], depth = 'summary', t }, rootMacro) {
   const limit = depth === 'all' ? 64 : depth === 'one' ? 1 : 0;
   const lines = [], taskStack = new Set(), expressionStack = new Set();
   let operations = 0, truncated = false;
@@ -61,16 +61,20 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
   function task(use, indent, remaining, scope = {}, prefix = '', skipEligibility = false) {
     if (!guard()) return;
     if (use?.builtin) {
-      const known = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable', 'adjust_probability_event'].includes(use.builtin) || isBuiltinFlowTask(use);
+      const known = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable', 'adjust_probability_event', 'schedule_event'].includes(use.builtin) || isBuiltinFlowTask(use);
       if (!known) { line(indent, `${prefix}${t('logicMissingTask')}`); return; }
       const built = builtinTaskDefinition(use.builtin, builtinTasks, t);
+      if (use.builtin === 'schedule_event') {
+        const source = use.day_source?.candidates ?? [{ day_schedule_id: use.day_schedule_id }];
+        const labels = source.map((item) => `${days.find((day) => day.id === item.day_schedule_id)?.name || item.day_schedule_id || missing()}${item.weight === undefined ? '' : ` (${t('eventWeight')}: ${item.weight})`}`).join(', ');
+        line(indent, `${prefix}${built.display_name}: ${use.display_name || labels}`);
+        line(indent + 1, `${t(`scheduleDate_${use.date?.mode}`)}: ${operand(use.date?.offset, scope, remaining)}${use.date?.weekday ? ` / ${t(use.date.weekday)}` : ''}`);
+        line(indent + 1, labels); line(indent + 1, `${t(`executionMode_${use.execution_mode}`)}; ${t('eventPriority')}: ${use.priority}`); return;
+      }
       if (use.builtin === 'adjust_probability_event') { line(indent, `${prefix}${built.display_name} (${operand(use.event, scope, remaining)}, ${typeof use.property === 'string' ? t(`eventProperty_${use.property}`) : operand(use.property, scope, remaining)}, ${typeof use.operation === 'string' ? t(`eventOperation_${use.operation}`) : operand(use.operation, scope, remaining)} ${operand(use.value, scope, remaining)})`); return; }
       if (isBuiltinFlowTask(use)) {
         line(indent, `${prefix}${built.display_name}`);
-        line(indent + 1, `IF (${condition(use.condition, scope, remaining)})`);
-        line(indent + 2, `${t('logicTakeover')}: ${t(`takeover_${use.scope}`)} / ${t(`takeover_${use.target}`)}`);
-        line(indent + 1, 'ELSE');
-        line(indent + 2, `${t('logicWithdraw')}: ${t(`takeover_${use.scope}`)} / ${t('takeoverSelf')}`);
+        line(indent + 1, use.condition == null ? t('releaseUnconditional') : `IF (${condition(use.condition, scope, remaining)})`);
         return;
       }
       const args = isBuiltinFlowTask(use) ? [] : [nodePath(nodes, use.target_variable_id) || missing(), ...(['set_variable', 'increment_variable'].includes(use.builtin) ? [operand(use.value, scope, remaining), ...(use.builtin === 'increment_variable' && use.random_amplitude !== undefined ? [`${t('randomAmplitude')}: ${operand(use.random_amplitude, scope, remaining)}`] : [])] : [])];

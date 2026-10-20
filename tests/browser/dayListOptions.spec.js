@@ -1,0 +1,36 @@
+import { test, expect } from '@playwright/test';
+import { dayUsesFixture } from '../dayUsesFixture.js';
+import { compileProject } from '../../src/core/model.js';
+import { openDayOptions, closeDayOptions } from './dayOptions.js';
+import { translator } from '../../src/i18n/index.js';
+
+for (const mobile of [false, true]) test(`day list options preserve filters without occupying list space (${mobile ? 'mobile' : 'desktop'})`, async ({ page }) => {
+  if (mobile) await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'uses.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compileProject(dayUsesFixture().draft).data)) });
+  const trigger = page.getByRole('button', { name: 'Filters and view', exact: true });
+  const list = page.locator('.sidebar .slot-list');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.getByRole('textbox', { name: translator('en')('searchDays'), exact: true })).toHaveCount(0);
+  const box = await list.boundingBox();
+  await openDayOptions(page);
+  const panel = page.getByRole('dialog', { name: 'Filters and view', exact: true });
+  await panel.getByRole('combobox', { name: 'List view', exact: true }).selectOption('flat');
+  await panel.getByRole('combobox', { name: 'Filter by use', exact: true }).selectOption('main');
+  await panel.getByRole('textbox').fill('Work');
+  await expect(trigger.locator('.filter-count')).toHaveText('2');
+  await closeDayOptions(page);
+  await expect(list.locator('.slot-item')).toHaveCount(1);
+  if (!mobile) expect(await list.boundingBox()).toEqual(box);
+  await openDayOptions(page);
+  await expect(panel.getByRole('textbox')).toHaveValue('Work');
+  await panel.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  await expect(panel.getByRole('combobox', { name: 'List view', exact: true })).toHaveValue('flat');
+  await expect(trigger.locator('.filter-count')).toHaveCount(0);
+  if (mobile) await panel.getByRole('button', { name: 'Close', exact: true }).click();
+  else await page.locator('.app-footer').click();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(list.locator('.slot-item')).toHaveCount(5);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+  await page.screenshot({ path: `test-results/day-list-options-${mobile ? 'mobile' : 'desktop'}.png` });
+});

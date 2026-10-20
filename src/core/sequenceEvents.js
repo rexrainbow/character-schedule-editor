@@ -1,3 +1,5 @@
+import { eventFirstDayId, eventDaySourceErrors, eventDaySourceToData, eventDaySourceFromData } from './eventDaySource.js';
+import { EVENT_EXECUTION_MODES, eventExecutionMode } from './slotRelease.js';
 import { eventKind } from './eventReferences.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { sequenceRange } from './sequenceRange.js';
@@ -6,7 +8,7 @@ export const datePosition = (date) => (date?.week - 1) * 7 + WEEKDAYS.indexOf(da
 export const positionDate = (position) => ({ week: Math.floor(position / 7) + 1, weekday: WEEKDAYS[((position % 7) + 7) % 7] });
 export function newEventGroup(sequence, position = sequenceRange(sequence).start) {
   const date = positionDate(position);
-  return { id: crypto.randomUUID(), display_name: '', engine_key: '', dayId: '', start: date, end: { ...date }, interval: 0, priority: 0, kind: 'once', icon: 'tabler:calendar-event', countFilter: { kind: 'all' } };
+  return { id: crypto.randomUUID(), display_name: '', engine_key: '', dayId: '', start: date, end: { ...date }, interval: 0, priority: 0, executionMode: 'overlay', kind: 'once', icon: 'tabler:calendar-event', countFilter: { kind: 'all' } };
 }
 export function changeEventStart(group, date) {
   const duration = datePosition(group.end) - datePosition(group.start), position = datePosition(date);
@@ -19,7 +21,7 @@ export function eventGroupErrors(sequence, days, groups = sequence.eventGroups ?
     const path = `/event_groups/${i}`;
     if (!group || typeof group !== 'object') { errors.push({ path, key: 'invalidEventGroups' }); return; }
     if (ids.has(group.id)) errors.push({ path: `${path}/id`, key: 'duplicateId' }); ids.add(group.id);
-    if (!days.some((day) => day.id === group.dayId && (!day.scope || day.scope === 'shared'))) errors.push({ path: `${path}/day_schedule_id`, key: 'eventSharedDayRequired' });
+    errors.push(...eventDaySourceErrors(group, days, path));
     for (const key of ['start', 'end']) if (!Number.isSafeInteger(group[key]?.week) || group[key].week < 1 || !WEEKDAYS.includes(group[key]?.weekday) || datePosition(group[key]) >= max) errors.push({ path: `${path}/${key}`, key: 'eventDateRange' });
     if (eventKind(group) === 'periodic' && (!Number.isSafeInteger(group.interval) || group.interval < 1)) errors.push({ path: `${path}/interval_days`, key: 'eventIntervalError' });
     if (!['once', 'periodic', 'probability'].includes(eventKind(group))) errors.push({ path: `${path}/kind`, key: 'invalidEventKind' });
@@ -31,6 +33,8 @@ export function eventGroupErrors(sequence, days, groups = sequence.eventGroups ?
     if (!filter || !['all', 'day', 'tag'].includes(filter.kind)) errors.push({ path: `${path}/count_filter`, key: 'eventCountFilterInvalid' });
     else if (eventKind(group) !== 'once' && filter.kind === 'day' && !days.some((day) => day.id === filter.day_schedule_id && (!day.scope || day.scope === 'shared'))) errors.push({ path: `${path}/count_filter/day_schedule_id`, key: 'eventCountDayRequired' });
     else if (eventKind(group) !== 'once' && filter.kind === 'tag' && (typeof filter.tag !== 'string' || !filter.tag.trim() || filter.tag !== filter.tag.trim())) errors.push({ path: `${path}/count_filter/tag`, key: 'eventCountTagRequired' });
+    if (!EVENT_EXECUTION_MODES.includes(eventExecutionMode(group))) errors.push({ path: `${path}/execution_mode`, key: 'invalidExecutionMode' });
+    if (eventExecutionMode(group) !== 'overlay' && group.priority < 0) errors.push({ path: `${path}/priority`, key: 'interruptPriorityError' });
     if (!Number.isSafeInteger(group.priority)) errors.push({ path: `${path}/priority`, key: 'eventPriorityError' });
     if (datePosition(group.end) < datePosition(group.start) || eventKind(group) === 'once' && datePosition(group.start) !== datePosition(group.end)) errors.push({ path: `${path}/end`, key: 'eventEndError' });
   });
@@ -91,22 +95,24 @@ export function fitEventGroups(sequence) {
   const max = sequence.rows.length * 7;
   return { ...sequence, eventGroups: sequence.eventGroups.filter((group) => datePosition(group.start) < max && datePosition(group.end) < max) };
 }
-export const eventGroupName = (group, days) => (typeof group.display_name === 'string' ? group.display_name.trim() : '') || days.find((day) => day.id === group.dayId)?.name || '';
+export const eventGroupName = (group, days) => (typeof group.display_name === 'string' ? group.display_name.trim() : '') || days.find((day) => day.id === eventFirstDayId(group))?.name || '';
 export function duplicateEventGroup(group, days, rename = true) {
   const copy = { ...structuredClone(group), id: crypto.randomUUID(), display_name: eventGroupName(group, days) + (rename ? ' (副本)' : '') }; delete copy.engine_key; return copy;
 }
 export const eventGroupsToData = (groups, days = [], runtime = false) => groups.map((group) => ({
+  execution_mode: eventExecutionMode(group),
   id: group.id, kind: eventKind(group), display_name: eventGroupName(group, days),
-  ...(!runtime ? { icon: group.icon ?? days.find((day) => day.id === group.dayId)?.icon ?? 'tabler:calendar-event' } : {}),
+  ...(!runtime ? { icon: group.icon ?? days.find((day) => day.id === eventFirstDayId(group))?.icon ?? 'tabler:calendar-event' } : {}),
   ...(typeof group.engine_key === 'string' && (!runtime || group.engine_key.trim()) ? { engine_key: runtime ? group.engine_key.trim() : group.engine_key } : {}),
-  day_schedule_id: group.dayId, start: { week_number: group.start.week, weekday: group.start.weekday }, priority: group.priority,
+  ...eventDaySourceToData(group), start: { week_number: group.start.week, weekday: group.start.weekday }, priority: group.priority,
   ...(eventKind(group) === 'once' ? {} : { end: { week_number: group.end.week, weekday: group.end.weekday }, count_filter: structuredClone(group.countFilter ?? { kind: 'all' }),
     ...(eventKind(group) === 'probability' ? { probability_percent: group.probability_percent, cooldown_days: group.cooldown_days } : { interval_days: group.interval }) }),
 }));
 export const eventGroupsFromData = (groups) => groups.map((group) => ({
+  executionMode: group?.execution_mode ?? 'overlay',
   id: group?.id, kind: group?.kind ?? (group?.interval_days === 0 ? 'once' : 'periodic'), icon: group?.icon ?? 'tabler:calendar-event',
   ...(group?.display_name === undefined ? {} : { display_name: group.display_name }), ...(group?.engine_key === undefined ? {} : { engine_key: group.engine_key }),
-  dayId: group?.day_schedule_id, start: { week: group?.start?.week_number, weekday: group?.start?.weekday },
+  ...eventDaySourceFromData(group), start: { week: group?.start?.week_number, weekday: group?.start?.weekday },
   end: { week: (group?.end ?? group?.start)?.week_number, weekday: (group?.end ?? group?.start)?.weekday }, interval: group?.kind === 'once' ? 0 : group?.interval_days ?? 1,
   countFilter: structuredClone(group?.count_filter ?? { kind: 'all' }), priority: group?.priority,
   ...(group?.kind === 'probability' ? { probability_percent: group.probability_percent, cooldown_days: group.cooldown_days } : {}),

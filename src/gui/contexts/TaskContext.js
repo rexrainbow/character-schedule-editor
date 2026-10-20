@@ -5,3 +5,5 @@ export const BuiltinTasksContext = createContext(undefined);
 
 export const EventCatalogContext = createContext([]);
 export const EnumDefinitionsContext = createContext({});
+
+export const ScheduleDraftContext = createContext(null);

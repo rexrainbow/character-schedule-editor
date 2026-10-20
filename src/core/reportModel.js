@@ -1,3 +1,6 @@
+import { scheduleEventUses } from './scheduledEvents.js';
+import { eventDayIds, eventDaySourceMode, eventDaySourceFromData } from './eventDaySource.js';
+import { eventExecutionMode } from './slotRelease.js';
 import { compileProject } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 import { sequenceRange, sequenceDate } from './sequenceRange.js';
@@ -38,7 +41,7 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   const eventLink = (sequence, group) => link(eventNames.get(eventKey(sequence, group)), `event-${eventKey(sequence, group)}`);
   const priority = (group) => `${group.priority >= 0 ? '+' : ''}${group.priority}`;
   const candidate = (group) => eventKind(group) === 'probability' ? ` [${escape(t('reportProbabilityCandidate'))}]` : '';
-  const referencedDays = new Set(sequences.flatMap((sequence) => (sequence.eventGroups ?? []).map((group) => group.dayId)));
+  const referencedDays = new Set(sequences.flatMap((sequence) => (sequence.eventGroups ?? []).flatMap((group) => eventDayIds(group))));
   function heading(level, anchor, name) { push(`<a id="${anchor}"></a>`, '', `${'#'.repeat(level)} ${escape(name)}`, ''); }
   function field(label, value) { push(`- ${escape(t(label))}: ${value}`); }
   push(`# ${escape(t('reportTitle', { name: draft.project.name }))}`, '', escape(t('reportStaticHint')), '', `- ${escape(t('slotsPerDay'))}: ${draft.project.settings.slots_per_day}`, '');
@@ -76,7 +79,8 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   for (const sequence of sequences) for (const group of sequence.eventGroups ?? []) {
     heading(3, `event-${eventKey(sequence, group)}`, eventNames.get(eventKey(sequence, group)));
     field('reportOwnerSequence', link(sequenceNames.get(sequence.id), `sequence-${sequence.id}`));
-    field('eventDay', dayLink(draft.days.find((day) => day.id === group.dayId)));
+    field('eventDaySource', escape(t(`eventSource_${eventDaySourceMode(group)}`)));
+    field('eventDay', eventDayIds(group).map((id, i) => dayLink(draft.days.find((day) => day.id === id)) + (eventDaySourceMode(group) === 'random' ? ` (${group.dayCandidates[i].weight})` : '')).join(' / '));
     field('eventType', escape(t(`eventType_${eventKind(group)}`)));
     field('eventStart', escape(eventDateLabel(group.start, t)));
     if (eventKind(group) !== 'once') {
@@ -90,10 +94,12 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
       } else field('reportInterval', escape(t('reportEveryEligibleDays', { count: group.interval })));
     }
     field('eventPriority', `${priority(group)}; ${escape(t(group.priority >= 0 ? 'eventBeforeMain' : 'eventAfterMain'))}`);
+    field('eventExecutionMode', escape(t(`executionMode_${eventExecutionMode(group)}`)));
     const count = eventCounts(sequence, group, draft);
     field('reportActiveOccurrences', `${count.active}${eventKind(group) === 'probability' ? ` (${escape(t('reportProbabilityCandidate'))})` : ''}`);
     push('');
   }
+  for (const { task } of scheduleEventUses(draft)) for (const id of eventDayIds(eventDaySourceFromData(task))) referencedDays.add(id);
   const referencedSlots = new Set(draft.days.filter((day) => referencedDays.has(day.id)).flatMap((day) => dayAssignments(day).map((entry) => entry.id).filter(Boolean)));
   const days = draft.days.filter((day) => includeUnreferenced || referencedDays.has(day.id));
   const slots = draft.slots.filter((slot) => includeUnreferenced || referencedSlots.has(slot.id));
@@ -103,9 +109,14 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
     heading(3, `day-${day.id}`, `${dayNames.get(day.id)}${referencedDays.has(day.id) ? '' : ` [${t('reportUnreferenced')}]`}`);
     if (day.tags?.length) field('dayTags', day.tags.map(escape).join(', '));
     for (const entry of dayAssignments(day)) {
-      if (entry.id === null && typeof entry.target !== 'number') continue;
       const slot = draft.slots.find((item) => item.id === entry.id);
-      push(`- ${escape(assignmentLabel(entry.target, t))}: ${slot ? link(slotNames.get(slot.id), `slot-${slot.id}`) : escape(t('unassigned'))}`);
+      if (entry.id !== null || typeof entry.target === 'number') push(`- ${escape(assignmentLabel(entry.target, t))}: ${slot ? link(slotNames.get(slot.id), `slot-${slot.id}`) : escape(t('unassigned'))}`);
+      const release = typeof entry.target === 'object' && entry.target.edge === 'start' ? day.slotReleases?.[entry.target.index] : null;
+      if (release) {
+        push(`- ${escape(t('releaseSlotFor', { count: entry.target.index + 1 }))}:`);
+        const logic = slotLogicText({ branches: [{ condition: null, task: release }] }, { nodes: draft.operandNodes, tasks: draft.tasks, macros: draft.taskMacros, builtinTasks: draft.builtinTasks, events: catalog, depth: 'all', days: draft.days, t });
+        push(...logic.split(/\r\n|[\r\n]/).map((line) => `    ${line}`), '');
+      }
     }
     push('');
   }
@@ -114,7 +125,7 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   const events = catalog.map((group) => ({ ...group, name: eventNames.get(`${group.sequenceId}-${group.id}`) }));
   for (const slot of slots) {
     heading(3, `slot-${slot.id}`, `${slotNames.get(slot.id)}${referencedSlots.has(slot.id) ? '' : ` [${t('reportUnreferenced')}]`}`);
-    const logic = slotEntries(slot).length ? slotLogicText(slot, { nodes: draft.operandNodes, tasks: draft.tasks, macros: draft.taskMacros, builtinTasks: draft.builtinTasks, events, depth: 'all', t }) : t('reportNoTaskAssignment');
+    const logic = slotEntries(slot).length ? slotLogicText(slot, { nodes: draft.operandNodes, tasks: draft.tasks, macros: draft.taskMacros, builtinTasks: draft.builtinTasks, events, depth: 'all', days: draft.days, t }) : t('reportNoTaskAssignment');
     push(...logic.split(/\r\n|[\r\n]/).map((line) => `    ${line}`), '');
   }
   return { data: lines.join('\n'), errors: [] };

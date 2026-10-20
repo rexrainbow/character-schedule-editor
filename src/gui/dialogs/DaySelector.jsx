@@ -1,3 +1,5 @@
+import { DayPurposeFilter } from '../components/DayUses.jsx';
+import { matchesDayPurpose } from '../../core/dayUses.js';
 import { editProject } from '../../core/projectApi.js';
 import SlotIcon from '../components/SlotIcon.jsx';
 import { DayTagFilter, DayTagChips } from '../components/DayTags.jsx';
@@ -12,9 +14,10 @@ export default function DaySelector({ draft, week, weekday, onCommit, onClose, t
   const [selected, setSelected] = useState(isPrivateDay(current) ? 'keep' : current?.id ?? null);
   const [search, setSearch] = useState('');
   const [tagFilter, setTagFilter] = useState('');
+  const [purpose, setPurpose] = useState('main');
   const [confirm, setConfirm] = useState(false);
   const days = sharedDays(draft);
-  const filtered = days.filter((day) => day.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && matchesDayTag(day, tagFilter));
+  const filtered = days.filter((day) => day.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && matchesDayTag(day, tagFilter) && matchesDayPurpose(day, purpose));
   function choose(id) { setSelected(id); setConfirm(false); }
   function apply() {
     if (selected === 'keep') { onClose(); return; }
@@ -25,6 +28,7 @@ export default function DaySelector({ draft, week, weekday, onCommit, onClose, t
   return <Dialog title={t('daySelector')} subtitle={t('weekDaySource', { name: week.name, weekday: t(weekday) })} t={t} onClose={onClose} footer={<><button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" onClick={apply}>{t(confirm ? 'confirmReplace' : 'apply')}</button></>}>
     <label className="search-field"><Search size={16} /><input autoFocus aria-label={t('searchDays')} placeholder={t('searchDays')} value={search} onChange={(e) => setSearch(e.target.value)} /></label>
     <DayTagFilter days={days} value={tagFilter} onChange={setTagFilter} t={t} />
+    <DayPurposeFilter value={purpose} onChange={setPurpose} t={t} />
     <div className="selector-list" role="radiogroup" aria-label={t('days')}>{isPrivateDay(current) && option('keep', t('keepPrivate'))}{filtered.map((day) => option(day.id, day.name || '—', day))}{option(null, t('clearDay'))}</div>
     {confirm && <p className="shared-warning" role="alert">{t('discardPrivate')}</p>}
   </Dialog>;

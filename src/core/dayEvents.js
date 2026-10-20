@@ -25,12 +25,12 @@ export function dayAssignments(day) {
   entries.push({ target: 'dayEnd', id: day.dayEndId ?? null, path: '/day_end_slot_id' });
   return entries;
 }
-export const dayEventCount = (day) => dayAssignments(day).filter((entry) => typeof entry.target !== 'number' && entry.id !== null).length;
+export const dayEventCount = (day) => dayAssignments(day).filter((entry) => typeof entry.target !== 'number' && entry.id !== null).length + (day.slotReleases ?? []).filter(Boolean).length;
 export function dayEventsToData(day) {
-  return { ...(day.dayStartId === undefined ? {} : { day_start_slot_id: day.dayStartId }), ...(day.dayEndId === undefined ? {} : { day_end_slot_id: day.dayEndId }),
+  return { ...(day.slotReleases === undefined ? {} : { slot_releases: structuredClone(day.slotReleases) }), ...(day.dayStartId === undefined ? {} : { day_start_slot_id: day.dayStartId }), ...(day.dayEndId === undefined ? {} : { day_end_slot_id: day.dayEndId }),
     ...(day.slotEvents === undefined ? {} : { slot_events: day.slotEvents.map((entry) => ({ start_slot_id: entry.startId, end_slot_id: entry.endId })) }) };
 }
 export function dayEventsFromData(day) {
-  return { ...(day.day_start_slot_id === undefined ? {} : { dayStartId: day.day_start_slot_id }), ...(day.day_end_slot_id === undefined ? {} : { dayEndId: day.day_end_slot_id }),
+  return { ...(day.slot_releases === undefined ? {} : { slotReleases: structuredClone(day.slot_releases) }), ...(day.day_start_slot_id === undefined ? {} : { dayStartId: day.day_start_slot_id }), ...(day.day_end_slot_id === undefined ? {} : { dayEndId: day.day_end_slot_id }),
     ...(day.slot_events === undefined ? {} : { slotEvents: day.slot_events.map((entry) => ({ startId: entry.start_slot_id, endId: entry.end_slot_id })) }) };
 }

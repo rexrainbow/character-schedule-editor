@@ -1,3 +1,7 @@
+import { scheduledPosition, scheduledEventErrors, reservationSourceText } from './scheduledEvents.js';
+import { sequenceRange } from './sequenceRange.js';
+import { eventDateLabel, positionDate } from './sequenceEvents.js';
+import { eventDaySourceFromData, eventFirstDayId } from './eventDaySource.js';
 import { clampVariable, withinBounds, variableBoundsErrors } from './variableBounds.js';
 import { initialValue, isComputed, nodePath, nodeScope, formatOperand, formatCondition, taskUseErrors, branchOrderErrors, macroEligibility, isPrioritySlot } from './operandModel.js';
 import { taskMacroDefinitionErrors } from './taskMacroModel.js';
@@ -17,7 +21,7 @@ export function simulationValueErrors(draft, values) {
 
 export function createSimulationEvaluator(draft, values, baseline, t, onControl = null, eventContext = {}, randomOptions = {}) {
   draft = resolveDraftEnums(draft);
-  const nodes = draft.operandNodes, state = structuredClone(values), calls = [], trace = [], stack = new Set();
+  const nodes = draft.operandNodes, state = structuredClone(values), calls = [], reservations = [], trace = [], stack = new Set();
   const random = seededRandom(randomOptions.seed ?? '1');
   const catalog = new Map(eventCatalog(draft).map((event) => [event.id, event]));
   const eventValues = Object.fromEntries([...catalog.values()].filter((event) => event.sequenceId === eventContext.sequenceId && event.kind === 'probability').map((event) => [event.id, { probability_percent: event.probability_percent, cooldown_days: event.cooldown_days, cooldown_remaining: eventContext.choices?.[event.id] === true ? event.cooldown_days : 0 }]));
@@ -147,6 +151,27 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     guard(depth, path);
     const errors = taskUseErrors(use, draft.tasks, nodes, path, scope.parameters, draft.taskMacros, modes);
     if (errors.length) { const error = errors[0]; fail(error.key, error.path, error.field); }
+    if (use.builtin === 'schedule_event') {
+      const sequence = draft.sequences.find((item) => item.id === eventContext.sequenceId);
+      if (!sequence || !Number.isSafeInteger(eventContext.position)) fail('scheduleContextRequired', path);
+      const invalid = scheduledEventErrors({ ...draft, slots: [{ id: 'simulation', task: use }], taskMacros: [] });
+      if (invalid.length) fail(invalid[0].key, path);
+      const definition = builtinTaskDefinition(use.builtin, draft.builtinTasks, t), children = [];
+      const offset = operand(use.date.offset, scope, `${path}/date/offset`, children, depth + 1);
+      const target = scheduledPosition(use.date, offset, eventContext.position), range = sequenceRange(sequence);
+      const reason = target.error ?? (target.position > range.end || target.position < range.start ? 'scheduleOutsideSequence' : null);
+      const event = { kind: 'reservation', label: definition.display_name, path, children, accepted: !reason }; out.push(event);
+      if (reason) {
+        children.push({ kind: 'message', label: `${t('scheduleRejected')}: ${t(reason)}` });
+        calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, accepted: false, reason, path }); return;
+      }
+      const date = positionDate(target.position), name = use.display_name.trim() || draft.days.find((day) => day.id === eventFirstDayId(eventDaySourceFromData(use)))?.name || '';
+      const reservation = { id: crypto.randomUUID(), kind: 'once', sequence_id: sequence.id, display_name: name, icon: use.icon || 'tabler:calendar-event', start: { week_number: date.week, weekday: date.weekday }, target_position: target.position, execution_mode: use.execution_mode, priority: use.priority, ...(use.day_source ? { day_source: structuredClone(use.day_source) } : { day_schedule_id: use.day_schedule_id }), created_at: { position: eventContext.position, ...(eventContext.current?.() ?? {}) }, source_path: path };
+      reservations.push(reservation);
+      event.reservation_id = reservation.id;
+      children.push({ kind: 'message', label: `${t('scheduleAccepted')}: ${name}` }, { kind: 'message', label: eventDateLabel(date, t) }, { kind: 'message', label: reservationSourceText(use, draft.days, t) }, { kind: 'message', label: `${t(`executionMode_${use.execution_mode}`)}; ${t('eventPriority')}: ${use.priority}` });
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, accepted: true, reservation_id: reservation.id, path }); return;
+    }
     if (use.builtin === 'adjust_probability_event') {
       const reference = resolveEvent(use.event, scope, `${path}/event`, 'probability'), settings = eventValues[reference.event_group_id];
       const property = enumValue(use.property, probabilityEnumContract('property'), scope, `${path}/property`), operation = enumValue(use.operation, probabilityEnumContract('operation'), scope, `${path}/operation`);
@@ -163,11 +188,11 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     }
     if (isBuiltinFlowTask(use)) {
       const definition = builtinTaskDefinition(use.builtin, draft.builtinTasks, t), children = [];
-      const result = condition(use.condition, scope, `${path}/condition`, children, depth + 1);
-      const control = { builtin: use.builtin, scope: use.scope, target: use.target, result, label: definition.display_name, path };
+      const result = use.condition == null || condition(use.condition, scope, `${path}/condition`, children, depth + 1);
+      const control = { builtin: use.builtin, result, label: definition.display_name, path };
       const outcome = onControl ? onControl(control) : { applied: false, reason: 'controlNoDayContext' };
       out.push({ kind: 'control', ...control, ...outcome, children });
-      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, scope: control.scope, target: control.target, result, path, ...outcome });
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, result, path, ...outcome });
       return;
     }
     if (use.builtin) {
@@ -264,7 +289,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       if (event.result) { selected = true; task(branch.task, scope, `${event.path}/task`, event.children, modes, depth + 1); }
     });
   }
-  return { state, eventValues, calls, trace, operand, branches, runSlot, guard, get unmodeled() { return unmodeled; } };
+  return { state, eventValues, reservations, calls, trace, operand, branches, runSlot, runControl: (use, path, out) => task(use, { values: {}, parameters: [] }, path, out), guard, get unmodeled() { return unmodeled; } };
 }
 
 export function evaluateSimulationExpressions(draft, values) {
@@ -282,5 +307,5 @@ export function simulateSlot(draft, slotId, values = simulationInitialValues(dra
     engine.runSlot(slot);
   }
   catch (error) { errors.push({ path: error.path ?? '/', key: error.key ?? 'simulationError', field: error.field }); }
-  return { slotId, seed, trace: engine.trace, calls: engine.calls, state: engine.state, errors, unmodeled: engine.unmodeled, changes: Object.keys(input).filter((id) => !Object.is(input[id], engine.state[id])).map((id) => ({ id, name: nodePath(draft.operandNodes, id), before: input[id], after: engine.state[id] })) };
+  return { slotId, seed, reservations: engine.reservations, trace: engine.trace, calls: engine.calls, state: engine.state, errors, unmodeled: engine.unmodeled, changes: Object.keys(input).filter((id) => !Object.is(input[id], engine.state[id])).map((id) => ({ id, name: nodePath(draft.operandNodes, id), before: input[id], after: engine.state[id] })) };
 }

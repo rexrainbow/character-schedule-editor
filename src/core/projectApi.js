@@ -1,3 +1,7 @@
+import { scheduledDayReferences } from './scheduledEvents.js';
+import { eventDayIds } from './eventDaySource.js';
+import { slotReleaseErrors, slotReleaseReferences } from './slotRelease.js';
+import { subtreeIds } from './operandModel.js';
 // Platform-independent project editing. No React, browser storage or filesystem APIs.
 import { createProject, createSlot, duplicateSlot, createDay, duplicateDay, compileProject, projectToDraft, validateDocument, deleteSlotAndReferences, assignCell, applySlotEdit, referenceCount } from './model.js';
 import { createWeek, duplicateWeek, deleteWeek, deleteSharedDay, setWeekDay, changeWeekCell, dayReferenceCount } from './weekModel.js';
@@ -16,6 +20,7 @@ import { compileRuntime } from './runtimeModel.js';
 import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { translator } from '../i18n/index.js';
 import { compileReport } from './reportModel.js';
+import { dayUses, matchesDayUse } from './dayUses.js';
 
 const clone = (value) => structuredClone(value);
 function freeze(value) {
@@ -87,11 +92,14 @@ function transitionErrors(before, after, mode) {
   errors.push(...eventUsageErrors(after).filter((error) => !previousEventErrors.some((old) => old.key === error.key && old.path === error.path)));
   const oldEnumErrors = [...enumReferenceErrors(before), ...enumUsageErrors(before)];
   errors.push(...[...enumReferenceErrors(after), ...enumUsageErrors(after)].filter((error) => !oldEnumErrors.some((old) => old.path === error.path && old.key === error.key)));
+  const previousReleaseErrors = slotReleaseErrors(before);
+  errors.push(...slotReleaseErrors(after).filter((error) => !previousReleaseErrors.some((old) => old.key === error.key && old.path === error.path)));
+  for (const day of before.days) if (!after.days.some((next) => next.id === day.id) && scheduledDayReferences(after, day.id).length) errors.push(issue('scheduledDayInUse', `/day_schedules/${day.id}`));
   const oldNodes = before.operandNodes, nodes = after.operandNodes;
   for (const [id, node] of Object.entries(oldNodes)) {
     if (equal(node, nodes[id])) continue;
     if (!nodes[id]) {
-      const refs = subtreeReferences(oldNodes, after.slots, id, after.taskMacros, after.tasks).filter((ref) => !!nodes[ref.ownerId] || !ref.ownerId);
+      const refs = [...subtreeReferences(oldNodes, after.slots, id, after.taskMacros, after.tasks), ...slotReleaseReferences(after, subtreeIds(oldNodes, id))].filter((ref) => !!nodes[ref.ownerId] || !ref.ownerId);
       if (refs.length) errors.push(issue('nodeInUse', `/operand_nodes/${id}`, { references: refs }));
     } else if (!isComputed(node) && node.node_type === 'value') {
       if (node.value_type !== nodes[id].value_type) {
@@ -190,7 +198,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       unset: (id, keys) => apply(`${key}.unset`, (draft) => { const node = clone(get(draft, id)); for (const field of keys) { if (['id', 'node_type', 'source', 'scope', 'parent_id'].includes(field)) fail('protectedProjectField', `/operand_nodes/${id}/${field}`); delete node[field]; } return nodesResult(draft, { ...draft.operandNodes, [id]: node }, id); }),
       duplicate: (id) => apply(`${key}.duplicate`, (draft) => { get(draft, id); const result = duplicateOperandSubtree(draft.operandNodes, id); return nodesResult(draft, result.nodes, result.id); }),
       remove: (id) => apply(`${key}.remove`, (draft) => { get(draft, id); return { draft: { ...draft, operandNodes: deleteOperandNode(draft.operandNodes, draft.slots, id, draft.taskMacros, draft.tasks) }, value: { id } }; }),
-      references: (id) => { get(snapshot, id); return clone(subtreeReferences(snapshot.operandNodes, snapshot.slots, id, snapshot.taskMacros, snapshot.tasks)); },
+      references: (id) => { get(snapshot, id); return clone([...subtreeReferences(snapshot.operandNodes, snapshot.slots, id, snapshot.taskMacros, snapshot.tasks), ...slotReleaseReferences(snapshot, subtreeIds(snapshot.operandNodes, id))]); },
       move: (id, parentId, position) => apply(`${key}.move`, (draft) => { get(draft, id); return nodesResult(draft, moveOperandNode(draft.operandNodes, id, parentId, position), id); }),
       setDefinition: (id, definition, valueType) => apply(`${key}.setDefinition`, (draft) => { get(draft, id); return nodesResult(draft, checked(applyComputedDefinition(draft.operandNodes, draft.slots, id, definition, draft.tasks, draft.taskMacros, valueType)), id); }),
     };
@@ -269,7 +277,10 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
   api.slots.duplicateDraft = (id) => duplicateSlot(snapshot.slots, requireItem(snapshot.slots, id, '/slots'));
   api.slots.references = (id) => referenceCount(snapshot, id);
   api.days = collection('days', createDay, duplicateDay, deleteSharedDay);
-  api.days.references = (id) => ({ weeks: dayReferenceCount(snapshot, id), overrides: dayOverrideReferenceCount(snapshot, id), countFilters: clone(countDayReferences(snapshot, id)), events: clone(eventCatalog(snapshot).filter((event) => event.dayId === id)) });
+  api.days.uses = (id) => { const uses = dayUses(snapshot); return id === undefined ? uses : uses[id] ?? null; };
+  const listDays = api.days.list;
+  api.days.list = (query = {}) => { const uses = dayUses(snapshot); return listDays(query).filter((day) => matchesDayUse(uses[day.id], query.use)); };
+  api.days.references = (id) => ({ reservations: clone(scheduledDayReferences(snapshot, id)), weeks: dayReferenceCount(snapshot, id), overrides: dayOverrideReferenceCount(snapshot, id), countFilters: clone(countDayReferences(snapshot, id)), events: clone(eventCatalog(snapshot).filter((event) => eventDayIds(event).includes(id))) });
   api.days.assignSlot = (id, index, slotId, editedSlot = null) => apply('days.assignSlot', (draft) => ({ draft: editedSlot ? applySlotEdit(draft, editedSlot, id, index) : assignCell(draft, id, index, slotId) }));
   api.weeks = collection('weeks', createWeek, duplicateWeek, deleteWeek);
   api.weeks.references = (id) => weekSequenceReferenceCount(snapshot, id);
@@ -305,7 +316,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       normalized: (groups) => groups.map((group) => ({ ...clone(group), display_name: eventGroupName(group, snapshot.days) })),
       duplicateDraft: (group) => duplicateEventGroup(group, snapshot.days),
       moveStartDraft: (group, date) => changeEventStart(group, date),
-      changeKindDraft: (group, kind, saved) => ({ ...clone(group), ...clone(saved ?? {}), kind, id: group.id, icon: group.icon, display_name: group.display_name, engine_key: group.engine_key, dayId: group.dayId, priority: group.priority, start: clone(group.start), end: kind === 'once' ? clone(group.start) : saved?.end ?? positionDate(Math.max(datePosition(group.start), sequenceRange(requireItem(snapshot.sequences, id, '/sequences')).end)), interval: kind === 'once' ? 0 : saved?.interval || 1, countFilter: saved?.countFilter ?? { kind: 'all' }, ...(kind === 'probability' ? { probability_percent: saved?.probability_percent ?? 10, cooldown_days: saved?.cooldown_days ?? 7 } : {}) }),
+      changeKindDraft: (group, kind, saved) => ({ ...clone(group), ...clone(saved ?? {}), kind, executionMode: group.executionMode ?? 'overlay', id: group.id, icon: group.icon, display_name: group.display_name, engine_key: group.engine_key, dayId: group.dayId, sourceMode: group.sourceMode, dayCandidates: clone(group.dayCandidates), priority: group.priority, start: clone(group.start), end: kind === 'once' ? clone(group.start) : saved?.end ?? positionDate(Math.max(datePosition(group.start), sequenceRange(requireItem(snapshot.sequences, id, '/sequences')).end)), interval: kind === 'once' ? 0 : saved?.interval || 1, countFilter: saved?.countFilter ?? { kind: 'all' }, ...(kind === 'probability' ? { probability_percent: saved?.probability_percent ?? 10, cooldown_days: saved?.cooldown_days ?? 7 } : {}) }),
     };
   };
   api.variables = nodeCollection(); api.expressions = nodeCollection(true);

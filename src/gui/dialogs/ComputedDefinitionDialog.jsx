@@ -8,7 +8,7 @@ import { Dialog, Issues } from '../components/ui.jsx';
 import { defaultDefinition, formatComputedDefinition, changeComputedMode, nodePath, expressionScope, nodeScope } from '../../core/operandModel.js';
 
 const withIds = (definition) => ({ ...structuredClone(definition), branches: definition.branches.map((branch) => ({ ...structuredClone(branch), uid: crypto.randomUUID() })) });
-export default function ComputedDefinitionDialog({ id, nodes, slots, tasks = [], taskMacros = [], onApply, onClose, t }) {
+export default function ComputedDefinitionDialog({ draftContext, id, nodes, slots, tasks = [], taskMacros = [], onApply, onClose, t }) {
   const node = nodes[id];
   const [kind, setKind] = useState(node.value_type), [mode, setMode] = useState(node.definition.kind === 'branch' ? 'branch' : 'single');
   const [drafts, setDrafts] = useState(() => ({ number: node.definition.kind === 'number' ? structuredClone(node.definition) : defaultDefinition('number'), boolean: node.definition.kind === 'boolean' ? structuredClone(node.definition) : defaultDefinition('boolean'), branch: node.definition.kind === 'branch' ? withIds(node.definition) : null }));
@@ -16,7 +16,7 @@ export default function ComputedDefinitionDialog({ id, nodes, slots, tasks = [],
   const definition = mode === 'branch' ? { kind: 'branch', branches: drafts.branch.branches.map(({ condition, result }) => structuredClone({ condition, result })) } : drafts[kind];
   const candidate = { ...nodes, [id]: { ...node, value_type: kind, definition } };
   const available = expressionScope(node) === 'environment' ? Object.fromEntries(Object.entries(candidate).filter(([, item]) => nodeScope(item) === 'environment')) : candidate;
-  const result = editProject({ ...createProject(), operandNodes: nodes, slots, tasks, taskMacros }, t).expressions.setDefinition(id, definition, kind);
+  const result = editProject({ ...(draftContext ?? createProject()), operandNodes: nodes, slots, tasks, taskMacros }, t).expressions.setDefinition(id, definition, kind);
   function update(value) { setDrafts({ ...drafts, [kind]: { kind, [kind === 'number' ? 'expression' : 'condition']: value } }); }
   function changeMode(next) {
     if (next === mode) return;

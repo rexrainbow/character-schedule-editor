@@ -104,6 +104,7 @@ export function prepareEnvironmentImport(draft, environment) {
     walk(macro.eligibility, `/task_macros/${macro.id}/eligibility`);
     for (const { entry, path } of macroEntries(macro)) { walk(entry.condition, `${path}/condition`); walk(entry.task, `${path}/task`); }
   }
+  for (const day of next.days) walk(day.slotReleases, `/day_schedules/${day.id}/slot_releases`);
   for (const [id, node] of Object.entries(application)) if (isComputed(node)) walk(node.definition, `/expression_macros/${id}/definition`);
   for (const reference of enumReferences(next).filter((item) => item.scope === 'application')) {
     const old = oldEnums[reference.id];

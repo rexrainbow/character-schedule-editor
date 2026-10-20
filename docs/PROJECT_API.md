@@ -33,13 +33,15 @@ const day = project.days.get(dayId); // 找不到時為 null。
 
 API 使用現有 JavaScript model 的欄位：行程為 `name`、`slotIds`、`rows` 等，變數與定義為 `display_name`。行程及任務集合的 `create`／`update`／`replace` 也接受另一種名稱拼法作為輸入別名。存檔中的 `slot_ids`、`week_schedule_ids` 等轉換由核心處理，JSON 格式保持不變。
 
+中斷控制使用 `sequences.events(sequenceId).update(eventId, { executionMode: 'interrupt_main' })`，模式另有 `overlay` 與 `interrupt_lower`。日行程透過 `days.update(dayId, { slotReleases: [...] })` 設定每時段放行，元素為 null 或 `{ builtin: 'release_slot', condition: null | Condition }`，陣列長度與 `slotIds` 相同。存檔欄位分別為 `execution_mode`、`slot_releases`；用途篩選識別字為 `interrupt`。詳見 [SLOT_RELEASE.md](./SLOT_RELEASE.md)。
+
 ## 對象與動作
 
 | 對象 | 主要操作 |
 | --- | --- |
 | `settings` | `get`、`update`，每日時段數的鎖定規則仍適用 |
 | `slots` | `list`、`get`、`create`、`update`、`replace`、`duplicate`、`references`、`remove` |
-| `days` | 同上，另有 `assignSlot` |
+| `days` | 同上，另有 `assignSlot`、手動用途查詢 `uses(id?)`，`list({ use })` 可依用途篩選 |
 | `weeks` | 同上，另有 `assignDay`、`assignSlot` |
 | `sequences` | 同上，另有 `appendWeek`、`replaceWeek`、`moveWeek`、`duplicateWeek`、`removeWeek`、`setOverride`、`setBoundary` |
 | `sequences.events(sequenceId)` | `list`、`get`、`create`、`update`、`replace`、`duplicate`、`remove`、`references`、`moveStart` |
@@ -110,3 +112,7 @@ const result = project.transaction(tx => {
 ## 序列化與平台邊界
 
 `toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。`exportReport({ includeUnreferenced })` 使用相同結果格式，`data` 為 Markdown 行程報告字串，詳見 [REPORT.md](./REPORT.md)。呼叫端確認無錯誤後，Web 產生下載、Node.js 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast；尚未加入 Node.js 檔案介面。
+
+[事件的多日行程來源與手動模擬選擇](./EVENT_DAY_SOURCES.md)
+
+[流程控制：預約事件](./SCHEDULE_EVENT_TASK.md)

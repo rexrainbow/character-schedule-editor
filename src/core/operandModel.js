@@ -1,3 +1,4 @@
+import { scheduleTaskErrors } from './scheduledEvents.js';
 import { eventReferenceErrors, eventProperties } from './eventReferences.js';
 import { enumArgumentErrors, parameterValueType, probabilityEnumContract } from './enumParameters.js';
 import { variableBoundsErrors } from './variableBounds.js';
@@ -122,19 +123,14 @@ export const TASK_MACRO_MODES = ['sequence', 'branch', 'priority'];
 export const allowedMacroModes = () => TASK_MACRO_MODES;
 export const macroEligibility = (macro) => macro.mode === 'conditional' ? macro.condition : macro.eligibility;
 export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = TASK_MACRO_MODES) {
+  if (use?.builtin === 'schedule_event') return scheduleTaskErrors(use, nodes, path, scope, operandErrors);
   if (use?.builtin === 'adjust_probability_event') return [
     ...eventReferenceErrors(use.event, { event_kind: 'probability' }, scope, `${path}/event`),
     ...operandErrors(use.value, nodes, `${path}/value`, true, scope),
     ...enumArgumentErrors(use.property, probabilityEnumContract('property'), scope, `${path}/property`, true),
     ...enumArgumentErrors(use.operation, probabilityEnumContract('operation'), scope, `${path}/operation`, true),
   ];
-  if (isBuiltinFlowTask(use)) return [
-    ...conditionErrors(use.condition, nodes, `${path}/condition`, scope),
-    ...(!use.condition ? [{ path: `${path}/condition`, key: 'invalidCondition' }] : []),
-    ...(!['slot', 'day'].includes(use.scope) ? [{ path: `${path}/scope`, key: 'invalidTakeoverScope' }] : []),
-    ...(!['main', 'lower_priority'].includes(use.target) ? [{ path: `${path}/target`, key: 'invalidTakeoverTarget' }] : []),
-    ...Object.keys(use).filter((key) => !['builtin', 'condition', 'scope', 'target'].includes(key)).map((field) => ({ path: `${path}/${field}`, key: 'schema_additionalProperties', field })),
-  ];
+  if (isBuiltinFlowTask(use)) return use.condition == null ? [] : conditionErrors(use.condition, nodes, `${path}/condition`, scope);
   if (isBuiltinVariableTask(use)) return setVariableErrors(use, nodes, path, scope);
   if (use?.builtin !== undefined) return [{ path: `${path}/builtin`, key: 'invalidBuiltin' }];
   if (use?.task_id !== undefined && use?.task_macro_id !== undefined) return [{ path, key: 'invalidTaskTarget' }];
@@ -242,9 +238,9 @@ export function expressionNameErrors(nodes) {
   return errors;
 }
 export function taskOperandRoots(use, path = '') {
-  return use?.builtin === 'adjust_probability_event' ? ['event', 'property', 'operation', 'value'].map((key) => ({ value: use[key], path: `${path}/${key}` })) : isBuiltinFlowTask(use) ? [{ value: use.condition, path: `${path}/condition` }] : isBuiltinVariableTask(use) ? ['value', ...(use.builtin === 'increment_variable' ? ['random_amplitude'] : [])].map((key) => ({ value: use[key], path: `${path}/${key}` })) : Object.entries(use?.arguments ?? {}).map(([id, value]) => ({ value, path: `${path}/arguments/${id}` }));
+  return use?.builtin === 'schedule_event' ? [{ value: use.date?.offset, path: `${path}/date/offset` }] : use?.builtin === 'adjust_probability_event' ? ['event', 'property', 'operation', 'value'].map((key) => ({ value: use[key], path: `${path}/${key}` })) : isBuiltinFlowTask(use) ? [{ value: use.condition, path: `${path}/condition` }] : isBuiltinVariableTask(use) ? ['value', ...(use.builtin === 'increment_variable' ? ['random_amplitude'] : [])].map((key) => ({ value: use[key], path: `${path}/${key}` })) : Object.entries(use?.arguments ?? {}).map(([id, value]) => ({ value, path: `${path}/arguments/${id}` }));
 }
-export const hasTaskValues = (use) => use?.builtin === 'adjust_probability_event' ? !!use.event || !!use.value : isBuiltinFlowTask(use) ? !!use.condition : isBuiltinVariableTask(use) ? !!use.value || !!use.target_variable_id || !!use.random_amplitude : Object.keys(use?.arguments ?? {}).length > 0;
+export const hasTaskValues = (use) => use?.builtin === 'schedule_event' ? true : use?.builtin === 'adjust_probability_event' ? !!use.event || !!use.value : isBuiltinFlowTask(use) ? !!use.condition : isBuiltinVariableTask(use) ? !!use.value || !!use.target_variable_id || !!use.random_amplitude : Object.keys(use?.arguments ?? {}).length > 0;
 export function setVariableErrors(use, nodes, path = '', parameters = []) {
   // All fixed variable operations share target validation and reference protection.
   const target = nodes[use.target_variable_id], errors = [];

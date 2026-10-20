@@ -2,122 +2,93 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { flowControlFixture } from './flowControlFixture.js';
 import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
-import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
+import { simulationInitialValues } from '../src/core/simulationModel.js';
+import { compileProject, projectToDraft, validateDocument, duplicateDay } from '../src/core/model.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
-import { compileEnvironment, validateEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
-import { builtinTaskDefinitions, createTakeover, changeBuiltinDefinition } from '../src/gui/hooks/builtinTasks.js';
-import { translator } from '../src/i18n/index.js';
-import { constant, reference, parameter } from './priorityMacroFixture.js';
-import { createTaskMacro, duplicateTaskMacro, macroParameterReferences } from '../src/core/taskMacroModel.js';
-import { subtreeReferences, changeOperandType, deleteOperandNode } from '../src/core/operandModel.js';
-const cancelled = (result) => result.trace.flatMap((phase) => phase.children.filter((entry) => entry.cancelled).map((entry) => ({ key: phase.path.split('/').at(-1), entry })));
-const booleanCondition = (value) => ({ kind: 'comparison', comparator: '==', operand_a: constant(value), operand_b: constant(true) });
+import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
+import { createProjectSession } from '../src/core/projectApi.js';
+import { createRelease } from '../src/core/builtinTaskModel.js';
+import { compileReport } from '../src/core/reportModel.js';
+const cancelled = (r) => r.trace.flatMap((p) => p.children.filter((e) => e.cancelled));
+const compare = (a, b, comparator = '==') => ({ kind: 'comparison', comparator, operand_a: a, operand_b: b });
+const constant = (value) => ({ type: 'constant', value });
+const reference = (reference_id) => ({ type: 'reference', reference_id });
 
-test('successful takeover covers both scopes and targets, preserves current steps, peers and expired scopes', () => {
-  for (const [scope, target, expected] of [['slot', 'main', 3], ['slot', 'lower_priority', 12], ['day', 'main', 10], ['day', 'lower_priority', 40]]) {
-    const { draft, sequence, number } = flowControlFixture({ scope, target });
+test('container modes interrupt each slot by default and leave day boundaries and equal priorities intact', () => {
+  for (const [mode, count] of [['overlay', 0], ['interrupt_main', 9], ['interrupt_lower', 36]]) {
+    const { draft, sequence, number } = flowControlFixture({ executionMode: mode });
     const before = structuredClone(draft), result = simulateSequenceDay(draft, sequence.id, 0);
-    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, expected);
-    assert.equal(result.state[number], 76 - expected);
-    assert.ok(result.calls.some((call) => call.kind === 'builtin' && call.context.name === 'High' && call.context.phaseKey === 'slot:0:start'));
-    assert.ok(cancelled(result).every(({ entry }) => !/^(High|Peer) /.test(entry.label)));
-    if (target === 'main') assert.ok(cancelled(result).every(({ entry }) => !entry.groupId));
-    if (scope === 'slot') {
-      assert.ok(cancelled(result).every(({ key }) => key.startsWith('slot:0:')));
-      assert.ok(result.calls.some((call) => call.context.name === 'Main' && call.context.phaseKey === 'dayEnd'));
-    } else assert.ok(cancelled(result).some(({ key }) => key === 'dayEnd'));
+    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, count); assert.equal(result.state[number], 76 - count);
+    assert.ok(cancelled(result).every((e) => !/^(High|Peer) /.test(e.label)));
+    assert.ok(result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'dayStart'));
+    assert.ok(result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'dayEnd'));
     assert.deepEqual(draft, before);
   }
 });
-
-test('failed takeover withdraws only the current source for a symmetric scope, including day end', () => {
-  for (const [scope, expected] of [['slot', 2], ['day', 9]]) for (const target of ['main', 'lower_priority']) {
-    const { draft, sequence, number } = flowControlFixture({ scope, target, condition: booleanCondition(false) });
-    const result = simulateSequenceDay(draft, sequence.id, 0);
-    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, expected);
-    assert.ok(cancelled(result).every(({ entry }) => entry.groupId === sequence.eventGroups[0].id));
-    assert.equal(result.state[number], 76 - expected);
-    assert.equal(result.calls.find((call) => call.kind === 'control').reason, 'takeoverFailed');
-    assert.equal(result.calls.some((call) => call.context.name === 'High' && call.context.phaseKey === 'slot:1:start'), scope === 'slot');
-  }
+test('unconditional release runs after start tasks, preserves their writes and skips only its own body/end', () => {
+  const { draft, sequence, days, group } = flowControlFixture({ executionMode: 'interrupt_main' });
+  days.High.slotReleases = [createRelease(), createRelease(), createRelease()];
+  sequence.eventGroups[1].dayId = days.High.id;
+  const result = simulateSequenceDay(draft, sequence.id, 0); assert.deepEqual(result.errors, []);
+  assert.equal(cancelled(result).length, 6); assert.ok(cancelled(result).every((e) => e.groupId === group.id));
+  const calls = result.calls.filter((c) => c.context.groupId === group.id && c.context.phaseKey === 'slot:0:start');
+  assert.equal(calls[0].kind, 'builtin'); assert.equal(calls[1].kind, 'control'); assert.equal(calls[1].result, true);
+  assert.ok(result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'slot:0:start'));
+  assert.equal(result.calls.filter((c) => c.kind === 'control').length, 3);
 });
-
-test('main target ignores caller priority, while lower target uses strict priorities and main sits between zero and negatives', () => {
-  for (const [target, controller, expected] of [['main', 'Negative', 10], ['main', 'Main', 10], ['lower_priority', 'Zero', 33], ['lower_priority', 'Main', 22], ['lower_priority', 'Negative', 11]]) {
-    const { draft, sequence } = flowControlFixture({ scope: 'day', target }, 'dayStart', controller);
-    const result = simulateSequenceDay(draft, sequence.id, 0);
-    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, expected);
-    if (target === 'main') assert.ok(cancelled(result).every(({ entry }) => !entry.groupId));
-    else assert.ok(cancelled(result).every(({ entry }) => !entry.label.startsWith(`${controller} [`)));
-  }
+test('release conditions see completed inspection writes and the next slot starts with a fresh claim', () => {
+  const { draft, sequence, days, number } = flowControlFixture({ executionMode: 'interrupt_main' });
+  days.High.slotReleases = [{ ...createRelease(), condition: compare(reference(number), constant(17)) }, null, null];
+  const result = simulateSequenceDay(draft, sequence.id, 0); assert.deepEqual(result.errors, []);
+  assert.equal(result.calls.find((c) => c.kind === 'control').result, true);
+  assert.ok(result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'slot:0:main'));
+  assert.ok(cancelled(result).some((e) => e.dayId === days.Main.id && e.cancelledBy));
+  assert.equal(cancelled(result).length, 8);
+  days.High.slotReleases[0].condition = compare(constant(false), constant(true));
+  const failed = simulateSequenceDay(draft, sequence.id, 0); assert.equal(cancelled(failed).length, 9);
+  assert.ok(failed.calls.some((c) => c.context.groupId === sequence.eventGroups[0].id && c.context.phaseKey === 'slot:0:main'));
 });
-
-test('source identity is the occurrence rather than shared day UUID; conditions are evaluated once', () => {
-  const { draft, sequence, days, macro, number } = flowControlFixture({ scope: 'day', condition: booleanCondition(false) }, 'dayStart');
-  sequence.eventGroups[1].dayId = days.High.id; draft.weeks[0].days.mon = days.High.id;
-  macro.steps[0].task.condition = { kind: 'comparison', comparator: '>', operand_a: reference(number), operand_b: constant(10) };
-  macro.eligibility = { kind: 'comparison', comparator: '==', operand_a: reference(number), operand_b: constant(10) };
-  // High fails at 10 then increments to 11. Its failure must not turn into success later.
-  // Later occurrences fail the macro eligibility check and keep all subsequent assignments.
-  const result = simulateSequenceDay(draft, sequence.id, 0);
-  assert.deepEqual(result.errors, []);
-  assert.equal(cancelled(result).length, 10);
-  assert.ok(cancelled(result).every(({ entry }) => entry.groupId === sequence.eventGroups[0].id));
-  assert.ok(result.calls.some((call) => call.context.groupId === sequence.eventGroups[1].id));
-  assert.equal(result.calls.find((call) => call.kind === 'control').result, false);
-  assert.deepEqual(simulateSequenceDay(draft, sequence.id, 0).state, result.state);
+test('empty interrupt schedules still block; blocked or overlay sources do not evaluate release conditions', () => {
+  const { draft, sequence, days, number } = flowControlFixture({ executionMode: 'interrupt_main' });
+  days.High.slotIds = [null, null, null]; days.High.slotEvents = Array.from({ length: 3 }, () => ({ startId: null, endId: null }));
+  assert.equal(cancelled(simulateSequenceDay(draft, sequence.id, 0)).length, 9);
+  const zero = Object.keys(draft.operandNodes).find((id) => draft.operandNodes[id].read_only);
+  const unsafe = { ...createRelease(), condition: compare({ type: 'expression', operator: '/', operand_a: constant(1), operand_b: reference(zero) }, constant(0), '>') };
+  days.Zero.slotReleases = [unsafe, null, null]; sequence.eventGroups[2].executionMode = 'interrupt_main'; sequence.eventGroups[0].executionMode = 'interrupt_lower';
+  const values = simulationInitialValues(draft); values[zero] = 0;
+  const blocked = simulateSequenceDay(draft, sequence.id, 0, values); assert.deepEqual(blocked.errors, []); assert.equal(blocked.calls.filter((c) => c.kind === 'control').length, 0);
+  sequence.eventGroups[0].executionMode = 'overlay'; sequence.eventGroups[2].executionMode = 'overlay';
+  assert.deepEqual(simulateSequenceDay(draft, sequence.id, 0, values).errors, []);
 });
-
-test('no-op contexts, cancelled unsafe expressions and visited condition errors produce correct outcomes', () => {
-  for (const target of ['dayStart', 'dayEnd']) {
-    const { draft, sequence, control } = flowControlFixture({}, target);
-    const result = simulateSequenceDay(draft, sequence.id, 0);
-    assert.deepEqual(result.errors, []); assert.equal(cancelled(result).length, 0);
-    assert.equal(result.calls.find((call) => call.kind === 'control').reason, 'controlNoSlotContext');
-    assert.equal(simulateSlot(draft, control.id).calls[0].reason, 'controlNoDayContext');
-  }
-  const { draft, sequence, days, activity, macro } = flowControlFixture();
-  const unsafe = structuredClone(activity); unsafe.id = crypto.randomUUID(); unsafe.branches[0].task.target_variable_id = 'missing';
-  draft.slots.push(unsafe); days.Main.slotIds[0] = unsafe.id;
-  assert.deepEqual(simulateSequenceDay(draft, sequence.id, 0).errors, []);
-  macro.steps[0].task.condition = { kind: 'comparison', comparator: '>', operand_a: { type: 'expression', operator: '/', operand_a: constant(1), operand_b: reference(Object.entries(draft.operandNodes).find(([, node]) => node.read_only)[0]) }, operand_b: constant(0) };
-  const values = simulationInitialValues(draft); values[macro.steps[0].task.condition.operand_a.operand_b.reference_id] = 0;
-  const failed = simulateSequenceDay(draft, sequence.id, 0, values);
-  assert.ok(failed.errors.length); assert.ok(failed.errors[0].path.includes('/condition/'));
+test('releasing one event does not undo another event claim and peers can each release independently', () => {
+  const { draft, sequence, days } = flowControlFixture({ executionMode: 'interrupt_main' });
+  days.High.slotReleases = [createRelease(), null, null]; sequence.eventGroups[1].executionMode = 'interrupt_main';
+  let result = simulateSequenceDay(draft, sequence.id, 0);
+  assert.ok(!result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'slot:0:main'));
+  days.Peer.slotReleases = [createRelease(), null, null]; result = simulateSequenceDay(draft, sequence.id, 0);
+  assert.ok(result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'slot:0:main'));
+  assert.ok(!result.calls.some((c) => c.context.type === 'main' && c.context.phaseKey === 'slot:1:main'));
 });
-
-test('three fixed parameters and takeover calls round-trip through project/environment/runtime; old commands reject', () => {
-  const { draft, macro } = flowControlFixture({ scope: 'day', target: 'main' });
-  const definitions = builtinTaskDefinitions(draft.builtinTasks, translator('en'));
-  assert.deepEqual(definitions.filter((item) => item.category === 'flowControl').map((item) => item.id), ['builtin:schedule_takeover', 'builtin:adjust_probability_event']);
-  const definition = definitions.find((item) => item.id === 'builtin:schedule_takeover'); assert.deepEqual(definition.parameters.map((p) => p.id), ['condition', 'scope', 'target']);
-  draft.builtinTasks = changeBuiltinDefinition(draft.builtinTasks, definition, { ...definition, display_name: 'Take control', engine_key: 'custom.takeover', parameters: definition.parameters.map((p) => ({ ...p, display_name: `Custom ${p.id}` })) });
+test('release rules round-trip on days, runtime contracts have one parameter and old/hidden controls reject', () => {
+  const { draft, sequence, days, macro } = flowControlFixture({ executionMode: 'interrupt_main' }); days.High.slotReleases = [createRelease(), null, null];
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
-  const loaded = projectToDraft(project.data); assert.deepEqual(loaded.builtinTasks, draft.builtinTasks);
-  const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.deepEqual(validateEnvironment(env.data), []);
-  assert.deepEqual(prepareEnvironmentImport(draft, env.data).errors, []);
+  assert.deepEqual(projectToDraft(project.data).days.find((d) => d.id === days.High.id).slotReleases, days.High.slotReleases);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.task_macros[macro.id].steps[0], { task_key: 'custom.takeover', flow_control: 'takeover', condition: createTakeover().condition, scope: 'day', target: 'main' });
-  assert.equal(runtime.data.environment_requirements.tasks.find((item) => item.engine_key === 'custom.takeover').parameters.length, 3);
-  for (const change of [{ scope: 'invalid' }, { target: 'self' }, { condition: null }, { arguments: {} }, { builtin: 'cancel_main_day' }]) {
-    const invalid = structuredClone(project.data); Object.assign(invalid.task_macros[macro.id].steps[0].task, change); assert.ok(validateDocument(invalid).length);
+  assert.equal(runtime.data.days[days.High.id].slot_releases[0].flow_control, 'release_slot');
+  assert.equal(runtime.data.environment_requirements.tasks.find((t) => t.engine_key === 'control.release').parameters.length, 1);
+  const bad = structuredClone(project.data); bad.task_macros[macro.id].steps[0].task = createRelease(); assert.ok(validateDocument(bad).length);
+  for (const patch of [{ execution_mode: 'unknown' }, { priority: -1 }, { takeovers: {} }]) {
+    const invalid = structuredClone(project.data); Object.assign(invalid.week_sequences[sequence.id].event_groups[0], patch); assert.ok(validateDocument(invalid).length);
   }
-  const badRuntime = structuredClone(runtime.data); badRuntime.task_macros[macro.id].steps[0].target = 'self'; assert.ok(validateRuntimeDocument(badRuntime).length);
+  const copy = duplicateDay(draft, days.High); copy.slotReleases[0].condition = compare(constant(false), constant(true)); assert.equal(days.High.slotReleases[0].condition, null);
+  const report = compileReport(draft); assert.deepEqual(report.errors, []); assert.match(report.data, /Release this slot/); assert.match(report.data, /Interrupt main schedule/);
 });
-
-test('takeover conditions participate in variable and parameter dependencies, copy remapping and environment reconnection', () => {
-  const { draft, macro, number } = flowControlFixture();
-  const p = { id: crypto.randomUUID(), display_name: 'Ready', type: 'boolean' }; macro.parameters = [p];
-  macro.steps[0].task.condition = { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', comparator: '==', operand_a: parameter(p.id), operand_b: constant(true) }, { kind: 'comparison', comparator: '>=', operand_a: reference(number), operand_b: constant(10) }] };
-  draft.slots.find((slot) => slot.branches[0].task.task_macro_id === macro.id).branches[0].task.arguments = { [p.id]: constant(true) };
-  assert.ok(macroParameterReferences(macro, p.id).some((ref) => ref.path.includes('/task/condition')));
-  assert.ok(subtreeReferences(draft.operandNodes, draft.slots, number, draft.taskMacros).some((ref) => ref.path.includes('/task/condition')));
-  assert.throws(() => deleteOperandNode(draft.operandNodes, draft.slots, number, draft.taskMacros));
-  assert.ok(changeOperandType(draft.operandNodes, draft.slots, number, 'string', draft.tasks, draft.taskMacros).blocked.length);
-  const copy = duplicateTaskMacro(macro); assert.equal(copy.steps[0].task.condition.items[0].operand_a.parameter_id, copy.parameters[0].id);
-  const env = compileEnvironment(draft).data, nextId = crypto.randomUUID(); env.operand_nodes[nextId] = env.operand_nodes[number]; delete env.operand_nodes[number];
+test('day release references protect deletion/types and reconnect imported environment UUIDs', () => {
+  const { draft, days, number } = flowControlFixture(); days.High.slotReleases = [{ ...createRelease(), condition: compare(reference(number), constant(10), '>') }, null, null];
+  const session = createProjectSession(draft); assert.ok(session.variables.references(number).some((r) => r.path.includes('/slot_releases/')));
+  assert.equal(session.variables.remove(number).ok, false); assert.equal(session.variables.update(number, { value_type: 'string' }).ok, false);
+  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.equal(runtime.data.days[days.High.id].slot_releases[0].condition.operand_a.type, 'environment_reference');
+  const env = compileEnvironment(draft).data, newId = crypto.randomUUID(); env.operand_nodes[newId] = env.operand_nodes[number]; delete env.operand_nodes[number];
   const imported = prepareEnvironmentImport(draft, env); assert.deepEqual(imported.errors, []);
-  assert.equal(imported.draft.taskMacros[0].steps[0].task.condition.items[1].operand_a.reference_id, nextId);
-  assert.deepEqual(compileProject(draft).errors, []);
+  assert.equal(imported.draft.days.find((d) => d.id === days.High.id).slotReleases[0].condition.operand_a.reference_id, newId);
 });

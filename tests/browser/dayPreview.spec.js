@@ -1,3 +1,4 @@
+import { openDayOptions, closeDayOptions } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
 import example from '../../src/examples/sequence-example.json' with { type: 'json' };
 import { translator } from '../../src/i18n/index.js';
@@ -29,7 +30,9 @@ test('slot icons navigate from the preview to the selected slot and clear stale 
 
 test('hover shows effective day slots, allows entering the panel, and jumps past a stale day search', async ({ page }) => {
   await load(page); await navigate(page, 'days');
+  await openDayOptions(page);
   await page.getByRole('textbox', { name: translator('en')('searchDays'), exact: true }).fill('missing');
+  await closeDayOptions(page);
   await navigate(page, 'sequences');
   await row(page).getByRole('button', { name: 'Preview Tuesday: Workday', exact: true }).hover();
   await expect(preview(page)).toBeVisible();
@@ -40,7 +43,9 @@ test('hover shows effective day slots, allows entering the panel, and jumps past
   await preview(page).hover();
   await preview(page).getByRole('button', { name: 'Open day schedule', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('Workday');
+  await openDayOptions(page);
   await expect(page.getByRole('textbox', { name: translator('en')('searchDays'), exact: true })).toHaveValue('');
+  await closeDayOptions(page);
   await expect(preview(page)).toHaveCount(0);
 });
 

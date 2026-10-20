@@ -44,7 +44,7 @@ test('macro option parameters forward into probability adjustments and can be se
   const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8'));
   expect(runtime.task_macros[macro.id].steps[0].property).toEqual({ type: 'parameter_reference', parameter_id: property.id });
   await switchMode(page, 'simulation'); await page.getByRole('combobox', { name: 'Simulation target', exact: true }).selectOption('day');
-  await page.getByRole('combobox', { name: 'Occurrence: Cold', exact: true }).selectOption('true');
+  await page.getByRole('checkbox', { name: 'Occurrence: Cold', exact: true }).check();
   await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
   await expect(page.locator('.simulation-results')).toContainText('Simulation completed');
   await expect(page.locator('.simulation-results')).toContainText('Cold.cooldown_days');

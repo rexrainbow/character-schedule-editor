@@ -1794,10 +1794,10 @@
           "$ref": "#/$defs/runtime_target_operation"
         },
         {
-          "$ref": "#/$defs/runtime_flow_control"
+          "$ref": "#/$defs/runtime_event_adjustment"
         },
         {
-          "$ref": "#/$defs/runtime_event_adjustment"
+          "$ref": "#/$defs/runtime_scheduled_event"
         },
         {
           "$ref": "#/$defs/scoped_task_macro_use"
@@ -2061,7 +2061,7 @@
       ],
       "additionalProperties": false
     },
-    "runtime_flow_control": {
+    "runtime_event_adjustment": {
       "type": "object",
       "properties": {
         "task_key": {
@@ -2069,32 +2069,244 @@
           "minLength": 1,
           "pattern": "\\S"
         },
-        "flow_control": {
-          "const": "takeover"
+        "event_operation": {
+          "const": "adjust_probability"
         },
-        "condition": {
-          "$ref": "#/$defs/scoped_condition"
+        "event": {
+          "$ref": "#/$defs/event_argument"
         },
-        "scope": {
-          "enum": [
-            "slot",
-            "day"
+        "property": {
+          "oneOf": [
+            {
+              "enum": [
+                "probability_percent",
+                "cooldown_days"
+              ]
+            },
+            {
+              "$ref": "#/$defs/parameter_reference_operand"
+            }
           ]
         },
-        "target": {
-          "enum": [
-            "main",
-            "lower_priority"
+        "operation": {
+          "oneOf": [
+            {
+              "enum": [
+                "set",
+                "increase"
+              ]
+            },
+            {
+              "$ref": "#/$defs/parameter_reference_operand"
+            }
           ]
+        },
+        "value": {
+          "$ref": "#/$defs/scoped_numeric_operand"
         }
       },
       "required": [
         "task_key",
-        "flow_control",
-        "condition",
-        "scope",
-        "target"
+        "event_operation",
+        "event",
+        "property",
+        "operation",
+        "value"
       ],
+      "additionalProperties": false
+    },
+    "runtime_scheduled_event": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/scoped_schedule_date"
+        },
+        "day_schedule_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "day_source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "random"
+                },
+                "candidates": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day_schedule_id": {
+                        "$ref": "#/$defs/uuid"
+                      },
+                      "weight": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": [
+                      "day_schedule_id",
+                      "weight"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "mode",
+                "candidates"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "execution_mode": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "task_key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "flow_control": {
+          "const": "schedule_event"
+        }
+      },
+      "required": [
+        "display_name",
+        "date",
+        "execution_mode",
+        "priority",
+        "task_key",
+        "flow_control"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "day_schedule_id"
+          ],
+          "not": {
+            "required": [
+              "day_source"
+            ]
+          }
+        },
+        {
+          "required": [
+            "day_source"
+          ],
+          "not": {
+            "required": [
+              "day_schedule_id"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "enum": [
+                  "interrupt_main",
+                  "interrupt_lower"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "priority": {
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scoped_schedule_date": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "days"
+            },
+            "offset": {
+              "$ref": "#/$defs/scoped_numeric_operand"
+            }
+          },
+          "required": [
+            "mode",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "weeks_weekday"
+            },
+            "offset": {
+              "$ref": "#/$defs/scoped_numeric_operand"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "offset",
+            "weekday"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "scoped_task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/runtime_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
       "additionalProperties": false
     },
     "scoped_condition": {
@@ -2166,82 +2378,6 @@
       },
       "additionalProperties": false
     },
-    "runtime_event_adjustment": {
-      "type": "object",
-      "properties": {
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "\\S"
-        },
-        "event_operation": {
-          "const": "adjust_probability"
-        },
-        "event": {
-          "$ref": "#/$defs/event_argument"
-        },
-        "property": {
-          "oneOf": [
-            {
-              "enum": [
-                "probability_percent",
-                "cooldown_days"
-              ]
-            },
-            {
-              "$ref": "#/$defs/parameter_reference_operand"
-            }
-          ]
-        },
-        "operation": {
-          "oneOf": [
-            {
-              "enum": [
-                "set",
-                "increase"
-              ]
-            },
-            {
-              "$ref": "#/$defs/parameter_reference_operand"
-            }
-          ]
-        },
-        "value": {
-          "$ref": "#/$defs/scoped_numeric_operand"
-        }
-      },
-      "required": [
-        "task_key",
-        "event_operation",
-        "event",
-        "property",
-        "operation",
-        "value"
-      ],
-      "additionalProperties": false
-    },
-    "scoped_task_macro_use": {
-      "type": "object",
-      "required": [
-        "task_macro_id",
-        "arguments"
-      ],
-      "properties": {
-        "arguments": {
-          "type": "object",
-          "propertyNames": {
-            "$ref": "#/$defs/uuid"
-          },
-          "additionalProperties": {
-            "$ref": "#/$defs/runtime_argument"
-          }
-        },
-        "task_macro_id": {
-          "$ref": "#/$defs/uuid"
-        }
-      },
-      "additionalProperties": false
-    },
     "runtime_branch": {
       "type": "object",
       "properties": {
@@ -2277,10 +2413,10 @@
           "$ref": "#/$defs/runtime_target_operation"
         },
         {
-          "$ref": "#/$defs/runtime_flow_control"
+          "$ref": "#/$defs/runtime_event_adjustment"
         },
         {
-          "$ref": "#/$defs/runtime_event_adjustment"
+          "$ref": "#/$defs/runtime_scheduled_event"
         },
         {
           "$ref": "#/$defs/scoped_task_macro_use"
@@ -2429,11 +2565,53 @@
             },
             "additionalProperties": false
           }
+        },
+        "slot_releases": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/runtime_flow_control"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         }
       },
       "required": [
         "display_name",
         "slot_ids"
+      ],
+      "additionalProperties": false
+    },
+    "runtime_flow_control": {
+      "type": "object",
+      "properties": {
+        "task_key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "flow_control": {
+          "const": "release_slot"
+        },
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "task_key",
+        "flow_control",
+        "condition"
       ],
       "additionalProperties": false
     },
@@ -2732,17 +2910,48 @@
             },
             "kind": {
               "const": "once"
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority",
             "display_name"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2833,19 +3042,50 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 9007199254740991
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority",
             "end",
             "interval_days",
             "display_name"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2941,12 +3181,21 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 9007199254740991
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority",
             "end",
@@ -2954,7 +3203,29 @@
             "cooldown_days",
             "display_name"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -2982,6 +3253,73 @@
         }
       },
       "additionalProperties": false
+    },
+    "event_day_source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "random"
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "day_schedule_id": {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "day_schedule_id",
+                  "weight"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "sequential"
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "day_schedule_id": {
+                    "$ref": "#/$defs/uuid"
+                  }
+                },
+                "required": [
+                  "day_schedule_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

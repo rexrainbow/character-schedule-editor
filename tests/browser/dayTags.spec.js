@@ -1,3 +1,5 @@
+import { showAllDayPurposes } from './dayOptions.js';
+import { openDayOptions, closeDayOptions } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sequenceEventsFixture } from '../sequenceEventsFixture.js';
@@ -21,11 +23,19 @@ test('day tags trim input, prevent duplicates, filter with names and survive cop
   await expect(page.locator('.day-tags-editor .day-tag')).toHaveCount(4);
   await list.getByRole('button', { name: 'Filter by tag: Event', exact: true }).first().click();
   await expect(list.locator('.slot-item')).toHaveCount(2);
+  await openDayOptions(page);
   await page.getByRole('textbox', { name: translator('en')('searchDays'), exact: true }).fill('Inspection'); await expect(list.locator('.slot-item')).toHaveCount(1);
+  await closeDayOptions(page);
+  await openDayOptions(page);
   await page.getByRole('textbox', { name: translator('en')('searchDays'), exact: true }).fill('');
+  await closeDayOptions(page);
+  await openDayOptions(page);
   await page.getByRole('combobox', { name: 'Filter by tag', exact: true }).selectOption('untagged');
+  await closeDayOptions(page);
   await expect(list.locator('.slot-item')).toHaveCount(1); await expect(list.locator('.slot-item')).toHaveText('Rest');
+  await openDayOptions(page);
   await page.getByRole('button', { name: 'Clear tag filter', exact: true }).click();
+  await closeDayOptions(page);
   await list.getByRole('button', { name: 'Workday', exact: true }).click();
   await page.getByRole('button', { name: 'Day actions', exact: true }).click(); await page.getByRole('menuitem', { name: 'Duplicate day', exact: true }).click();
   const data = await save(page), copy = Object.values(data.day_schedules).find((day) => day.display_name !== 'Workday' && day.display_name.startsWith('Workday'));
@@ -35,7 +45,9 @@ test('day tags trim input, prevent duplicates, filter with names and survive cop
   const runtimePending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
   const runtime = JSON.parse(await readFile(await (await runtimePending).path(), 'utf8')); expect(runtime.days[main.id].tags).toContain('Custom');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'reload.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(changed)) });
+  await openDayOptions(page);
   await expect(page.getByRole('combobox', { name: 'Filter by tag', exact: true })).toHaveValue('');
+  await closeDayOptions(page);
   await expect(list.getByRole('button', { name: 'Filter by tag: Custom', exact: true })).toHaveCount(1);
 });
 
@@ -53,6 +65,7 @@ test('week, override and event-day selectors share tag filtering without changin
   await page.getByRole('button', { name: 'Manage events (0)', exact: true }).click();
   dialog = page.getByRole('dialog'); await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
+  await showAllDayPurposes(page);
   await dialog.getByRole('combobox', { name: 'Filter by tag', exact: true }).selectOption('tag:Event');
   await expect(dialog.getByRole('option', { name: 'Workday', exact: true })).toHaveCount(0);
   await dialog.getByRole('option', { name: 'Inspection', exact: true }).click();
@@ -66,6 +79,8 @@ test('Chinese mobile tag editor and untagged filtering fit the workspace', async
   await page.getByRole('textbox', { name: t('newDayTag'), exact: true }).fill('特殊狀況'); await page.getByRole('button', { name: t('addDayTag'), exact: true }).click();
   await expect(page.getByRole('button', { name: t('removeDayTag', { tag: '特殊狀況' }), exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await openDayOptions(page);
   await page.getByRole('combobox', { name: t('filterDayTags'), exact: true }).selectOption('untagged');
+  await closeDayOptions(page);
   await expect(page.locator('.sidebar .slot-item')).toHaveCount(1);
 });

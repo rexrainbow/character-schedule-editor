@@ -2,11 +2,12 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { flowControlFixture } from '../flowControlFixture.js';
 import { compileProject } from '../../src/core/model.js';
+import { createRelease } from '../../src/core/builtinTaskModel.js';
 import { navigate, switchMode, exportProject } from './navigation.js';
 import { translator } from '../../src/i18n/index.js';
 async function load(page, draft) {
   await page.goto('/'); const compiled = compileProject(draft); expect(compiled.errors).toEqual([]);
-  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'takeover.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compiled.data)) });
+  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'release.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compiled.data)) });
 }
 async function runDay(page, locale = 'en') {
   const t = translator(locale); await switchMode(page, 'simulation', locale);
@@ -14,61 +15,58 @@ async function runDay(page, locale = 'en') {
   await page.getByRole('button', { name: t('simulationRun'), exact: true }).click();
 }
 async function download(page, action) { const pending = page.waitForEvent('download'); await action(); return JSON.parse(await readFile(await (await pending).path(), 'utf8')); }
-
-test('one fixed takeover definition replaces cancellation commands, permits metadata edits and exports typed contracts', async ({ page }) => {
-  const { draft, control } = flowControlFixture(); await load(page, draft); await navigate(page, 'tasks');
-  const flow = page.locator('.task-category').filter({ has: page.getByRole('heading', { name: 'Flow control', exact: true }) });
-  await expect(flow.locator('button')).toHaveCount(2);
-  await flow.getByRole('button', { name: 'Schedule takeover', exact: true }).click();
-  await expect(page.locator('.parameter-row')).toHaveCount(3);
-  await expect(page.getByRole('button', { name: 'Add parameter', exact: true })).toBeDisabled();
-  await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Claim schedule');
-  await page.getByRole('textbox', { name: 'Engine key', exact: true }).fill('engine.takeover');
-  await page.getByRole('textbox', { name: 'Parameter name', exact: true }).nth(1).fill('Window');
-  await navigate(page, 'slots'); await page.locator('.sidebar').getByRole('button', { name: /Override activity/ }).click();
-  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:schedule_takeover');
-  await expect(page.getByRole('combobox', { name: 'Window', exact: true })).toHaveValue('day');
-  await page.getByRole('combobox', { name: 'Window', exact: true }).selectOption('slot');
-  await page.getByRole('combobox', { name: 'Takeover target', exact: true }).selectOption('main');
-  const project = await download(page, () => exportProject(page));
-  expect(project.slots[control.id].branches[0].task.scope).toBe('slot'); expect(project.builtin_tasks.schedule_takeover.display_name).toBe('Claim schedule');
-  expect(Object.keys(project.builtin_tasks).some((key) => key.startsWith('cancel_'))).toBe(false);
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
-  expect(runtime.slots[control.id].branches[0].task).toMatchObject({ task_key: 'engine.takeover', flow_control: 'takeover', scope: 'slot', target: 'main' });
-  expect(runtime.environment_requirements.tasks.find((item) => item.engine_key === 'engine.takeover').parameters).toHaveLength(3);
+async function releaseDialog(page, locale = 'en') {
+  const t = translator(locale); await navigate(page, 'days', locale);
+  await page.locator('.sidebar').getByRole('button', { name: 'High', exact: true }).click();
+  if (await page.locator('.event-visibility').getAttribute('aria-expanded') !== 'true') await page.locator('.event-visibility').click();
+  await page.getByRole('button', { name: t('releaseSlotFor', { count: 1 }), exact: true }).click(); return page.getByRole('dialog');
+}
+test('container selects one of three modes and validates interruption priority without takeover controls', async ({ page }) => {
+  const { draft, sequence } = flowControlFixture(); await load(page, draft); await navigate(page, 'sequences');
+  await page.getByRole('button', { name: 'Manage events (5)', exact: true }).click(); const dialog = page.getByRole('dialog');
+  await expect(dialog.locator('.event-takeovers')).toHaveCount(0);
+  const modes = dialog.getByRole('combobox', { name: 'Execution mode', exact: true }); await expect(modes.locator('option')).toHaveCount(3);
+  await modes.selectOption('interrupt_main'); await dialog.getByRole('spinbutton', { name: 'Priority', exact: true }).fill('-1');
+  await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
+  await dialog.getByRole('spinbutton', { name: 'Priority', exact: true }).fill('10'); await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
+  const data = await download(page, () => exportProject(page)); expect(data.week_sequences[sequence.id].event_groups[0].execution_mode).toBe('interrupt_main');
+  await navigate(page, 'slots'); await expect(page.locator('option[value="builtin:release_slot"], option[value="builtin:schedule_takeover"]')).toHaveCount(0);
 });
-
-for (const [scope, target, expected] of [['slot', 'main', 3], ['slot', 'lower_priority', 12], ['day', 'main', 10], ['day', 'lower_priority', 40]]) test(`successful ${scope}/${target} takeover displays the selected scope and outcomes`, async ({ page }) => {
-  const { draft } = flowControlFixture({ scope, target }); await load(page, draft); await runDay(page);
-  await expect(page.locator('.simulation-cancel-reason')).toHaveCount(expected);
-  await expect(page.locator('.simulation-results')).toContainText('Takeover succeeded; selected sources cancelled.');
-  await expect(page.getByRole('button', { name: 'Use resulting values', exact: true })).toBeEnabled();
-});
-
-test('condition editor can choose a false Boolean; failed slot takeover resumes next slot and overview explains both paths', async ({ page }) => {
-  const { draft } = flowControlFixture(); await load(page, draft); await navigate(page, 'taskMacros');
-  await page.getByRole('combobox', { name: 'Task', exact: true }).first().selectOption('builtin:schedule_takeover');
-  await page.getByRole('button', { name: translator('en')('operandA'), exact: true }).click();
-  const dialog = page.getByRole('dialog'); await dialog.getByRole('tab', { name: 'Constant', exact: true }).click();
-  await dialog.getByRole('combobox', { name: 'Constant value', exact: true }).selectOption('false');
+test('dedicated day slot adds unconditional release, exports one-parameter runtime control and simulates partial interruption', async ({ page }) => {
+  const { draft, days } = flowControlFixture(); await load(page, draft); const dialog = await releaseDialog(page);
+  await expect(dialog.getByRole('checkbox', { name: 'Use a release condition', exact: true })).not.toBeChecked();
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Takeover scope', exact: true }).selectOption('slot');
-  await navigate(page, 'slots'); await page.locator('.sidebar').getByRole('button', { name: /Override activity/ }).click();
-  await page.getByRole('button', { name: 'Logic overview', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Expansion depth', exact: true }).selectOption('all');
-  await expect(page.locator('.logic-overview pre')).toContainText('IF (false == true)');
-  await expect(page.locator('.logic-overview pre')).toContainText('Withdraw: This slot');
-  await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(2);
-  await expect(page.locator('.simulation-results')).toContainText('Takeover failed; this source');
+  await expect(page.locator('.day-slot-release.configured')).toHaveCount(1);
+  const data = await download(page, () => exportProject(page)); expect(data.day_schedules[days.High.id].slot_releases).toEqual([createRelease(), null, null]);
+  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
+  expect(runtime.days[days.High.id].slot_releases[0]).toEqual({ task_key: 'control.release', flow_control: 'release_slot', condition: null });
+  expect(runtime.environment_requirements.tasks.find((t) => t.engine_key === 'control.release').parameters).toHaveLength(1);
+  await page.screenshot({ path: 'test-results/day-slot-release-desktop.png' });
+  await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(26);
+  await expect(page.locator('.simulation-results')).toContainText('Slot released; skip this event');
 });
-
-test('Chinese mobile takeover controls remain readable and failed day takeover cancels through day end', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  const { draft } = flowControlFixture({ scope: 'day', condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'constant', value: false }, operand_b: { type: 'constant', value: true } } });
-  await load(page, draft); await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW');
-  const t = translator('zh-TW'); await navigate(page, 'taskMacros', 'zh-TW');
-  await expect(page.getByRole('combobox', { name: t('takeoverScope'), exact: true })).toHaveValue('day');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await runDay(page, 'zh-TW'); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(9);
-  await expect(page.locator('.simulation-results')).toContainText(t('takeoverFailed'));
+test('release conditions use the shared Boolean editor and false keeps interruption active', async ({ page }) => {
+  const { draft, days } = flowControlFixture(); days.High.slotReleases = [{ ...createRelease(), condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'constant', value: true }, operand_b: { type: 'constant', value: true } } }, null, null];
+  await load(page, draft); const dialog = await releaseDialog(page);
+  await dialog.getByRole('button', { name: translator('en')('operandA'), exact: true }).click();
+  const operand = page.getByRole('dialog').last(); await operand.getByRole('tab', { name: 'Constant', exact: true }).click();
+  await operand.getByRole('combobox', { name: 'Constant value', exact: true }).selectOption('false'); await operand.getByRole('button', { name: 'Apply', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
+  await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(36);
+  await expect(page.locator('.simulation-results')).toContainText('Release condition did not match');
+});
+test('Chinese mobile release dialog preserves drafts on cancel and removing a rule shrinks the row', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 }); const { draft, days } = flowControlFixture(); days.High.slotReleases = [createRelease(), null, null];
+  await load(page, draft); await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW'); const t = translator('zh-TW');
+  let dialog = await releaseDialog(page, 'zh-TW'); await dialog.getByRole('checkbox', { name: t('releaseConditional'), exact: true }).check();
+  await expect(dialog.getByRole('button', { name: t('apply'), exact: true })).toBeDisabled();
+  expect(await dialog.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/day-slot-release-mobile.png' });
+  await dialog.getByRole('button', { name: t('cancel'), exact: true }).click();
+  await expect(page.locator('.day-slot-release.configured')).toHaveCount(1);
+  const tall = await page.locator('.day-time-block').first().evaluate((e) => e.offsetHeight);
+  await page.getByRole('button', { name: t('releaseSlotFor', { count: 1 }), exact: true }).click(); dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: t('removeSlotRelease'), exact: true }).click();
+  await expect(page.locator('.day-slot-release.configured')).toHaveCount(0);
+  expect(await page.locator('.day-time-block').first().evaluate((e) => e.offsetHeight)).toBeLessThan(tall);
 });

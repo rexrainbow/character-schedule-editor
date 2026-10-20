@@ -64,6 +64,6 @@ test('day simulation runs direct candidates with overlay source context and flow
   control.mode = 'priority'; control.candidates = [{ id: crypto.randomUUID(), task: control.branches[0].task }]; control.branches = [];
   assert.deepEqual(compileProject(draft).errors, []);
   const result = simulateSequenceDay(draft, sequence.id, 0); assert.deepEqual(result.errors, []);
-  assert.equal(result.trace.flatMap((phase) => phase.children).filter((entry) => entry.cancelled).length, 12);
-  assert.equal(result.calls.find((call) => call.kind === 'control').context.name, 'High');
+  assert.equal(result.trace.flatMap((phase) => phase.children).filter((entry) => entry.cancelled).length, 36);
+  assert.equal(result.calls.find((call) => call.context.phaseKey === 'slot:0:start').context.name, 'High');
 });

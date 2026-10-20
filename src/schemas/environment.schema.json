@@ -222,58 +222,6 @@
           "required": [],
           "additionalProperties": false
         },
-        "schedule_takeover": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "condition": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "scope": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "target": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
         "adjust_probability_event": {
           "type": "object",
           "properties": {
@@ -332,6 +280,123 @@
                     }
                   },
                   "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "release_slot": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "schedule_event": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "display_name": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "date_mode": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "offset": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "weekday": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "day_source": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "execution_mode": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "priority": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
                   "additionalProperties": false
                 }
               },

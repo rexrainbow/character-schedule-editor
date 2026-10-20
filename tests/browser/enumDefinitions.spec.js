@@ -52,7 +52,7 @@ test('live enum option names reach callers, referenced subtree deletion is block
   await expect(page.getByRole('combobox', { name: 'Argument: Property input', exact: true })).toContainText('Chance percent');
   expect((await save(page)).enum_definitions[propertyEnumId].options[0].display_name).toBe('Chance percent');
   await switchMode(page, 'simulation'); await page.getByRole('combobox', { name: 'Simulation target', exact: true }).selectOption('day');
-  await page.getByRole('combobox', { name: 'Occurrence: Cold', exact: true }).selectOption('true');
+  await page.getByRole('checkbox', { name: 'Occurrence: Cold', exact: true }).check();
   await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
   await expect(page.locator('.simulation-results')).toContainText('Simulation completed');
   await expect(page.locator('.simulation-results')).toContainText('Cold.probability_percent');

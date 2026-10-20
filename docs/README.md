@@ -1,5 +1,7 @@
 # Character Schedule Editor
 
+日行程可手動複選適用用途「主要／疊加事件／中斷事件」，未選擇則為「未分類」。清單依用途分群，選取器依情境預設篩選，也可顯示全部用途，詳見 [DAY_USES.md](./DAY_USES.md)。事件容器決定中斷對象，日行程在時段開始後設定「放行本時段」，詳見 [SLOT_RELEASE.md](./SLOT_RELEASE.md)。
+
 周序列操作選單可匯出 Markdown 行程報告，依序列出全專案周序列、事件、日行程與完整展開的時段任務邏輯，詳見 [REPORT.md](./REPORT.md)。
 
 原始碼依資料核心、GUI、Schema、範例、語系與樣式分目錄，目錄用途詳見 [SOURCE_LAYOUT.md](./SOURCE_LAYOUT.md)。
@@ -18,7 +20,7 @@ Web 編輯器資料操作已整併至可供 Node.js 共用的 Project API，包�
 
 任務巨集支援任務序列、分支任務與優先候選，均可設定預設收合的資格條件；省略或清空表示無限制。優先候選可引用任一種巨集並填入引數，執行第一個符合資格者。舊條件任務匯入後轉成附資格條件的一步序列。詳見 [TASK_MACROS.md](./TASK_MACROS.md)。
 
-模擬模式支援時段行程與周序列某日，整天共用測試變數並合併事件優先權。[行程接管](./FLOW_CONTROL_TASKS.md) 以條件、範圍、對象整合流程控制：成立時取消指定來源，不成立時退出自身，兩者採相同範圍。任務選單依變數操作、流程控制、引擎任務分組。詳見 [SIMULATION.md](./SIMULATION.md)。
+模擬模式支援時段行程與周序列某日，整天共用測試變數並合併事件優先權。[中斷與放行](./SLOT_RELEASE.md) 每時段重新判斷：先執行開始任務，再判斷放行條件，成立時跳過自身主體與結束，解除自己的阻擋；其他事件的阻擋不受影響。一般任務選單不提供此專用控制。詳見 [SIMULATION.md](./SIMULATION.md)。
 
 日行程新增日開始／結束、各時段開始／結束事件，預設留空且介面收合，可重用既有時段行程或快速建立。周內自訂、複製、引用清理、預覽及 runtime 匯出均保留事件配置；詳見 [DAY_EVENTS.md](./DAY_EVENTS.md)。周序列現可透過集中事件管理新增單次／週期疊加事件組，使用固定周次與星期、優先權排序及日曆式日期選取，詳見 [SEQUENCE_EVENTS.md](./SEQUENCE_EVENTS.md)。
 
@@ -186,3 +188,7 @@ Schema 使用 `task_macros` 與 `task_macro_id`，開發階段不轉換舊 `task
 
 可匯入 `src/examples/state-example.json` 查看獨立變數空間、計算式巨集、唯讀變數，以及時段行程／任務巨集中的設定變數。相關介面位於 `src/gui/editors/ExpressionMacrosEditor.jsx` 與 `src/gui/editors/SetVariableEditor.jsx`。
 
+
+[事件的多日行程來源與手動模擬選擇](./EVENT_DAY_SOURCES.md)
+
+[流程控制：預約事件](./SCHEDULE_EVENT_TASK.md)

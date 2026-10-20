@@ -1,9 +1,11 @@
+import EventCandidatesDialog from '../dialogs/EventCandidatesDialog.jsx';
+import { eventFirstDayId } from '../../core/eventDaySource.js';
 import { editProject } from '../../core/projectApi.js';
 import EngineKeyField from '../components/EngineKeyField.jsx';
 import DayReferencePreview from '../components/DayReferencePreview.jsx';
 import IconField from '../components/IconField.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays, Play, FileText } from 'lucide-react';
 import { FieldError, IconButton, Issues } from '../components/ui.jsx';
 import ActionMenu from '../components/ActionMenu.jsx';
@@ -17,7 +19,7 @@ import SequenceEventsDialog from '../dialogs/SequenceEventsDialog.jsx';
 import { eventsOnDate } from '../../core/sequenceEvents.js';
 
 const rowHeight = 184;
-export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onReport, t }) {
+export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onReport, candidateView, onCandidateViewChange, t }) {
   const [weekPicker, setWeekPicker] = useState(null);
   const [override, setOverride] = useState(null);
   const [rangeNotice, setRangeNotice] = useState(null);
@@ -33,6 +35,14 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
     onChange(next);
   }
   const { ref, first, end, onScroll } = useVisibleRows(sequence.rows.length, rowHeight, 60, sequence.id);
+  useEffect(() => {
+    if (candidateView?.sequenceId === sequence.id && candidateView.open && ref.current) {
+      ref.current.scrollTop = candidateView.sequenceScrollTop ?? 0;
+      ref.current.scrollLeft = candidateView.sequenceScrollLeft ?? 0;
+      onScroll({ currentTarget: ref.current });
+    }
+  }, [sequence.id, candidateView?.open]);
+  const candidateGroup = candidateView?.sequenceId === sequence.id && candidateView.open ? sequence.eventGroups?.find((group) => group.id === candidateView.groupId) : null;
   const weeks = new Map(draft.weeks.map((week) => [week.id, week]));
   return <div className="sequence-editor">
     <section className="schedule-titlebar"><div className="schedule-name"><label className="sr-only" htmlFor="sequence-name">{t('sequenceName')}</label><div className="name-with-icon"><IconField value={sequence.icon} onChange={(icon) => onChange({ ...sequence, icon })} t={t} /><input id="sequence-name" aria-label={t('sequenceName')} value={sequence.name} aria-invalid={!sequence.name.length} onChange={(event) => onChange({ ...sequence, name: event.target.value })} /><EngineKeyField kind="sequences" item={sequence} onChange={(engine_key) => onChange({ ...sequence, engine_key })} t={t} /></div><FieldError show={!sequence.name.length} t={t} /></div><button className="button secondary sequence-event-manager" title={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} aria-label={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} onClick={() => setEventManager({})}><CalendarDays size={16} /><span>{t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })}</span></button><ActionMenu label={t('sequenceActions')} items={[{ label: t('duplicateSequence'), icon: Copy, onClick: onDuplicate }, { label: t('deleteSequence'), icon: Trash2, danger: true, onClick: onDelete }, { separator: true }, { label: t('exportReport'), icon: FileText, onClick: onReport }]}  /></section>
@@ -60,7 +70,7 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
                   {index === sequence.rows.length - 1 && <button className="icon-button sequence-end-flag" aria-label={t('setSequenceEnd', { weekday: t(weekday) })} title={t('setSequenceEnd', { weekday: t(weekday) })} aria-pressed={date.isEnd} onClick={() => { if (!date.isEnd) update(value(editProject(draft, t).sequences.setBoundary(sequence.id, 'end', weekday))); }}><FlagTriangleRight size={14} /></button>}
                 </div></div>
                 <div className="sequence-overlay-icons" aria-label={t('eventGroups')}>
-                  {events.slice(0, 2).map((group, eventIndex) => { const eventDay = draft.days.find((item) => item.id === group.dayId); return <DayReferencePreview key={group.id} day={eventDay} draft={draft} week={week} weekday={weekday} eventGroup={group} eventClassName={group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''} onOpen={onOpenDay} onOpenSlot={onOpenSlot} onEditEvent={() => setEventManager({ id: group.id, position })} t={t} />; })}
+                  {events.slice(0, 2).map((group, eventIndex) => { const eventDay = draft.days.find((item) => item.id === eventFirstDayId(group)); return <DayReferencePreview key={group.id} day={eventDay} draft={draft} week={week} weekday={weekday} eventGroup={group} eventClassName={group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''} onOpen={onOpenDay} onOpenSlot={onOpenSlot} onViewCandidates={() => onCandidateViewChange({ sequenceId: sequence.id, groupId: group.id, selectedId: eventFirstDayId(group), open: true, showAll: false, search: '', scrollTop: 0, listScrollTop: 0, sequenceScrollTop: ref.current.scrollTop, sequenceScrollLeft: ref.current.scrollLeft })} onEditEvent={() => setEventManager({ id: group.id, position })} t={t} />; })}
                   {events.length > 2 && <button className="sequence-events-more" aria-label={t('eventMore', { count: events.length - 2 })} onClick={() => setEventManager({ position, onlyDate: true })}>+{events.length - 2}</button>}
                   <button className="icon-button sequence-event-add" disabled={!draft.days.some((item) => !item.scope || item.scope === 'shared')} title={t('addEventGroup')} aria-label={t('addEventOnDate', { week: index + 1, weekday: t(weekday) })} onClick={() => setEventManager({ createAt: position, position })}><Plus size={13} /></button>
                 </div>
@@ -73,6 +83,7 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
     <div className="sequence-add">{rangeNotice === sequence.id && <p role="status" className="field-hint">{t('sequenceRangeAdjusted')}</p>}<button className="button add-branch" disabled={!draft.weeks.length} onClick={() => setWeekPicker({ rowUid: null })}><Plus size={17} />{t('addWeekRow')}</button>{!draft.weeks.length && <p className="field-hint">{t('noWeeksForSequence')}</p>}</div>
     {weekPicker && <WeekPicker weeks={draft.weeks} selectedId={weekPicker.weekId} t={t} onClose={() => setWeekPicker(null)} onApply={(weekId) => { update(weekPicker.rowUid ? value(editProject(draft, t).sequences.replaceWeek(sequence.id, weekPicker.rowUid, weekId)) : value(editProject(draft, t).sequences.appendWeek(sequence.id, weekId))); setWeekPicker(null); }} />}
     {override && <SequenceOverrideDialog draft={draft} sequence={sequence} {...override} t={t} onChange={onChange} onClose={() => setOverride(null)} />}
+    {candidateGroup && <EventCandidatesDialog draft={draft} group={candidateGroup} view={candidateView} onViewChange={onCandidateViewChange} onOpenDay={onOpenDay} onOpenSlot={onOpenSlot} onClose={() => onCandidateViewChange(null)} t={t} />}
     {eventManager && <SequenceEventsDialog key={sequence.id} draft={draft} sequence={sequence} request={eventManager} t={t} onApply={(eventGroups) => onChange(editProject(draft, t).sequences.events(sequence.id).replace(eventGroups).value)} onClose={() => setEventManager(null)} />}
   </div>;
 }

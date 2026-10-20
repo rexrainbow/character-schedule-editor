@@ -75,6 +75,12 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   const contract = (p) => ({ ...(p.type === 'variable_reference' ? { value_type: p.value_type, access: p.access } : p.type === 'event_reference' ? { event_kind: p.event_kind ?? 'any' } : p.type === 'enum' ? p.enum_id !== undefined ? { enum_id: p.enum_id } : { options: structuredClone(p.options) } : {}) });
   function task(value) {
+    if (value.builtin === 'schedule_event') {
+      const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
+      if (!engine_key) errors.push({ path: '/builtin_tasks/schedule_event/engine_key', key: 'runtimeMissingKey' });
+      tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: definition.parameters.map((p) => ({ display_name: p.display_name, type: p.type, ...contract(p) })) });
+      return { task_key: engine_key, flow_control: 'schedule_event', display_name: value.display_name.trim() || draft.days.find((day) => day.id === (value.day_schedule_id ?? value.day_source?.candidates[0]?.day_schedule_id))?.name || '', date: { ...value.date, offset: operand(value.date.offset) }, ...(value.day_source ? { day_source: structuredClone(value.day_source) } : { day_schedule_id: value.day_schedule_id }), execution_mode: value.execution_mode, priority: value.priority };
+    }
     if (value.builtin === 'adjust_probability_event') {
       const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
       if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
@@ -85,7 +91,7 @@ export function compileRuntime(draft, t = translator('en')) {
       const definition = builtinTaskDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
       if (!engine_key) errors.push({ path: `/builtin_tasks/${value.builtin}/engine_key`, key: 'runtimeMissingKey' });
       tasks.set(definition.id, { ...metadata(definition), engine_key, parameters: definition.parameters.map((p) => ({ display_name: p.display_name, type: p.type })) });
-      return { task_key: engine_key, flow_control: 'takeover', condition: condition(value.condition), scope: value.scope, target: value.target };
+      return { task_key: engine_key, flow_control: 'release_slot', condition: condition(value.condition ?? null) };
     }
     if (isBuiltinVariableTask(value)) {
       const definition = builtinVariableDefinition(value.builtin, draft.builtinTasks, t), engine_key = keyOf(definition);
@@ -105,7 +111,7 @@ export function compileRuntime(draft, t = translator('en')) {
     return childrenOf(nodes, parent, scope).map(([id, node]) => ({ id, ...metadata(node), ...(node.node_type === 'group' ? { kind: 'group', children: tree(id, scope) } : { kind: 'value', value_type: node.value_type, read_only: node.read_only ?? false, initial_value: initialValue(node), ...numberConstraints(node) }) }));
   }
   for (const [id, node] of Object.entries(nodes)) if (!isComputed(node) && node.node_type === 'value' && variableScope(node) === 'environment' && !keyOf(node)) errors.push({ path: `/operand_nodes/${id}/engine_key`, key: 'runtimeMissingKey' });
-  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], tags: [...(item.tags ?? [])], ...dayEventsToData(item) });
+  const day = (item) => ({ ...metadata(item), slot_ids: [...item.slotIds], tags: [...(item.tags ?? [])], ...dayEventsToData(item), ...(item.slotReleases === undefined ? {} : { slot_releases: item.slotReleases.map((value) => value ? task(value) : null) }) });
   const data = {
     enum_definitions: Object.fromEntries(Object.entries(draft.enumNodes ?? {}).filter(([, node]) => node.node_type === 'enum').map(([id, node]) => [id, { ...metadata(node), scope: node.scope, options: structuredClone(node.options) }])),
     format_version: 1, display_name: draft.project.name,

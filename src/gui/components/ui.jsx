@@ -41,7 +41,7 @@ export function Dialog({ title, subtitle, children, footer, onClose, t, wide = f
     return () => element.close();
   }, []);
   const close = view?.onClose ?? onClose;
-  return <dialog ref={ref} className={`modal ${(view?.wide ?? wide) ? 'modal-wide' : ''} ${className}`} aria-labelledby={headingId} onCancel={(e) => { e.preventDefault(); close(); }}>
+  return <dialog ref={ref} className={`modal ${(view?.wide ?? wide) ? 'modal-wide' : ''} ${view?.className ?? className}`} aria-labelledby={headingId} onCancel={(e) => { e.preventDefault(); close(); }}>
     <div className="modal-header"><div><h2 id={headingId}>{view?.title ?? title}</h2>{!view && subtitle && <p>{subtitle}</p>}</div><IconButton icon={X} label={t('close')} onClick={close} /></div>
     <div className="modal-body" hidden={!!view}><IconDialogContext.Provider value={setView}>{children}</IconDialogContext.Provider></div>
     {view && <div className="modal-body">{view.children}</div>}

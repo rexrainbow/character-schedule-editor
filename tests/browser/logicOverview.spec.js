@@ -20,10 +20,10 @@ test('overview starts collapsed, expands nested priorities, updates with edits a
   await page.getByRole('combobox', { name: 'Expansion depth', exact: true }).selectOption('all');
   await expect(text).toContainText('Increase value (Engine.Counter, 20)');
   page.once('dialog', (dialog) => dialog.accept());
-  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:schedule_takeover');
-  await expect(text).toContainText('Schedule takeover');
+  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:reset_variable');
+  await expect(text).toContainText('Reset initial value');
   await expect(text).not.toContainText('ELSE →');
-  await expect(text).toContainText('Take over: Rest of today / Main day schedule');
+  await expect(page.locator('option[value="builtin:schedule_takeover"]')).toHaveCount(0);
   await toggle.click(); await expect(text).toHaveCount(0); await toggle.click();
   await page.reload(); await load(page); await navigate(page, 'slots');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -42,12 +42,12 @@ test('Chinese mobile day-cell editor shows the same overview without committing 
   await expect(dialog.locator('.logic-overview pre')).toContainText(t('logicPriorityHint'));
   expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   page.once('dialog', (nativeDialog) => nativeDialog.accept());
-  await dialog.getByRole('combobox', { name: t('task'), exact: true }).selectOption('builtin:schedule_takeover');
-  await expect(dialog.locator('.logic-overview pre')).toContainText(t('scheduleTakeover'));
+  await dialog.getByRole('combobox', { name: t('task'), exact: true }).selectOption('builtin:reset_variable');
+  await expect(dialog.locator('.logic-overview pre')).toContainText(t('resetVariable'));
   await dialog.getByRole('button', { name: t('back'), exact: true }).click();
   await page.keyboard.press('Escape'); await navigate(page, 'slots', 'zh-TW');
   await expect(page.locator('.logic-overview pre')).toContainText('Choose activity');
-  await expect(page.locator('.logic-overview pre')).not.toContainText(t('scheduleTakeover'));
+  await expect(page.locator('.logic-overview pre')).not.toContainText(t('resetVariable'));
 });
 
 test('macro overview follows selection and edits with shared depth controls in English and Chinese mobile', async ({ page }) => {

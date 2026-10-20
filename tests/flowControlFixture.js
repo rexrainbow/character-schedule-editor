@@ -2,19 +2,19 @@ import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
 import { builtinVariableFixture } from './builtinVariableFixture.js';
 import { createDay, createSlot } from '../src/core/model.js';
 import { setDayAssignment } from '../src/core/dayEvents.js';
-import { createTakeover } from '../src/gui/hooks/builtinTasks.js';
+import { createRelease } from '../src/gui/hooks/builtinTasks.js';
 import { createTaskMacro } from '../src/core/taskMacroModel.js';
 
 export function flowControlFixture(options = {}, target = { index: 0, edge: 'start' }, controller = 'High') {
   const { draft, sequence } = sequenceEventsFixture(), vars = builtinVariableFixture();
   draft.environment = vars.draft.environment;
-  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, schedule_takeover: { engine_key: 'control.takeover' } };
+  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, release_slot: { engine_key: 'control.release' } };
   draft.tasks = []; draft.slots = []; draft.days = []; draft.taskMacros = [];
   function slot(name, task) { const result = createSlot(draft.slots, name); result.branches = [{ condition: null, task }]; draft.slots.push(result); return result; }
   const increment = { builtin: 'increment_variable', target_variable_id: vars.number, value: { type: 'constant', value: 1 } };
   const activity = slot('Increase counter', increment);
   const macro = createTaskMacro('Control then continue');
-  macro.steps = [{ id: crypto.randomUUID(), task: { ...createTakeover(), scope: 'slot', target: 'lower_priority', ...options } }, { id: crypto.randomUUID(), task: increment }]; draft.taskMacros = [macro];
+  macro.steps = [{ id: crypto.randomUUID(), task: increment }]; draft.taskMacros = [macro];
   const control = slot('Override activity', { task_macro_id: macro.id, arguments: {} });
   const targets = ['dayStart', ...Array.from({ length: 3 }, (_, index) => [{ index, edge: 'start' }, index, { index, edge: 'end' }]).flat(), 'dayEnd'];
   const days = {};
@@ -25,5 +25,10 @@ export function flowControlFixture(options = {}, target = { index: 0, edge: 'sta
   }
   draft.weeks[0].days.mon = days.Main.id;
   sequence.eventGroups = [['High', 10], ['Peer', 10], ['Zero', 0], ['Negative', -1], ['Lower negative', -3]].map(([name, priority]) => ({ ...rule(sequence, days[name].id, 0, 20, 1, priority), display_name: name }));
-  return { draft, sequence, days, activity, control, macro, number: vars.number, increment };
+  const phase = typeof target === 'string' ? target : typeof target === 'number' ? `slot:${target}:main` : `slot:${target.index}:${target.edge}`;
+  const group = sequence.eventGroups.find((item) => item.display_name === controller);
+  if (group) group.executionMode = options.executionMode ?? 'interrupt_lower';
+  if (options.release) days[controller].slotReleases = [structuredClone(options.release), null, null];
+
+  return { group, phase, draft, sequence, days, activity, control, macro, number: vars.number, increment };
 }

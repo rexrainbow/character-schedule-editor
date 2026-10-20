@@ -2,10 +2,10 @@ import { probabilityEnumContract } from './enumParameters.js';
 
 export const builtinVariableKinds = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'];
 export const isBuiltinVariableTask = (value) => builtinVariableKinds.includes(value?.builtin);
-export const builtinFlowKinds = ['schedule_takeover'];
-export const isBuiltinFlowTask = (value) => value?.builtin === 'schedule_takeover';
+export const builtinFlowKinds = ['release_slot'];
+export const isBuiltinFlowTask = (value) => value?.builtin === 'release_slot';
 export const builtinTaskCategories = ['variableOperations', 'flowControl'];
-export const createTakeover = () => ({ builtin: 'schedule_takeover', condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'constant', value: true }, operand_b: { type: 'constant', value: true } }, scope: 'day', target: 'main' });
+export const createRelease = () => ({ builtin: 'release_slot', condition: null });
 const contracts = {
   set_variable: { name: 'setVariable', icon: 'tabler:code', value_type: 'any', access: 'write', value: 'expression', valueName: 'assignmentValue' },
   increment_variable: { name: 'incrementVariable', icon: 'tabler:calculator', value_type: 'number', access: 'read_write', value: 'number', valueName: 'incrementAmount' },
@@ -22,15 +22,21 @@ export function builtinVariableDefinition(kind, config, t) {
 }
 export const builtinVariableDefinitions = (config, t) => builtinVariableKinds.map((kind) => builtinVariableDefinition(kind, config, t));
 export function builtinTaskDefinition(kind, config, t) {
+  if (kind === 'schedule_event') {
+    const item = config?.[kind] ?? {};
+    const fields = ['display_name', 'date_mode', 'offset', 'weekday', 'day_source', 'execution_mode', 'priority'];
+    const choices = { date_mode: ['days', 'weeks_weekday'], weekday: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], execution_mode: ['overlay', 'interrupt_main', 'interrupt_lower'] };
+    return { id: `builtin:${kind}`, display_name: item.display_name ?? t('scheduleEvent'), icon: item.icon || 'tabler:calendar-event', engine_key: item.engine_key ?? '', category: 'flowControl', parameters: fields.map((id) => ({ id, display_name: item.parameters?.[id]?.display_name ?? t(`scheduleField_${id}`), type: choices[id] ? 'enum' : ['offset', 'priority'].includes(id) ? 'number' : 'string', ...(choices[id] ? { options: choices[id].map((value) => ({ display_name: t(id === 'weekday' ? value : id === 'execution_mode' ? `executionMode_${value}` : `scheduleDate_${value}`), value })) } : {}) })) };
+  }
   if (kind === 'adjust_probability_event') {
     const item = config?.[kind] ?? {};
     return { id: `builtin:${kind}`, display_name: item.display_name ?? t('adjustProbabilityEvent'), icon: item.icon || 'tabler:repeat', engine_key: item.engine_key ?? '', category: 'flowControl', parameters: ['event', 'property', 'operation', 'value'].map((id) => ({ id, display_name: item.parameters?.[id]?.display_name ?? t(`eventAdjust_${id}`), type: id === 'event' ? 'event_reference' : id === 'value' ? 'number' : 'string', ...(id === 'event' ? { event_kind: 'probability' } : ['property', 'operation'].includes(id) ? probabilityEnumContract(id, t) : {}) })) };
   }
   if (!builtinFlowKinds.includes(kind)) return { ...builtinVariableDefinition(kind, config, t), category: 'variableOperations' };
   const item = config?.[kind] ?? {};
-  return { id: `builtin:${kind}`, display_name: item.display_name ?? t('scheduleTakeover'), icon: item.icon || 'tabler:calendar-off', engine_key: item.engine_key ?? '', parameters: ['condition', 'scope', 'target'].map((id) => ({ id, display_name: item.parameters?.[id]?.display_name ?? t({ condition: 'takeoverCondition', scope: 'takeoverScope', target: 'takeoverTarget' }[id]), type: id === 'condition' ? 'boolean' : 'string' })), category: 'flowControl' };
+  return { id: `builtin:${kind}`, display_name: item.display_name ?? t('releaseSlot'), icon: item.icon || 'tabler:door-exit', engine_key: item.engine_key ?? '', parameters: [{ id: 'condition', display_name: item.parameters?.condition?.display_name ?? t('releaseCondition'), type: 'boolean' }], category: 'flowControl' };
 }
-export const builtinTaskDefinitions = (config, t) => [...builtinVariableKinds, ...builtinFlowKinds, 'adjust_probability_event'].map((kind) => builtinTaskDefinition(kind, config, t));
+export const builtinTaskDefinitions = (config, t) => [...builtinVariableKinds, ...builtinFlowKinds, 'adjust_probability_event', 'schedule_event'].map((kind) => builtinTaskDefinition(kind, config, t));
 export const setVariableDefinition = (config, t) => builtinVariableDefinition('set_variable', config, t);
 
 export function changeBuiltinDefinition(config, current, next) {

@@ -97,8 +97,8 @@ test('priority-selected conditional tasks retain overlay source priority for flo
   draft.taskMacros.push(eligible, priority); control.branches[0].task = { task_macro_id: priority.id, arguments: {} };
   assert.deepEqual(compileProject(draft).errors, []);
   const result = simulateSequenceDay(draft, sequence.id, 0); assert.deepEqual(result.errors, []);
-  assert.equal(result.trace.flatMap((phase) => phase.children).filter((entry) => entry.cancelled).length, 12);
-  assert.equal(result.calls.find((call) => call.kind === 'control').context.name, 'High');
+  assert.equal(result.trace.flatMap((phase) => phase.children).filter((entry) => entry.cancelled).length, 36);
+  assert.equal(result.calls.find((call) => call.context.phaseKey === 'slot:0:start').context.name, 'High');
 });
 
 test('environment replacement reconnects condition, body targets and candidate arguments with changed UUIDs', () => {

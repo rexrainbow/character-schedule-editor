@@ -1,3 +1,4 @@
+import { showAllDayPurposes } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { sequenceEventsFixture, rule } from '../sequenceEventsFixture.js';
@@ -14,12 +15,38 @@ async function load(page, draft) {
 async function saved(page) { const pending = page.waitForEvent('download'); await exportProject(page); return JSON.parse(await readFile(await (await pending).path(), 'utf8')); }
 async function manager(page, count) { await page.getByRole('button', { name: `Manage events (${count})`, exact: true }).click(); return page.getByRole('dialog'); }
 
+test('manager shows names and icons in stable priority order and scrolls each column independently', async ({ page }) => {
+  const { draft, sequence, eventDay } = sequenceEventsFixture();
+  sequence.eventGroups = Array.from({ length: 30 }, (_, i) => ({ ...rule(sequence, eventDay.id, 0, 20, 1, i % 3), display_name: `Event ${i}` }));
+  const ids = sequence.eventGroups.map((g) => g.id);
+  await load(page, draft); const dialog = await manager(page, 30);
+  const list = dialog.locator('.event-group-list'), form = dialog.locator('.event-group-form');
+  const expected = [...sequence.eventGroups].sort((a, b) => b.priority - a.priority).map((g) => g.display_name);
+  await expect(list.getByRole('option')).toHaveText(expected);
+  await expect(list.locator('.slot-icon')).toHaveCount(30); await expect(list.locator('small')).toHaveCount(0);
+  await form.getByRole('spinbutton', { name: 'Priority', exact: true }).fill('100');
+  await expect(list.getByRole('option').first()).toHaveText('Event 0');
+  await expect(list.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
+  await list.evaluate((e) => { e.scrollTop = 150; });
+  const leftTop = await list.evaluate((e) => e.scrollTop);
+  expect(leftTop).toBeGreaterThan(0);
+  await form.evaluate((e) => { e.scrollTop = 200; });
+  expect(await form.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+  expect(await list.evaluate((e) => e.scrollTop)).toBe(leftTop);
+  expect(await dialog.locator('.modal-body').evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
+  await expect(dialog.locator('.modal-footer')).toBeInViewport();
+  await page.screenshot({ path: 'test-results/event-manager-columns.png' });
+  await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
+  expect((await saved(page)).week_sequences[sequence.id].event_groups.map((g) => g.id)).toEqual(ids);
+});
+
 test('central manager edits complete recurring groups with calendar dates and isolated drafts', async ({ page }) => {
   const { draft, sequence, eventDay } = sequenceEventsFixture(); await load(page, draft);
   const dialog = await manager(page, 0);
   await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
+  await showAllDayPurposes(page);
   await dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Choose event end date', exact: true })).toHaveCount(0);
   await dialog.getByRole('combobox', { name: 'Event type', exact: true }).selectOption('periodic');
@@ -60,8 +87,12 @@ test('icons sort by priority, overflow lists this date, and deletion/cancel pres
   sequence.eventGroups = [-10, 10, 0, -1].map((priority) => rule(sequence, eventDay.id, 0, 20, 7, priority));
   await load(page, draft);
   const cell = page.getByRole('group', { name: 'Week 1', exact: true }).locator('.sequence-day').first();
-  await expect(cell.locator('.sequence-event-icon').first()).toHaveAttribute('title', /Priority: 10/);
-  await expect(cell.locator('.sequence-event-icon').nth(1)).toHaveAttribute('title', /Priority: 0/);
+  await cell.locator('.sequence-event-icon').first().focus();
+  await expect(page.locator('.event-preview-summary')).toContainText(/Priority: 10/);
+  await page.keyboard.press('Escape');
+  await cell.locator('.sequence-event-icon').nth(1).focus();
+  await expect(page.locator('.event-preview-summary')).toContainText(/Priority: 0/);
+  await page.keyboard.press('Escape');
   await cell.getByRole('button', { name: 'Show 2 more events', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('combobox', { name: 'Event list', exact: true })).toHaveValue('date');
@@ -102,6 +133,7 @@ test('Chinese mobile event creation and paged calendar keep one modal and visibl
   await page.getByRole('button', { name: t('addEventOnDate', { week: 1, weekday: t('tue') }), exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('combobox', { name: t('eventDay'), exact: true }).click();
+  await showAllDayPurposes(page);
   await dialog.getByRole('listbox', { name: t('eventDayOptions'), exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
   await dialog.getByRole('button', { name: t('eventPickStart'), exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(1);
@@ -124,6 +156,7 @@ test('calendar pages reach later weeks and deleting their source week warns abou
   const dialog = await manager(page, 0);
   await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
+  await showAllDayPurposes(page);
   await dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
   await dialog.getByRole('button', { name: 'Choose event start date', exact: true }).click();
   await dialog.getByRole('button', { name: 'Next weeks', exact: true }).click();
@@ -137,14 +170,14 @@ test('calendar pages reach later weeks and deleting their source week warns abou
   expect((await saved(page)).week_sequences[sequence.id].event_groups).toEqual([]);
 });
 
-test('icon day picker, independent names, four-line tooltips and draft key warnings persist correctly', async ({ page }) => {
+test('icon day picker, independent names, four-line preview summaries and draft key warnings persist correctly', async ({ page }) => {
   const { draft, sequence, main } = sequenceEventsFixture(); main.engine_key = 'day.workday';
   await load(page, draft); const dialog = await manager(page, 0);
   await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('');
   await expect(dialog.getByRole('textbox', { name: 'Engine key', exact: true })).toHaveValue('');
   const picker = dialog.getByRole('combobox', { name: 'Event day schedule', exact: true });
-  await picker.click();
+  await picker.click(); await showAllDayPurposes(page);
   const options = dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true });
   await expect(options.getByRole('option')).toHaveCount(2);
   await expect(options.locator('.slot-icon')).toHaveCount(2);
@@ -153,16 +186,19 @@ test('icon day picker, independent names, four-line tooltips and draft key warni
   await expect(options.getByRole('option')).toHaveCount(1);
   await dialog.getByRole('textbox', { name: 'Search event day schedules', exact: true }).press('Escape');
   await expect(dialog).toBeVisible(); await expect(picker).toHaveAttribute('aria-expanded', 'false');
-  await picker.click(); await options.getByRole('option', { name: 'Inspection', exact: true }).click();
+  await picker.click(); await showAllDayPurposes(page); await options.getByRole('option', { name: 'Inspection', exact: true }).click();
   await expect(picker.locator('.slot-icon')).toHaveCount(1);
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('Inspection');
   await dialog.getByRole('textbox', { name: 'Event name', exact: true }).fill('Night inspection');
-  await picker.click(); await options.getByRole('option', { name: 'Workday', exact: true }).click();
+  await picker.click(); await showAllDayPurposes(page); await options.getByRole('option', { name: 'Workday', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('Night inspection');
   await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('event.inspection');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  const tooltip = (await page.locator('.sequence-event-icon').first().getAttribute('title')).split('\n');
-  expect(tooltip).toHaveLength(4); expect(tooltip[0]).toBe('Night inspection'); expect(tooltip[1]).toContain('Once'); expect(tooltip[3]).toBe('Priority: 0');
+  await page.locator('.sequence-event-icon').first().focus();
+  await expect(page.locator('.event-preview-summary')).toBeVisible();
+  const tooltip = (await page.locator('.event-preview-summary').textContent()).split('\n');
+  await page.keyboard.press('Escape');
+  expect(tooltip).toHaveLength(3); expect(tooltip[0]).toContain('Once'); expect(tooltip[2]).toBe('Priority: 0');
   let group = (await saved(page)).week_sequences[sequence.id].event_groups[0];
   expect(group.display_name).toBe('Night inspection'); expect(group.engine_key).toBe('event.inspection');
   await manager(page, 1); await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('day.workday');
@@ -181,6 +217,7 @@ test('tag counting updates recurrence, calendar markers, summaries and runtime t
   await load(page, draft); await page.getByRole('button', { name: 'Add event: Week 1 / Friday', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('combobox', { name: 'Event day schedule', exact: true }).click();
+  await showAllDayPurposes(page);
   await dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true }).getByRole('option', { name: 'Inspection', exact: true }).click();
   await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toHaveCount(0);
   await expect(dialog.getByRole('checkbox')).toHaveCount(0);
@@ -197,7 +234,9 @@ test('tag counting updates recurrence, calendar markers, summaries and runtime t
   await dialog.getByRole('button', { name: 'Week 3 / Sunday', exact: true }).click();
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   await expect(page.locator('.sequence-event-icon')).toHaveCount(4);
-  await expect(page.locator('.sequence-event-icon').first()).toHaveAttribute('title', /Every 3 matching dates tagged/);
+  await page.locator('.sequence-event-icon').first().focus();
+  await expect(page.locator('.event-preview-summary')).toContainText(/Every 3 matching dates tagged/);
+  await page.keyboard.press('Escape');
   const data = await saved(page); expect(data.week_sequences[sequence.id].event_groups[0].count_filter).toEqual({ kind: 'tag', tag: 'Work' });
   expect(data.week_sequences[sequence.id].event_groups[0].skip_weekdays).toBeUndefined();
   const pending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();

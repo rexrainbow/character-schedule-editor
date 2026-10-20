@@ -262,58 +262,6 @@
           "required": [],
           "additionalProperties": false
         },
-        "schedule_takeover": {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
-              "type": "string"
-            },
-            "engine_key": {
-              "type": "string"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "condition": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "scope": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "target": {
-                  "type": "object",
-                  "properties": {
-                    "display_name": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
         "adjust_probability_event": {
           "type": "object",
           "properties": {
@@ -372,6 +320,123 @@
                     }
                   },
                   "required": [],
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "release_slot": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "schedule_event": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "icon": {
+              "type": "string"
+            },
+            "engine_key": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "display_name": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "date_mode": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "offset": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "weekday": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "day_source": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "execution_mode": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "priority": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    }
+                  },
                   "additionalProperties": false
                 }
               },
@@ -482,10 +547,10 @@
               "$ref": "#/$defs/target_variable_operation"
             },
             {
-              "$ref": "#/$defs/flow_control_task"
+              "$ref": "#/$defs/adjust_probability_event"
             },
             {
-              "$ref": "#/$defs/adjust_probability_event"
+              "$ref": "#/$defs/schedule_event"
             }
           ]
         }
@@ -618,6 +683,33 @@
           },
           "uniqueItems": true,
           "description": "Editor-only labels. No leading or trailing whitespace. Not exported to runtime."
+        },
+        "slot_releases": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/slot_release"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "purposes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "main",
+              "overlay",
+              "interrupt"
+            ]
+          },
+          "default": [
+            "main"
+          ]
         }
       },
       "additionalProperties": false,
@@ -1892,9 +1984,6 @@
             },
             {
               "$ref": "#/$defs/scoped_target_variable_operation"
-            },
-            {
-              "$ref": "#/$defs/flow_control_task"
             }
           ]
         }
@@ -2285,13 +2374,13 @@
           "$ref": "#/$defs/scoped_target_variable_operation"
         },
         {
-          "$ref": "#/$defs/flow_control_task"
-        },
-        {
           "$ref": "#/$defs/scoped_task_macro_use"
         },
         {
           "$ref": "#/$defs/adjust_probability_event"
+        },
+        {
+          "$ref": "#/$defs/scoped_schedule_event"
         }
       ]
     },
@@ -2550,16 +2639,47 @@
             },
             "kind": {
               "const": "once"
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2650,18 +2770,49 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 9007199254740991
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority",
             "end",
             "interval_days"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2757,51 +2908,52 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 9007199254740991
+            },
+            "execution_mode": {
+              "enum": [
+                "overlay",
+                "interrupt_main",
+                "interrupt_lower"
+              ]
+            },
+            "day_source": {
+              "$ref": "#/$defs/event_day_source"
             }
           },
           "required": [
             "id",
             "kind",
-            "day_schedule_id",
             "start",
             "priority",
             "end",
             "probability_percent",
             "cooldown_days"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "day_schedule_id"
+              ],
+              "not": {
+                "required": [
+                  "day_source"
+                ]
+              }
+            },
+            {
+              "required": [
+                "day_source"
+              ],
+              "not": {
+                "required": [
+                  "day_schedule_id"
+                ]
+              }
+            }
+          ]
         }
       ]
-    },
-    "flow_control_task": {
-      "type": "object",
-      "properties": {
-        "builtin": {
-          "const": "schedule_takeover"
-        },
-        "condition": {
-          "$ref": "#/$defs/scoped_condition"
-        },
-        "scope": {
-          "enum": [
-            "slot",
-            "day"
-          ]
-        },
-        "target": {
-          "enum": [
-            "main",
-            "lower_priority"
-          ]
-        }
-      },
-      "required": [
-        "builtin",
-        "condition",
-        "scope",
-        "target"
-      ],
-      "additionalProperties": false
     },
     "task_macro_conditional": {
       "type": "object",
@@ -3208,6 +3360,433 @@
               "required": [
                 "options"
               ]
+            }
+          }
+        }
+      ]
+    },
+    "slot_release": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "release_slot"
+        },
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "builtin"
+      ],
+      "additionalProperties": false
+    },
+    "event_day_source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "random"
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "day_schedule_id": {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "day_schedule_id",
+                  "weight"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "sequential"
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "day_schedule_id": {
+                    "$ref": "#/$defs/uuid"
+                  }
+                },
+                "required": [
+                  "day_schedule_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "schedule_date": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "days"
+            },
+            "offset": {
+              "$ref": "#/$defs/numeric_operand"
+            }
+          },
+          "required": [
+            "mode",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "weeks_weekday"
+            },
+            "offset": {
+              "$ref": "#/$defs/numeric_operand"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "offset",
+            "weekday"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "schedule_event": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "schedule_event"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/schedule_date"
+        },
+        "day_schedule_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "day_source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "random"
+                },
+                "candidates": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day_schedule_id": {
+                        "$ref": "#/$defs/uuid"
+                      },
+                      "weight": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": [
+                      "day_schedule_id",
+                      "weight"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "mode",
+                "candidates"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "execution_mode": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "builtin",
+        "display_name",
+        "date",
+        "execution_mode",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "day_schedule_id"
+          ],
+          "not": {
+            "required": [
+              "day_source"
+            ]
+          }
+        },
+        {
+          "required": [
+            "day_source"
+          ],
+          "not": {
+            "required": [
+              "day_schedule_id"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "enum": [
+                  "interrupt_main",
+                  "interrupt_lower"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "priority": {
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scoped_schedule_date": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "days"
+            },
+            "offset": {
+              "$ref": "#/$defs/scoped_numeric_operand"
+            }
+          },
+          "required": [
+            "mode",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "weeks_weekday"
+            },
+            "offset": {
+              "$ref": "#/$defs/scoped_numeric_operand"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "offset",
+            "weekday"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "scoped_schedule_event": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "schedule_event"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/scoped_schedule_date"
+        },
+        "day_schedule_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "day_source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "random"
+                },
+                "candidates": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day_schedule_id": {
+                        "$ref": "#/$defs/uuid"
+                      },
+                      "weight": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": [
+                      "day_schedule_id",
+                      "weight"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "mode",
+                "candidates"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "execution_mode": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "builtin",
+        "display_name",
+        "date",
+        "execution_mode",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "day_schedule_id"
+          ],
+          "not": {
+            "required": [
+              "day_source"
+            ]
+          }
+        },
+        {
+          "required": [
+            "day_source"
+          ],
+          "not": {
+            "required": [
+              "day_schedule_id"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "enum": [
+                  "interrupt_main",
+                  "interrupt_lower"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "priority": {
+                "minimum": 0
+              }
             }
           }
         }

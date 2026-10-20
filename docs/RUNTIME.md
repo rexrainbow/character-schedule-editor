@@ -82,7 +82,7 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 
 [任務巨集](./TASK_MACROS.md) 的 sequence、branch、priority 均可附 `eligibility: Condition`，省略表示無限制。直接呼叫巨集時先求值引數及資格條件，再執行內容。優先候選的 candidates 可引用任一種巨集；第一個符合資格者直接執行內容，不重複求值資格與引數，不再檢查後續候選；全部不成立時沒有動作。允許巨集互相呼叫，但由來源編譯器拒絕循環。runtime 不再輸出 conditional 模式。
 
-[行程接管](./FLOW_CONTROL_TASKS.md) 輸出 `{task_key, flow_control: "takeover", condition, scope: "slot" | "day", target: "main" | "lower_priority"}`。條件只求值一次；成立時取消指定來源，不成立時退出自身，兩者採相同範圍。目前時段行程與巨集繼續完成。被取消的後續指派不再求值，控制語意不由名稱或 task_key 推測。舊取消指令已移除。
+[中斷與放行](./SLOT_RELEASE.md)：事件容器輸出 `execution_mode`（overlay／interrupt_main／interrupt_lower）。日行程的 `slot_releases` 陣列元素為 null 或 `{task_key, flow_control: "release_slot", condition}`；condition 為 null 表示無條件放行。每個來源先執行時段開始任務，再判斷放行；成立時解除自身阻擋、略過自身主體與結束。下一時段重新建立阻擋；同優先權互不排除。舊 `schedule_takeover`、scope、target 及事件組 takeovers 已移除。
 
 日行程保留 `{display_name, engine_key?, slot_ids: [UUID | null, ...]}`；UUID 引用 `slots`。
 
@@ -99,3 +99,7 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 Schema 驗證 JSON 結構。來源編譯器另檢查引用、型別、循環、ELSE 位置、巨集作用域、寫入權限及每日格數。engine 載入時仍須核對環境是否提供所需 key、型別、寫入能力及任務參數契約。
 
 runtime 匯出不標示專案已儲存、不修改專案資料，也不能透過「匯入專案」載入。環境定義的獨立匯入／匯出見 [ENVIRONMENT.md](./ENVIRONMENT.md)。本格式不包含環境實作；專案已有環境識別資訊時，`environment_requirements.environment` 會附上其 `{id, display_name, version}`，沒有識別資訊的既有專案可省略此欄位。
+
+[事件的多日行程來源與手動模擬選擇](./EVENT_DAY_SOURCES.md)
+
+[流程控制：預約事件](./SCHEDULE_EVENT_TASK.md)

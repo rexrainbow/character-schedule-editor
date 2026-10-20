@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { sequenceEventsFixture, rule } from '../sequenceEventsFixture.js';
 import { compileProject } from '../../src/core/model.js';
-import { eventTooltip } from '../../src/core/sequenceEvents.js';
+import { eventSummary } from '../../src/core/sequenceEvents.js';
 import { translator } from '../../src/i18n/index.js';
 import { navigate } from './navigation.js';
 
 async function load(page) {
   const fixture = sequenceEventsFixture(), { draft, sequence, eventDay } = fixture;
-  sequence.eventGroups = [{ ...rule(sequence, eventDay.id, 0, 20, 7, 5), display_name: 'Supervisor visit' }];
+  sequence.eventGroups = [{ ...rule(sequence, eventDay.id, 0, 20, 7, 5), display_name: 'Supervisor visit', icon: 'tabler:heart' }];
   await page.goto('/'); const compiled = compileProject(draft); expect(compiled.errors).toEqual([]);
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'preview.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compiled.data)) });
   await navigate(page, 'sequences'); return fixture;
@@ -19,7 +19,11 @@ test('event hover reuses day details, preserves event metadata and links directl
   await icon.hover();
   const panel = page.getByRole('dialog', { name: 'Day schedule information', exact: true });
   await expect(panel).toBeVisible();
-  await expect(panel.locator('.event-preview-summary')).toHaveText(eventTooltip(sequence.eventGroups[0], draft.days, translator('en')));
+  await expect(panel.locator('.day-preview-heading')).toHaveText('Supervisor visit');
+  await expect(panel.locator('.day-preview-heading .slot-icon')).toHaveAttribute('data-icon', 'tabler:heart');
+  await expect(panel.locator('.event-preview-summary')).toHaveText(eventSummary(sequence.eventGroups[0], translator('en'), draft.days));
+  await expect(panel.locator('.event-preview-day strong')).toHaveText('Inspection');
+  await expect(panel.getByRole('button', { name: 'Open day schedule', exact: true })).toHaveCount(0);
   await expect(panel).toContainText('Inspection');
   await expect(panel).toContainText('Day start event');
   await expect(panel).toContainText('Inspection task');

@@ -19,10 +19,20 @@ defs.scoped_task_macro_use.properties.arguments.additionalProperties = ref('runt
 defs.runtime_task = obj({ task_key: key, arguments: arr(ref('runtime_argument')) });
 defs.runtime_assignment = obj({ task_key: key, target: { oneOf: [ref('reference_operand'), ref('environment_reference')] }, value: ref('scoped_operand'), random_amplitude: structuredClone(defs.scoped_set_variable.properties.random_amplitude) }, ['task_key', 'target', 'value']);
 defs.runtime_target_operation = obj({ task_key: key, target: { oneOf: [ref('reference_operand'), ref('environment_reference')] } });
-defs.runtime_flow_control = obj({ task_key: key, flow_control: { const: 'takeover' }, condition: ref('scoped_condition'), scope: { enum: ['slot', 'day'] }, target: { enum: ['main', 'lower_priority'] } });
+defs.runtime_flow_control = obj({ task_key: key, flow_control: { const: 'release_slot' }, condition: { oneOf: [ref('condition'), { type: 'null' }] } });
+
+
 defs.runtime_event_adjustment = obj({ task_key: key, event_operation: { const: 'adjust_probability' }, event: ref('event_argument'), property: structuredClone(defs.adjust_probability_event.properties.property), operation: structuredClone(defs.adjust_probability_event.properties.operation), value: ref('scoped_numeric_operand') });
-defs.runtime_action = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('runtime_event_adjustment'), ref('scoped_task_macro_use')] };
-defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_flow_control'), ref('runtime_event_adjustment'), ref('scoped_task_macro_use')] };
+defs.runtime_scheduled_event = structuredClone(defs.scoped_schedule_event);
+delete defs.runtime_scheduled_event.properties.builtin;
+delete defs.runtime_scheduled_event.properties.icon;
+defs.runtime_scheduled_event.required = defs.runtime_scheduled_event.required.filter((key) => key !== 'builtin');
+defs.runtime_scheduled_event.properties.task_key = key;
+defs.runtime_scheduled_event.properties.flow_control = { const: 'schedule_event' };
+defs.runtime_scheduled_event.required.push('task_key', 'flow_control');
+
+defs.runtime_action = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_event_adjustment'), ref('runtime_scheduled_event'), ref('scoped_task_macro_use')] };
+defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_event_adjustment'), ref('runtime_scheduled_event'), ref('scoped_task_macro_use')] };
 defs.runtime_branch = obj({ condition: { oneOf: [ref('scoped_condition'), { type: 'null' }] }, task: ref('runtime_action') });
 defs.runtime_slot = { oneOf: [entity({ branches: arr(ref('runtime_branch')) }, ['branches']), entity({ mode: { const: 'priority' }, candidates: arr(ref('scoped_task_macro_use')) }, ['mode', 'candidates'])] };
 defs.runtime_expression = entity({ value_type: { enum: ['number', 'boolean'] }, definition: ref('computed_definition') }, ['value_type', 'definition']);
@@ -45,6 +55,7 @@ defs.environment_variable_tree.oneOf[1].required.push('engine_key');
 defs.runtime_day = entity({ slot_ids: arr({ oneOf: [ref('uuid'), { type: 'null' }] }) }, ['slot_ids']);
 defs.runtime_day.properties.tags = structuredClone(source.$defs.day_schedule.properties.tags);
 for (const name of ['day_start_slot_id', 'day_end_slot_id', 'slot_events']) defs.runtime_day.properties[name] = structuredClone(source.$defs.day_schedule.properties[name]);
+defs.runtime_day.properties.slot_releases = arr({ oneOf: [ref('runtime_flow_control'), { type: 'null' }] });
 const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 defs.runtime_week = entity({ days: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }, ref('runtime_day')] }]))) }, ['days']);
 defs.runtime_sequence = entity({ start_weekday: { enum: weekdays }, end_weekday: { enum: weekdays }, entries: arr(obj({ week_id: ref('uuid'), day_overrides: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }] }])), []) })) }, ['start_weekday', 'end_weekday', 'entries']);

@@ -19,7 +19,7 @@ async function save(page) { const pending = page.waitForEvent('download'); await
 test('event type drafts, independent icons and canonical output survive type switching', async ({ page }) => {
   const { draft, sequence, group } = fixture(); await load(page, draft); await navigate(page, 'sequences');
   await expect(page.locator('.sequence-event-icon').first().locator('.slot-icon')).toHaveAttribute('data-icon', 'tabler:heart');
-  await expect(page.locator('.sequence-event-icon').first()).toHaveAttribute('title', /Candidate event/);
+  await expect(page.locator('.sequence-event-icon').first()).toHaveClass(/probability-event-candidate/);
   await page.getByRole('button', { name: 'Manage events (1)', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('spinbutton', { name: 'Probability (%)', exact: true }).fill('25');
@@ -37,14 +37,14 @@ test('event type drafts, independent icons and canonical output survive type swi
 test('day simulation defaults to not occurring and uses manual selection without changing project data', async ({ page }) => {
   const { draft, group } = fixture(); await load(page, draft); await switchMode(page, 'simulation');
   await page.getByRole('combobox', { name: 'Simulation target', exact: true }).selectOption('day');
-  const choice = page.getByRole('combobox', { name: 'Occurrence: Cold', exact: true });
-  await expect(choice).toHaveValue('false'); await expect(page.locator('.simulation-day-plan')).not.toContainText('Cold');
-  await choice.selectOption('true'); await expect(page.locator('.simulation-day-plan')).toContainText('Cold');
+  const choice = page.getByRole('checkbox', { name: 'Occurrence: Cold', exact: true });
+  await expect(choice).not.toBeChecked(); await expect(page.locator('.simulation-day-plan')).not.toContainText('Cold');
+  await choice.check(); await expect(page.locator('.simulation-day-plan')).toContainText('Cold');
   await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
   await expect(page.locator('.simulation-trace').first()).toContainText('Cold: Occurs');
   await expect(page.locator('.simulation-trace').first()).toContainText('Inspection task');
   expect(JSON.stringify(await save(page))).not.toContain('probabilityChoices');
-  await choice.selectOption('false'); await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
+  await choice.uncheck(); await page.getByRole('button', { name: 'Run simulation', exact: true }).click();
   await expect(page.locator('.simulation-trace').first()).toContainText('Cold: Does not occur');
   await expect(page.locator('.simulation-trace').first()).not.toContainText('Inspection task');
 });

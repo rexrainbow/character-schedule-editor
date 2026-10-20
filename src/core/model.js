@@ -1,3 +1,5 @@
+import { scheduledEventErrors } from './scheduledEvents.js';
+import { slotReleaseErrors } from './slotRelease.js';
 import { resolveDraftEnums } from './enumParameters.js';
 import { enumTreeErrors, enumReferenceErrors } from './enumDefinitions.js';
 import { eventUsageErrors } from './eventReferences.js';
@@ -163,7 +165,7 @@ export function validateDocument(data, checkEventRefs = true) {
   const { tasks, taskMacros } = resolveDraftEnums(rawEnumDraft);
   errors.push(...taskDefinitionErrors(tasks), ...taskMacroDefinitionErrors(taskMacros), ...taskMacroContentErrors(taskMacros, tasks, nodes));
   if (data?.slots && typeof data.slots === 'object') errors.push(...slotContentErrors(Object.entries(data.slots).filter(([, slot]) => slot && typeof slot === 'object').map(([id, slot]) => ({ ...slot, id })), tasks, nodes, taskMacros));
-  if (!errors.length && checkEventRefs) errors.push(...eventUsageErrors(projectToDraft(data)));
+  if (!errors.length) { const draft = projectToDraft(data); errors.push(...slotReleaseErrors(draft)); if (checkEventRefs) errors.push(...scheduledEventErrors(draft), ...eventUsageErrors(draft)); }
   return errors;
 }
 
@@ -190,7 +192,7 @@ export function createProject() {
 
 export function projectToDraft(data) {
   return { ...(data.environment === undefined ? {} : { environment: clone(data.environment) }), ...(data.builtin_tasks === undefined ? {} : { builtinTasks: clone(data.builtin_tasks) }), project: clone(data.project), enumNodes: clone(data.enum_definitions ?? {}), operandNodes: documentNodes(data), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, macro]) => macroFromData(id, macro)), tasks: Object.entries(data.tasks).map(([id, task]) => ({ ...clone(task), id })), slots: documentToDraft(data),
-    days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slot_ids], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
+    days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slotIds: [...day.slot_ids], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsFromData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) })),
     weeks: Object.entries(data.week_schedules ?? {}).map(([id, week]) => ({ id, name: week.display_name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) })),
@@ -211,7 +213,7 @@ export function compileProject(draft) {
     seen.add(day.id);
   }
   const document = { ...(draft.environment === undefined ? {} : { environment: clone(draft.environment) }), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: clone(draft.builtinTasks) }), ...(Object.keys(draft.enumNodes ?? {}).length ? { enum_definitions: clone(draft.enumNodes) } : {}), task_macros: Object.fromEntries((draft.taskMacros ?? []).map((macro) => [macro.id, macroToData(macro)])), tasks: Object.fromEntries((draft.tasks ?? []).map(({ id, ...task }) => [id, clone(task)])), ...serializeNodes(draft.operandNodes), project: clone(draft.project), slots: data.slots,
-    day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', slot_ids: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
+    day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slot_ids: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsToData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) }])),
     week_schedules: Object.fromEntries((draft.weeks ?? []).map((week) => [week.id, { display_name: week.name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) }])),
@@ -236,11 +238,11 @@ export function compileProject(draft) {
 }
 
 export function createDay(draft, name) {
-  return { id: nextSlotId(draft.days), name, icon: 'tabler:calendar', slotIds: Array(draft.project.settings.slots_per_day).fill(null) };
+  return { id: nextSlotId(draft.days), name, icon: 'tabler:calendar', purposes: ['main'], slotIds: Array(draft.project.settings.slots_per_day).fill(null) };
 }
 
 export function duplicateDay(draft, day) {
-  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', slotIds: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }), ...clone(dayEventsFromData(dayEventsToData(day))) };
+  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slotIds: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }), ...clone(dayEventsFromData(dayEventsToData(day))) };
 }
 
 export function referenceCount(draft, slotId) {
@@ -268,6 +270,6 @@ export function applySlotEdit(draft, slot, dayId, index) {
 }
 
 export function taskSummary(slot, unnamed, tasks = [], taskMacros = [], builtinName = 'Set variable') {
-  const names = typeof builtinName === 'string' ? { set_variable: builtinName, increment_variable: 'Increase value', toggle_variable: 'Toggle boolean', reset_variable: 'Reset initial value', schedule_takeover: 'Schedule takeover' } : builtinName;
+  const names = typeof builtinName === 'string' ? { set_variable: builtinName, increment_variable: 'Increase value', toggle_variable: 'Toggle boolean', reset_variable: 'Reset initial value', release_slot: 'Release this slot' } : builtinName;
   return slotEntries(slot).map(({ entry: branch }) => (branch.task?.builtin ? { display_name: names[branch.task.builtin] } : branch.task?.task_macro_id !== undefined ? taskMacros.find((sequence) => sequence.id === branch.task.task_macro_id) : tasks.find((task) => task.id === branch.task?.task_id))?.display_name || unnamed).join(' / ');
 }

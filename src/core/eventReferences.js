@@ -1,6 +1,7 @@
+import { eventFirstDayId } from './eventDaySource.js';
 export const eventKind = (group) => group.kind ?? (group.interval === 0 ? 'once' : 'periodic');
 export const eventProperties = ['probability_percent', 'cooldown_days', 'cooldown_remaining'];
-export const eventCatalog = (draft) => (draft.sequences ?? []).flatMap((sequence) => (sequence.eventGroups ?? []).map((group) => ({ ...group, kind: eventKind(group), sequenceId: sequence.id, sequenceName: sequence.name, name: group.display_name?.trim() || draft.days.find((day) => day.id === group.dayId)?.name || '', icon: group.icon ?? draft.days.find((day) => day.id === group.dayId)?.icon ?? 'tabler:calendar-event' })));
+export const eventCatalog = (draft) => (draft.sequences ?? []).flatMap((sequence) => (sequence.eventGroups ?? []).map((group) => ({ ...group, kind: eventKind(group), sequenceId: sequence.id, sequenceName: sequence.name, name: group.display_name?.trim() || draft.days.find((day) => day.id === eventFirstDayId(group))?.name || '', icon: group.icon ?? draft.days.find((day) => day.id === eventFirstDayId(group))?.icon ?? 'tabler:calendar-event' })));
 export const eventContractAccepts = (required, supplied) => supplied?.type === 'event_reference' && ((required.event_kind ?? 'any') === 'any' || supplied.event_kind === required.event_kind);
 export function eventReferenceErrors(value, contract = {}, parameters = [], path = '') {
   if (value?.type === 'parameter_reference') return eventContractAccepts(contract, parameters.find((p) => p.id === value.parameter_id)) ? [] : [{ path, key: 'eventReferenceContractMismatch' }];
@@ -31,6 +32,7 @@ export function eventUsageErrors(draft) {
   for (const slot of draft.slots ?? []) walk(slot, `/slots/${slot.id}`);
   for (const macro of draft.taskMacros ?? []) walk(macro, `/task_macros/${macro.id}`, 'any', macro.parameters);
   for (const [id, node] of Object.entries(draft.operandNodes ?? {})) walk(node.definition, `/expression_macros/${id}/definition`);
+  for (const day of draft.days ?? []) walk(day.slotReleases, `/day_schedules/${day.id}/slot_releases`);
   return errors;
 }
 export function eventReferencesTo(draft, ids) {
@@ -40,5 +42,5 @@ export function eventReferencesTo(draft, ids) {
     if (value.type === 'event_reference' && wanted.has(value.event_group_id)) refs.push({ path, id: value.event_group_id });
     for (const [key, child] of Object.entries(value)) walk(child, `${path}/${key}`);
   }
-  walk(draft.slots, '/slots'); walk(draft.taskMacros, '/task_macros'); walk(draft.operandNodes, '/operand_nodes'); return refs;
+  walk(draft.slots, '/slots'); walk(draft.taskMacros, '/task_macros'); walk(draft.operandNodes, '/operand_nodes'); walk(draft.sequences, '/sequences'); walk(draft.days, '/days'); return refs;
 }

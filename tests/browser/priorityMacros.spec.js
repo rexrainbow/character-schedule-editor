@@ -35,16 +35,16 @@ test('priority editor filters candidates, reorders and duplicates calls, and ope
 });
 
 test('new conditional tasks and priority lists use shared task controls and persist complete data', async ({ page }) => {
-  const { priority } = await load(page);
+  const { priority, unsafe } = await load(page);
   await page.getByRole('button', { name: 'Add task macro', exact: true }).click();
   await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Always override');
   await page.locator('.macro-eligibility summary').click();
   await page.getByRole('button', { name: 'Set eligibility condition', exact: true }).click();
   await page.getByRole('button', { name: 'Add step', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:schedule_takeover');
-  await expect(page.locator('.task-step')).toContainText('Evaluate the condition once.');
+  await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption(`macro:${unsafe.id}`);
+  await expect(page.locator('.task-step')).toContainText('Unsafe later candidate');
   const project = await save(page), [id, gate] = Object.entries(project.task_macros).find(([, item]) => item.display_name === 'Always override');
-  expect(gate.mode).toBe('sequence'); expect(gate.steps[0].task).toEqual({ builtin: 'schedule_takeover', condition: { kind: 'comparison', comparator: '==', operand_a: { type: 'constant', value: true }, operand_b: { type: 'constant', value: true } }, scope: 'day', target: 'main' });
+  expect(gate.mode).toBe('sequence'); expect(gate.steps[0].task).toEqual({ task_macro_id: unsafe.id, arguments: {} });
   await selectPriority(page); await page.getByRole('button', { name: 'Add candidate', exact: true }).last().click();
   await candidate(page, 4).getByRole('combobox', { name: 'Task', exact: true }).selectOption(`macro:${id}`);
   const saved = await save(page); expect(saved.task_macros[priority.id].candidates[3].task).toEqual({ task_macro_id: id, arguments: {} });
