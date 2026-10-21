@@ -63,7 +63,7 @@ test('legacy conditional imports migrate to an eligible sequence with one step a
   const before = structuredClone(data); assert.deepEqual(validateDocument(data), []);
   const loaded = projectToDraft(data), macro = loaded.taskMacros.find((item) => item.id === eligible.id);
   assert.equal(macro.mode, 'sequence'); assert.deepEqual(macro.eligibility, eligibility); assert.deepEqual(macro.steps[0].task, steps[0].task);
-  assert.deepEqual(macro.parameters, eligible.parameters); assert.deepEqual(data, before);
+  assert.deepEqual(macro.parameters.map(({symbol, ...p}) => p), eligible.parameters); assert.deepEqual(data, before);
   const exported = compileProject(loaded); assert.deepEqual(exported.errors, []); assert.equal(exported.data.task_macros[eligible.id].condition, undefined);
   assert.equal(exported.data.task_macros[eligible.id].mode, 'sequence');
   const result = simulateSlot(loaded, slot.id); assert.deepEqual(result.errors, []); assert.equal(result.state[number], 15);

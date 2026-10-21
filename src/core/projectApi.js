@@ -1,3 +1,4 @@
+import { normalizeSymbols, symbolErrors } from './symbols.js';
 import { scheduledDayReferences } from './scheduledEvents.js';
 import { eventDayIds } from './eventDaySource.js';
 import { slotReleaseErrors, slotReleaseReferences } from './slotRelease.js';
@@ -21,6 +22,7 @@ import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { translator } from '../i18n/index.js';
 import { compileReport } from './reportModel.js';
 import { dayUses, matchesDayUse } from './dayUses.js';
+import { exportBlueprint, importBlueprint } from './blueprint/index.js';
 
 const clone = (value) => structuredClone(value);
 function freeze(value) {
@@ -127,26 +129,28 @@ function transitionErrors(before, after, mode) {
 export function createProjectSession(initial = createProject(), { mode = 'user', validation = 'strict', t = translator('en') } = {}) {
   if (!['user', 'environment', 'simulation', 'all'].includes(mode)) throw new Error('invalidProjectMode');
   if (!['strict', 'draft'].includes(validation)) throw new Error('invalidProjectValidation');
-  let snapshot = freeze(clone(initial)), currentMode = mode, revision = 0, batching = false, failures = [], changes = [];
+  let snapshot = freeze(normalizeSymbols(initial)), currentMode = mode, revision = 0, batching = false, failures = [], changes = [];
   const listeners = new Set();
   function publish() { for (const listener of [...listeners]) { try { listener(); } catch { /* A view cannot invalidate a completed edit. */ } } }
   function validationErrors(next) { try { return compileProject(next).errors; } catch (error) { return [issue('invalidProjectStructure', '', { detail: error.message })]; } }
   function warnings(next) {
     const entries = engineKeyEntries(next);
-    return entries.filter((entry) => engineKeyConflicts(entries, entry.kind, entry.id, entry.key).length).map((entry) => issue('duplicateEngineKey', entry.path ?? `/${entry.kind}/${entry.id}/engine_key`, { objectId: entry.id, value: entry.key }));
+    return entries.filter((entry) => engineKeyConflicts(entries, entry.kind, entry.id, entry.key).length).map((entry) => issue('duplicateEngineKey', entry.path ?? `/${entry.kind}/${entry.id}/symbol`, { objectId: entry.id, value: entry.key }));
   }
   function result(ok, value, errors = []) {
+    if (ok && value?.id) value = [...snapshot.slots, ...snapshot.days, ...snapshot.weeks, ...snapshot.sequences, ...snapshot.tasks, ...snapshot.taskMacros, ...snapshot.tasks.flatMap((item) => item.parameters ?? []), ...snapshot.taskMacros.flatMap((item) => item.parameters ?? []), ...snapshot.sequences.flatMap((item) => item.eventGroups ?? []), ...Object.entries(snapshot.operandNodes).map(([id, item]) => ({ ...item, id })), ...Object.entries(snapshot.enumNodes).map(([id, item]) => ({ ...item, id }))].find((item) => item.id === value.id) ?? value;
     errors = errors.map((error) => ({ ...error, code: error.code ?? error.key }));
     return { ok, value: clone(value), id: value?.id, draft: snapshot, nodes: snapshot.operandNodes, errors, blocked: ok ? [] : errors.flatMap((error) => error.references ?? [error]), warnings: ok ? warnings(snapshot) : [] };
   }
   function apply(action, transform, policyMode = currentMode) {
     try {
-      const { draft: next, value } = transform(snapshot);
+      const transformed = transform(snapshot);
+      const next = normalizeSymbols(transformed.draft), value = transformed.value;
       checkShape(next);
       const errors = batching ? [] : [...transitionErrors(snapshot, next, policyMode), ...(validation === 'strict' ? validationErrors(next) : [])];
       if (errors.length) { if (batching) failures.push(...errors); return result(false, null, errors); }
       if (!equal(snapshot, next)) {
-        snapshot = freeze(clone(next)); changes.push({ action, objectId: value?.id });
+        snapshot = freeze(normalizeSymbols(next)); changes.push({ action, objectId: value?.id });
         if (!batching) { revision++; publish(); }
       }
       return result(true, value);
@@ -239,11 +243,16 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       if (batching) return apply('project.loadDocument', () => ({ draft: projectToDraft(data) }));
       snapshot = freeze(projectToDraft(data)); changes = []; revision++; publish(); return result(true);
     },
-    reset: (draft = createProject()) => { if (batching) return apply('project.reset', () => ({ draft })); const errors = validation === 'strict' ? validationErrors(draft) : []; if (errors.length) return result(false, null, errors); snapshot = freeze(clone(draft)); changes = []; revision++; publish(); return result(true); },
+    reset: (draft = createProject()) => { if (batching) return apply('project.reset', () => ({ draft })); const errors = validation === 'strict' ? validationErrors(draft) : []; if (errors.length) return result(false, null, errors); snapshot = freeze(normalizeSymbols(draft)); changes = []; revision++; publish(); return result(true); },
     toDocument: () => compileProject(snapshot),
     exportRuntime: () => compileRuntime(snapshot, t),
     exportEnvironment: () => compileEnvironment(snapshot),
     exportReport: (options = {}) => compileReport(snapshot, { ...options, t }),
+    exportBlueprint: () => exportBlueprint(snapshot),
+    importBlueprint: (text) => {
+      const compiled = importBlueprint(text);
+      return compiled.errors.length ? result(false, null, compiled.errors) : api.loadDocument(compiled.data);
+    },
     transaction: (callback, { validate = true } = {}) => {
       if (batching) { const errors = [issue('nestedProjectTransaction')]; failures.push(...errors); return result(false, null, errors); }
       if (callback.constructor?.name === 'AsyncFunction') return result(false, null, [issue('asyncProjectTransaction')]);
@@ -316,7 +325,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       normalized: (groups) => groups.map((group) => ({ ...clone(group), display_name: eventGroupName(group, snapshot.days) })),
       duplicateDraft: (group) => duplicateEventGroup(group, snapshot.days),
       moveStartDraft: (group, date) => changeEventStart(group, date),
-      changeKindDraft: (group, kind, saved) => ({ ...clone(group), ...clone(saved ?? {}), kind, executionMode: group.executionMode ?? 'overlay', id: group.id, icon: group.icon, display_name: group.display_name, engine_key: group.engine_key, dayId: group.dayId, sourceMode: group.sourceMode, dayCandidates: clone(group.dayCandidates), priority: group.priority, start: clone(group.start), end: kind === 'once' ? clone(group.start) : saved?.end ?? positionDate(Math.max(datePosition(group.start), sequenceRange(requireItem(snapshot.sequences, id, '/sequences')).end)), interval: kind === 'once' ? 0 : saved?.interval || 1, countFilter: saved?.countFilter ?? { kind: 'all' }, ...(kind === 'probability' ? { probability_percent: saved?.probability_percent ?? 10, cooldown_days: saved?.cooldown_days ?? 7 } : {}) }),
+      changeKindDraft: (group, kind, saved) => ({ ...clone(group), ...clone(saved ?? {}), kind, executionMode: group.executionMode ?? 'overlay', id: group.id, icon: group.icon, description: group.description, display_name: group.display_name, symbol: group.symbol, dayId: group.dayId, sourceMode: group.sourceMode, dayCandidates: clone(group.dayCandidates), priority: group.priority, start: clone(group.start), end: kind === 'once' ? clone(group.start) : saved?.end ?? positionDate(Math.max(datePosition(group.start), sequenceRange(requireItem(snapshot.sequences, id, '/sequences')).end)), interval: kind === 'once' ? 0 : saved?.interval || 1, countFilter: saved?.countFilter ?? { kind: 'all' }, ...(kind === 'probability' ? { probability_percent: saved?.probability_percent ?? 10, cooldown_days: saved?.cooldown_days ?? 7 } : {}) }),
     };
   };
   api.variables = nodeCollection(); api.expressions = nodeCollection(true);
@@ -328,7 +337,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
     list: () => builtinTaskDefinitions(snapshot.builtinTasks, t),
     update: (id, patch) => apply('tasks.builtins.update', (draft) => {
       const current = requireItem(builtinTaskDefinitions(draft.builtinTasks, t), id, '/builtin_tasks');
-      const structural = (parameters) => parameters.map(({ display_name, ...p }) => p);
+      const structural = (parameters) => parameters.map(({ display_name, symbol, description, ...p }) => p);
       if (patch.parameters && !equal(structural(current.parameters), structural(patch.parameters))) fail('protectedProjectField', `/builtin_tasks/${id}/parameters`);
       return { draft: { ...draft, builtinTasks: changeBuiltinDefinition(draft.builtinTasks, current, { ...current, ...clone(patch) }) } };
     }),

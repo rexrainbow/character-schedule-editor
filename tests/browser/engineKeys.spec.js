@@ -19,7 +19,7 @@ test('cross-type key warnings permit export, copies clear keys, and modal Back d
   await expect(page.locator('.engine-key-field .engine-key-warning')).toBeVisible();
   await expect(page.locator('.engine-key-field .engine-key-warning')).toHaveAttribute('title', /Days:/);
   const saved = await exported(page);
-  expect(Object.values(saved.tasks).some((task) => task.engine_key === 'workday')).toBe(true);
+  expect(Object.values(saved.tasks).some((task) => task.symbol === 'workday')).toBe(true);
   await page.getByRole('button', { name: 'Task actions', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Duplicate task', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Engine key', exact: true })).toHaveValue('');
@@ -31,7 +31,7 @@ test('cross-type key warnings permit export, copies clear keys, and modal Back d
   await expect(dialog.locator('.engine-key-warning')).toBeVisible();
   await dialog.getByRole('button', { name: 'Back', exact: true }).click();
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  expect(Object.values((await exported(page)).slots).some((slot) => slot.engine_key === 'workday')).toBe(false);
+  expect(Object.values((await exported(page)).slots).some((slot) => slot.symbol === 'workday')).toBe(false);
   expect(errors).toEqual([]);
 });
 

@@ -96,7 +96,7 @@ test('import rejects cycles, invalid parents, names, orders, references, types a
   for (const [mutate, key] of cases) { const data = structuredClone(example); mutate(data); assert.ok(validateDocument(data).some((e) => e.key === key && e.path.startsWith('/'))); }
   const old = structuredClone(example); Object.values(old.slots)[0].branches[0].condition = { kind: 'comparison', opA: 'a', operator: '==', opB: 'b' };
   assert.ok(validateDocument(old).length);
-  const names = structuredClone(example); const siblings = childrenOf(names.operand_nodes, root); names.operand_nodes[siblings[0][0]].display_name = siblings[1][1].display_name;
+  const names = structuredClone(example); const siblings = childrenOf(names.operand_nodes, root); names.operand_nodes[siblings[0][0]].name = siblings[1][1].name;
   assert.ok(validateDocument(names).filter((e) => e.key === 'duplicateNodeName').length >= 2);
 });
 

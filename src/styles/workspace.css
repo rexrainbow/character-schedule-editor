@@ -637,3 +637,12 @@ body { min-width: 360px; font-size: 15px; }
   .day-use-group>summary { padding: 2px 4px 6px; }
   .day-use-chips { max-width: 210px; }
 }
+
+.name-with-icon > * { order: 2; }
+.name-with-icon > :first-child { order: 0; }
+.name-with-icon > .engine-key-field { order: 1; }
+
+.event-identity-row > :first-child { order: 0; }
+.event-identity-row > label { order: 2; }
+.event-identity-row > .event-engine-field { order: 1; }
+@media (max-width: 720px) { .app-header .export-button > svg:last-child { display: none; } }

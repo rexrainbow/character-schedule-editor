@@ -10,12 +10,12 @@ export function builtinVariableFixture() {
   const root = result.id;
   const add = (name, type, scope = 'environment', readOnly = false) => {
     result = addOperandNode(result.nodes, scope === 'environment' ? root : null, 'value', name, scope);
-    result.nodes[result.id] = { ...result.nodes[result.id], value_type: type, initial_value: type === 'boolean' ? true : type === 'string' ? 'Start' : 10, read_only: readOnly, engine_key: name };
+    result.nodes[result.id] = { ...result.nodes[result.id], value_type: type, initial_value: type === 'boolean' ? true : type === 'string' ? 'Start' : 10, read_only: readOnly, symbol: name };
     return result.id;
   };
   const number = add('Counter', 'number'), boolean = add('Enabled', 'boolean'), text = add('Message', 'string', 'application'), readonly = add('Readonly', 'number', 'environment', true);
   draft.operandNodes = result.nodes;
-  draft.builtinTasks = Object.fromEntries(['increment_variable', 'toggle_variable', 'reset_variable'].map((kind) => [kind, { engine_key: 'engine.' + kind }]));
+  draft.builtinTasks = Object.fromEntries(['increment_variable', 'toggle_variable', 'reset_variable'].map((kind) => [kind, { symbol: 'engine_' + kind }]));
   const actions = [
     { builtin: 'increment_variable', target_variable_id: number, value: { type: 'constant', value: -2 } },
     { builtin: 'toggle_variable', target_variable_id: boolean },

@@ -11,5 +11,5 @@ export function EngineKeyWarning({ kind, id, value, t }) {
 }
 export default function EngineKeyField({ kind, item, onChange, t }) {
   const id = useId();
-  return <label className="engine-key-field" htmlFor={id}><span className="sr-only">{t('engineKey')}</span><input id={id} aria-label={t('engineKey')} title={t('engineKey')} placeholder={t('engineKeyPlaceholder')} value={item.engine_key ?? ''} onChange={(event) => onChange(event.target.value)} spellCheck={false} /><EngineKeyWarning kind={kind} id={item.id} value={item.engine_key} t={t} /></label>;
+  return <label className="engine-key-field" htmlFor={id}><span className="sr-only">{t('engineKey')}</span><input id={id} aria-label={t('engineKey')} title={t('engineKey')} placeholder={t('engineKeyPlaceholder')} value={item.symbol ?? ''} onChange={(event) => onChange(event.target.value)} required pattern="[A-Za-z_][A-Za-z0-9_]*" aria-invalid={!/^[A-Za-z_][A-Za-z0-9_]*$/.test(item.symbol ?? '')} spellCheck={false} /><EngineKeyWarning kind={kind} id={item.id} value={item.symbol} t={t} /></label>;
 }

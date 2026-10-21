@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { showAllDayPurposes } from './dayOptions.js';
 import { openDayOptions, closeDayOptions } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
@@ -42,7 +43,7 @@ test('day tags trim input, prevent duplicates, filter with names and survive cop
   expect(data.day_schedules[main.id].tags).toEqual(['Main', 'Work', 'Custom', 'Event']); expect(copy.tags).toEqual(data.day_schedules[main.id].tags);
   await page.getByRole('button', { name: 'Remove tag: Custom', exact: true }).click();
   const changed = await save(page); expect(changed.day_schedules[main.id].tags).toContain('Custom');
-  const runtimePending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const runtimePending = page.waitForEvent('download'); await exportRuntime(page);
   const runtime = JSON.parse(await readFile(await (await runtimePending).path(), 'utf8')); expect(runtime.days[main.id].tags).toContain('Custom');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'reload.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(changed)) });
   await openDayOptions(page);

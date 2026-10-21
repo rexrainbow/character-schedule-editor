@@ -1,3 +1,4 @@
+import { namedData } from '../src/core/symbols.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { builtinVariableDefinition, changeBuiltinDefinition } from '../src/gui/hooks/builtinTasks.js';
@@ -21,7 +22,7 @@ test('new variable builtins retain fixed contracts and editable metadata across 
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const environment = compileEnvironment(draft); assert.deepEqual(environment.errors, []);
-  assert.deepEqual(environment.data.builtin_tasks, draft.builtinTasks);
+  assert.deepEqual(environment.data.builtin_tasks, namedData(draft.builtinTasks));
   environment.data.builtin_tasks.toggle_variable.parameters.value = { display_name: 'Invalid' };
   assert.ok(prepareEnvironmentImport(draft, environment.data).errors.length);
   assert.equal(taskSummary(draft.slots[1], '?', [], [], { toggle_variable: 'Switch' }), 'Switch');
@@ -32,15 +33,15 @@ test('runtime variable operations preserve keys, targets, expressions and accura
   const before = structuredClone(draft), result = compileRuntime(draft); assert.deepEqual(result.errors, []);
   assert.deepEqual(draft, before); assert.deepEqual(validateRuntimeDocument(result.data), []);
   const calls = Object.values(result.data.slots).map((slot) => slot.branches[0].task);
-  assert.deepEqual(calls[0], { task_key: 'engine.increment_variable', target: { type: 'environment_reference', engine_key: 'Counter' }, value: { type: 'constant', value: -2 } });
-  assert.deepEqual(calls[1], { task_key: 'engine.toggle_variable', target: { type: 'environment_reference', engine_key: 'Enabled' } });
-  assert.deepEqual(calls[2], { task_key: 'engine.reset_variable', target: { type: 'reference', reference_id: text } });
+  assert.deepEqual(calls[0], { task_key: 'engine_increment_variable', target: { type: 'environment_reference', name: 'Counter' }, value: { type: 'constant', value: -2 } });
+  assert.deepEqual(calls[1], { task_key: 'engine_toggle_variable', target: { type: 'environment_reference', name: 'Enabled' } });
+  assert.deepEqual(calls[2], { task_key: 'engine_reset_variable', target: { type: 'reference', reference_id: text } });
   assert.equal(result.data.task_macros[sequence.id].steps[0].value.type, 'parameter_reference');
   assert.ok(result.data.environment_requirements.variables.every((item) => item.access === 'read_write'));
-  const increment = result.data.environment_requirements.tasks.find((item) => item.engine_key === 'engine.increment_variable');
+  const increment = result.data.environment_requirements.tasks.find((item) => item.name === 'engine_increment_variable');
   assert.equal(increment.parameters[0].value_type, 'number'); assert.equal(increment.parameters[1].type, 'number');
-  delete draft.builtinTasks.toggle_variable.engine_key;
-  assert.ok(compileRuntime(draft).errors.some((error) => error.path === '/builtin_tasks/toggle_variable/engine_key'));
+  draft.builtinTasks.toggle_variable.symbol = '';
+  assert.ok(compileRuntime(draft).errors.some((error) => error.key === 'invalidSymbol'));
 });
 
 test('all builtin targets protect type, write permissions and deletion, including macro-only uses', () => {

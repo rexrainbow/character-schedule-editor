@@ -37,8 +37,8 @@ async function open(page, live) {
 test('one GUI shares edits in both directions with a real MCP stdio bridge and preserves navigation', async ({ page, live }) => {
   await open(page, live);
   await page.getByRole('textbox', { name: 'Day name', exact: true }).fill('GUI workday');
-  await expect.poll(async () => (await live.call('project_query', { command: { object: 'days', action: 'get', id: live.main.id } })).value.name).toBe('GUI workday');
-  expect((await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { name: 'Agent workday' } })).ok).toBe(true);
+  await expect.poll(async () => (await live.call('project_query', { command: { object: 'days', action: 'get', id: live.main.id } })).value.display_name).toBe('GUI workday');
+  expect((await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { display_name: 'Agent workday' } })).ok).toBe(true);
   await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('Agent workday');
   await navigate(page, 'slots');
   await page.getByRole('textbox', { name: translator('en')('search'), exact: true }).fill('Inspection');
@@ -51,12 +51,44 @@ test('one GUI shares edits in both directions with a real MCP stdio bridge and p
   await page.screenshot({ path: 'test-results/live-sync-desktop.png' });
 });
 
+test('MCP YAML preview leaves the GUI intact and importing rebuilds its shared project', async ({ page, live }) => {
+  await open(page, live);
+  const yaml = await readFile(new URL('../../docs/recipes/examples/life-simulation.yaml', import.meta.url), 'utf8');
+  const before = await live.call('project_status');
+  expect((await live.call('project_import_yaml', { yaml, preview: true })).revision).toBe(before.revision);
+  await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('Workday');
+  const result = await live.call('project_import_yaml', { yaml, expectedRevision: before.revision });
+  expect(result.ok).toBe(true);
+  await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('工作日');
+  const exported = await live.call('project_export', { format: 'yaml' });
+  expect(exported.ok).toBe(true); expect(exported.value).toContain('生活與薪資測試');
+});
+
+test('GUI file import and server open accept YAML into the shared project', async ({ page, live }) => {
+  await open(page, live);
+  const yaml = await readFile(new URL('../../docs/recipes/examples/life-simulation.yaml', import.meta.url), 'utf8');
+  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'life.yaml', mimeType: 'application/yaml', buffer: Buffer.from(yaml) });
+  await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('工作日');
+  const imported = await live.call('project_status'); expect(imported.dirty).toBe(true); expect(imported.file).toBe(null);
+  const updated = yaml.replace('生活與薪資測試', 'Server YAML');
+  await writeFile(join(live.root, 'blueprint.yml'), updated);
+  await page.getByRole('button', { name: 'Project menu', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Open server project', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('YAML / YML');
+  await dialog.getByRole('textbox', { name: 'Project file path', exact: true }).fill('blueprint.yml');
+  page.once('dialog', (confirmation) => confirmation.accept());
+  await dialog.getByRole('button', { name: 'Open server project', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Server YAML', exact: true })).toBeVisible();
+  expect((await live.call('project_export', { format: 'project' })).value.project.name).toBe('Server YAML');
+});
+
 test('remote updates retain modal inputs; stale apply stays local and can be exported before reload', async ({ page, live }) => {
   await open(page, live); await page.getByRole('button', { name: 'Slot 1', exact: true }).click();
   await page.getByRole('button', { name: 'Create slot', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('textbox', { name: 'Display name', exact: true }).fill('My form draft');
-  expect((await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { name: 'Agent version' } })).ok).toBe(true);
+  expect((await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { display_name: 'Agent version' } })).ok).toBe(true);
   await expect(dialog.locator('.connection-draft-hint')).toContainText('This form is retained');
   await expect(dialog.getByRole('textbox', { name: 'Display name', exact: true })).toHaveValue('My form draft');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
@@ -75,7 +107,7 @@ test('remote updates retain modal inputs; stale apply stays local and can be exp
 
 test('cancelling a held modal receives the latest server version without a conflict', async ({ page, live }) => {
   await open(page, live); await page.getByRole('button', { name: 'Slot 1', exact: true }).click();
-  await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { name: 'Updated while choosing' } });
+  await live.mutate({ object: 'days', action: 'update', id: live.main.id, values: { display_name: 'Updated while choosing' } });
   await expect(page.getByRole('dialog').locator('.connection-draft-hint')).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Day name', exact: true })).toHaveValue('Updated while choosing');

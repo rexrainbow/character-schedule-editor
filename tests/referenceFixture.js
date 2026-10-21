@@ -11,9 +11,9 @@ export function referenceFixture() {
   const root = result.id;
   const add = (parent, name, scope = 'environment') => { result = addOperandNode(result.nodes, parent, 'value', name, scope); return result.id; };
   const counter = add(root, 'counter'), limit = add(root, 'limit'), text = add(root, 'text'), local = add(null, 'Local counter', 'application');
-  result.nodes[counter].engine_key = 'counter'; result.nodes[limit].read_only = true; result.nodes[text].value_type = 'string'; result.nodes[text].initial_value = ''; result.nodes[text].engine_key = 'text'; result.nodes[limit].engine_key = 'limit';
+  result.nodes[counter].symbol = 'counter'; result.nodes[limit].read_only = true; result.nodes[text].value_type = 'string'; result.nodes[text].initial_value = ''; result.nodes[text].symbol = 'text'; result.nodes[limit].symbol = 'limit';
   draft.operandNodes = result.nodes;
-  const task = createTask('Increment variable'); task.engine_key = 'increment_variable';
+  const task = createTask('Increment variable'); task.symbol = 'external_increment_variable';
   const target = { ...createParameter('Target'), type: 'variable_reference', value_type: 'number', access: 'read_write' }, amount = createParameter('Amount');
   task.parameters = [target, amount]; draft.tasks = [task];
   const macro = createTaskMacro('Increase counter');

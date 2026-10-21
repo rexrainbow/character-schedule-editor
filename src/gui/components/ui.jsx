@@ -25,7 +25,7 @@ export function SlotInfo({ slot, t }) {
   const taskMacros = useContext(TaskMacrosContext);
   const builtinDefinitions = useBuiltinTaskDefinitions(t);
   const summary = taskSummary(slot, t('unnamedTask'), tasks, taskMacros, Object.fromEntries(builtinDefinitions.map((item) => [item.id.slice(8), item.display_name])));
-  return <><SlotIcon name={slot.icon} label={t('icon')} /><div className="slot-info-text"><strong title={slot.name}>{slot.name || '—'}</strong><EngineKeyWarning kind="slots" id={slot.id} value={slot.engine_key} t={t} /><span title={summary}>{summary}</span></div></>;
+  return <><SlotIcon name={slot.icon} label={t('icon')} /><div className="slot-info-text"><strong title={slot.name}>{slot.name || '—'}</strong><EngineKeyWarning kind="slots" id={slot.id} value={slot.symbol} t={t} /><span title={summary}>{summary}</span></div></>;
 }
 
 export function SlotCellContent({ slot, t }) {

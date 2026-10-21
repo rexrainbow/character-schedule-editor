@@ -13,9 +13,9 @@ test('command catalog is explicit, serializable and validates command shapes bef
   }
   assert.equal(project.getSnapshot(), original);
   assert.equal(inspectCommand({ object: 'days', action: 'list' }).mutates, false);
-  const day = executeCommand(project, { object: 'days', action: 'create', values: { name: 'Work', purposes: ['main', 'overlay'] } });
+  const day = executeCommand(project, { object: 'days', action: 'create', values: { display_name: 'Work', purposes: ['main', 'overlay'] } });
   assert.equal(day.ok, true); assert.equal(day.draft, undefined); assert.equal(day.nodes, undefined);
-  assert.equal(executeCommand(project, { object: 'days', action: 'get', id: day.id }).value.name, 'Work');
+  assert.equal(executeCommand(project, { object: 'days', action: 'get', id: day.id }).value.display_name, 'Work');
 });
 
 test('atomic commands can create linked objects, roll back invalid references and publish once', () => {
@@ -23,14 +23,14 @@ test('atomic commands can create linked objects, roll back invalid references an
   project.subscribe(() => calls++);
   const result = executeBatch(project, [
     { object: 'days', action: 'create', values: { id: dayId, name: 'Work' } },
-    { object: 'slots', action: 'create', values: { id: slotId, name: 'Work task' } },
+    { object: 'slots', action: 'create', values: { id: slotId, name: 'work_task', display_name: 'Work task' } },
     { object: 'days', action: 'assignSlot', id: dayId, target: 0, slotId },
   ]);
   assert.equal(result.ok, true); assert.equal(project.getRevision(), 1); assert.equal(calls, 1);
   assert.equal(project.days.get(dayId).slotIds[0], slotId);
   const before = project.getSnapshot();
   const failed = executeBatch(project, [
-    { object: 'days', action: 'update', id: dayId, values: { name: 'Lost edit' } },
+    { object: 'days', action: 'update', id: dayId, values: { display_name: 'Lost edit' } },
     { object: 'days', action: 'assignSlot', id: dayId, target: 1, slotId: crypto.randomUUID() },
   ]);
   assert.equal(failed.ok, false); assert.equal(project.getSnapshot(), before); assert.equal(calls, 1);

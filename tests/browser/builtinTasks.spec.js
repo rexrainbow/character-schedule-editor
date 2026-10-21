@@ -32,7 +32,7 @@ test('builtin uses shared task fields, locks structure, and custom labels surviv
   const wait = page.waitForEvent('download'); await exportProject(page);
   const saved = JSON.parse(await readFile(await (await wait).path(), 'utf8'));
   expect(saved.builtin_tasks.set_variable.icon).toBe('tabler:briefcase');
-  expect(saved.builtin_tasks.set_variable.engine_key).toBe('assign_value');
+  expect(saved.builtin_tasks.set_variable.symbol).toBe('assign_value');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'saved.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
   await navigate(page, 'tasks', 'zh-TW');
   await page.locator('.operand-sidebar').getByRole('button', { name: 'Update state', exact: true }).click();

@@ -8,7 +8,7 @@ function fixture() {
   const f = sequenceEventsFixture();
   f.group = { ...rule(f.sequence, f.eventDay.id), kind: 'probability', display_name: 'Cold', icon: 'tabler:heart', probability_percent: 10, cooldown_days: 7 };
   f.sequence.eventGroups = [f.group];
-  f.draft.builtinTasks = { adjust_probability_event: { engine_key: 'events.adjust' } };
+  f.draft.builtinTasks = { adjust_probability_event: { symbol: 'events_adjust' } };
   return f;
 }
 async function load(page, draft) {

@@ -8,7 +8,8 @@ export const datePosition = (date) => (date?.week - 1) * 7 + WEEKDAYS.indexOf(da
 export const positionDate = (position) => ({ week: Math.floor(position / 7) + 1, weekday: WEEKDAYS[((position % 7) + 7) % 7] });
 export function newEventGroup(sequence, position = sequenceRange(sequence).start) {
   const date = positionDate(position);
-  return { id: crypto.randomUUID(), display_name: '', engine_key: '', dayId: '', start: date, end: { ...date }, interval: 0, priority: 0, executionMode: 'overlay', kind: 'once', icon: 'tabler:calendar-event', countFilter: { kind: 'all' } };
+  let symbol = 'event', index = 2; while ((sequence.eventGroups ?? []).some((item) => item.symbol === symbol)) symbol = `event_${index++}`;
+  return { id: crypto.randomUUID(), display_name: '', symbol, _autoSymbol: true, dayId: '', start: date, end: { ...date }, interval: 0, priority: 0, executionMode: 'overlay', kind: 'once', icon: 'tabler:calendar-event', countFilter: { kind: 'all' } };
 }
 export function changeEventStart(group, date) {
   const duration = datePosition(group.end) - datePosition(group.start), position = datePosition(date);
@@ -95,23 +96,25 @@ export function fitEventGroups(sequence) {
   const max = sequence.rows.length * 7;
   return { ...sequence, eventGroups: sequence.eventGroups.filter((group) => datePosition(group.start) < max && datePosition(group.end) < max) };
 }
-export const eventGroupName = (group, days) => (typeof group.display_name === 'string' ? group.display_name.trim() : '') || days.find((day) => day.id === eventFirstDayId(group))?.name || '';
+export const eventGroupName = (group, days) => (typeof group.display_name === 'string' ? group.display_name.trim() : '') || group.symbol || '';
 export function duplicateEventGroup(group, days, rename = true) {
-  const copy = { ...structuredClone(group), id: crypto.randomUUID(), display_name: eventGroupName(group, days) + (rename ? ' (副本)' : '') }; delete copy.engine_key; return copy;
+  const copy = { ...structuredClone(group), id: crypto.randomUUID(), display_name: eventGroupName(group, days) + (rename ? ' (副本)' : '') }; copy.symbol = `${group.symbol ?? 'event'}_copy`; copy._autoSymbol = true; return copy;
 }
 export const eventGroupsToData = (groups, days = [], runtime = false) => groups.map((group) => ({
   execution_mode: eventExecutionMode(group),
-  id: group.id, kind: eventKind(group), display_name: eventGroupName(group, days),
+  ...(!runtime && group.description !== undefined ? { description: group.description } : {}),
+  id: group.id, kind: eventKind(group), display_name: eventGroupName(group, days), ...(group._fallbackValue === undefined ? {} : { _fallbackValue: group._fallbackValue }),
   ...(!runtime ? { icon: group.icon ?? days.find((day) => day.id === eventFirstDayId(group))?.icon ?? 'tabler:calendar-event' } : {}),
-  ...(typeof group.engine_key === 'string' && (!runtime || group.engine_key.trim()) ? { engine_key: runtime ? group.engine_key.trim() : group.engine_key } : {}),
+  ...(typeof group.symbol === 'string' && (!runtime || group.symbol.trim()) ? { symbol: runtime ? group.symbol.trim() : group.symbol } : {}),
   ...eventDaySourceToData(group), start: { week_number: group.start.week, weekday: group.start.weekday }, priority: group.priority,
   ...(eventKind(group) === 'once' ? {} : { end: { week_number: group.end.week, weekday: group.end.weekday }, count_filter: structuredClone(group.countFilter ?? { kind: 'all' }),
     ...(eventKind(group) === 'probability' ? { probability_percent: group.probability_percent, cooldown_days: group.cooldown_days } : { interval_days: group.interval }) }),
 }));
 export const eventGroupsFromData = (groups) => groups.map((group) => ({
   executionMode: group?.execution_mode ?? 'overlay',
+  ...(group?.description === undefined ? {} : { description: group.description }),
   id: group?.id, kind: group?.kind ?? (group?.interval_days === 0 ? 'once' : 'periodic'), icon: group?.icon ?? 'tabler:calendar-event',
-  ...(group?.display_name === undefined ? {} : { display_name: group.display_name }), ...(group?.engine_key === undefined ? {} : { engine_key: group.engine_key }),
+  ...(group?.display_name === undefined ? {} : { display_name: group.display_name }), ...(group?.symbol === undefined ? {} : { symbol: group.symbol }),
   ...eventDaySourceFromData(group), start: { week: group?.start?.week_number, weekday: group?.start?.weekday },
   end: { week: (group?.end ?? group?.start)?.week_number, weekday: (group?.end ?? group?.start)?.weekday }, interval: group?.kind === 'once' ? 0 : group?.interval_days ?? 1,
   countFilter: structuredClone(group?.count_filter ?? { kind: 'all' }), priority: group?.priority,

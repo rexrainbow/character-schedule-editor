@@ -30,7 +30,7 @@ test('empty sequences are valid, UUID-based, and old projects normalize missing 
   const draft = projectToDraft(old); const sequence = createSequence(draft, 'Empty');
   assert.match(sequence.id, idPattern); assert.deepEqual(sequence.rows, []);
   const result = compileProject(withSequence(draft, sequence)); assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.data.week_sequences[sequence.id], { display_name: 'Empty', icon: 'tabler:calendar-stats', start_weekday: 'mon', end_weekday: 'sun', week_schedule_ids: [], day_overrides: [] });
+  assert.deepEqual(result.data.week_sequences[sequence.id], { name: 'Empty', display_name: 'Empty', icon: 'tabler:calendar-stats', start_weekday: 'mon', end_weekday: 'sun', week_schedule_ids: [], day_overrides: [] });
 });
 test('sequence references and explicit null override survive full document round-trip', () => {
   const { draft } = setup(); const compiled = compileProject(draft); check(draft);

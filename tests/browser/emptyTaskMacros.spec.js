@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { createActionSlot as createSlot } from '../slotFixture.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -29,7 +30,7 @@ test('empty macro modes are callable and exportable; branch content can be remov
   const project = await download(page, () => exportProject(page));
   expect(project.task_macros[sequence.id].steps).toEqual([]);
   expect(project.task_macros[branch.id].branches).toEqual([]);
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
+  const runtime = await download(page, () => exportRuntime(page));
   expect(runtime.task_macros[sequence.id].display_name).toBe('Runtime debug');
   expect(runtime.task_macros[sequence.id].steps).toEqual([]);
   expect(runtime.task_macros[branch.id].branches).toEqual([]);

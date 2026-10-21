@@ -1,3 +1,4 @@
+import { normalizeSymbols, namedData, workingData } from './symbols.js';
 import { macroEntries, slotEntries } from './operandModel.js';
 import { translator } from '../i18n/index.js';
 import { addProgressDefinitions } from './progressEnvironment.js';
@@ -13,9 +14,9 @@ import { scopedVariables, isComputed, variableScope, nodeScope, documentNodes, s
 
 const validate = new Ajv2020({ allErrors: true, strict: false, ownProperties: true }).compile(schema);
 export const createEnvironmentInfo = (name = 'New environment') => ({ id: crypto.randomUUID(), display_name: name, version: 'dev' });
-const keyOf = (item) => typeof item?.engine_key === 'string' ? item.engine_key.trim() : '';
+const keyOf = (item) => typeof item?.symbol === 'string' ? item.symbol.trim() : '';
 
-export const environmentNodes = (data) => documentNodes({ operand_nodes: data.operand_nodes, expression_macros: Object.fromEntries(Object.entries(data.expression_macros ?? {}).map(([id, macro]) => [id, { ...macro, scope: 'environment' }])) });
+export const environmentNodes = (data) => documentNodes({ operand_nodes: workingData(data.operand_nodes), expression_macros: Object.fromEntries(Object.entries(data.expression_macros ?? {}).map(([id, macro]) => [id, { ...workingData(macro), scope: 'environment' }])) });
 
 export function validateEnvironment(data) {
   validate(data);
@@ -24,13 +25,15 @@ export function validateEnvironment(data) {
   for (const id of Object.keys(data.expression_macros ?? {})) if (Object.hasOwn(data.operand_nodes, id)) errors.push({ path: `/expression_macros/${id}`, key: 'duplicateId' });
   if (errors.length) return errors;
   for (const [id, node] of Object.entries(data.operand_nodes)) if (variableScope(node) !== 'environment') errors.push({ path: `/operand_nodes/${id}/scope`, key: 'environmentOnly' });
-  errors.push(...validateDocument({ project: { ...createProject().project, settings: data.settings }, slots: {}, day_schedules: {}, ...serializeNodes(environmentNodes(data)), tasks: data.tasks, enum_definitions: data.enum_definitions ?? {}, ...(data.builtin_tasks === undefined ? {} : { builtin_tasks: data.builtin_tasks }) }));
+  errors.push(...validateDocument({ project: { ...createProject().project, settings: data.settings }, slots: {}, day_schedules: {}, ...namedData(serializeNodes(environmentNodes(data))), tasks: data.tasks, enum_definitions: data.enum_definitions ?? {}, ...(data.builtin_tasks === undefined ? {} : { builtin_tasks: data.builtin_tasks }) }));
   return errors;
 }
 
 export function compileEnvironment(draft) {
+  draft = normalizeSymbols(draft);
   const enumNodes = Object.fromEntries(Object.entries(draft.enumNodes ?? {}).filter(([, node]) => enumScope(node) === 'environment'));
-  const data = { ...(Object.keys(enumNodes).length ? { enum_definitions: structuredClone(enumNodes) } : {}), format_version: 1, environment: structuredClone(draft.environment), settings: structuredClone(draft.project.settings), ...serializeNodes(Object.fromEntries(Object.entries(draft.operandNodes).filter(([, node]) => nodeScope(node) === 'environment'))), tasks: Object.fromEntries(draft.tasks.map(({ id, ...task }) => [id, structuredClone(task)])), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: structuredClone(draft.builtinTasks) }) };
+  let data = { ...(Object.keys(enumNodes).length ? { enum_definitions: structuredClone(enumNodes) } : {}), format_version: 1, environment: structuredClone(draft.environment), settings: structuredClone(draft.project.settings), ...serializeNodes(Object.fromEntries(Object.entries(draft.operandNodes).filter(([, node]) => nodeScope(node) === 'environment'))), tasks: Object.fromEntries(draft.tasks.map(({ id, ...task }) => [id, structuredClone(task)])), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: structuredClone(draft.builtinTasks) }) };
+  data = namedData(data);
   const errors = validateEnvironment(data);
   return { data: errors.length ? null : data, errors };
 }
@@ -40,7 +43,7 @@ export function createProjectWithEnvironment(name, count, environment, info = cr
   if (!environment) return { ...base, project: { ...base.project, name, settings: { slots_per_day: count } }, environment: info, operandNodes: addProgressDefinitions({}, count, t) };
   const errors = validateEnvironment(environment);
   if (errors.length) return { errors };
-  return { ...base, environment: structuredClone(environment.environment), enumNodes: structuredClone(environment.enum_definitions ?? {}), project: { ...base.project, name, settings: structuredClone(environment.settings) }, operandNodes: environmentNodes(environment), tasks: Object.entries(environment.tasks).map(([id, task]) => ({ ...structuredClone(task), id })), ...(environment.builtin_tasks === undefined ? {} : { builtinTasks: structuredClone(environment.builtin_tasks) }) };
+  return { ...base, environment: structuredClone(environment.environment), enumNodes: workingData(environment.enum_definitions ?? {}), project: { ...base.project, name, settings: structuredClone(environment.settings) }, operandNodes: environmentNodes(environment), tasks: Object.entries(environment.tasks).map(([id, task]) => ({ ...workingData(task), id })), ...(environment.builtin_tasks === undefined ? {} : { builtinTasks: workingData(environment.builtin_tasks) }) };
 }
 
 // Build a candidate in isolation. Never mutate the currently edited project.
@@ -53,10 +56,10 @@ export function prepareEnvironmentImport(draft, environment) {
   for (const id of Object.keys(environmentNodes(environment))) if (Object.hasOwn(application, id)) errors.push({ path: `/operand_nodes/${id}`, key: 'duplicateId' });
   if (errors.length) return { draft: null, errors, stats };
   const oldNodes = draft.operandNodes, newNodes = environmentNodes(environment);
-  const newTasks = Object.entries(environment.tasks).map(([id, task]) => ({ ...structuredClone(task), id }));
+  const newTasks = Object.entries(environment.tasks).map(([id, task]) => ({ ...workingData(task), id }));
   const sameIdentity = !draft.environment || draft.environment.id === environment.environment.id;
   const variableMap = new Map(), taskMap = new Map(), enumMap = new Map();
-  const oldEnums = draft.enumNodes ?? {}, importedEnums = environment.enum_definitions ?? {};
+  const oldEnums = draft.enumNodes ?? {}, importedEnums = workingData(environment.enum_definitions ?? {});
   const applicationEnums = Object.fromEntries(Object.entries(oldEnums).filter(([, node]) => enumScope(node) === 'application'));
   for (const id of Object.keys(importedEnums)) if (Object.hasOwn(applicationEnums, id)) errors.push({ path: `/enum_definitions/${id}`, key: 'duplicateId' });
   function match(old, id, candidates, path) {

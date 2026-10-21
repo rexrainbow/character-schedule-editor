@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, relative, extname, isAbsolute } from 'node:path';
 import { stringifyWire, parseWire } from '../../core/draftChanges.js';
 
-const methods = ['execute', 'batch', 'status', 'state', 'setMode', 'newProject', 'openProject', 'saveProject', 'exportData', 'guiChanges', 'guiImport'];
+const methods = ['execute', 'batch', 'status', 'state', 'setMode', 'newProject', 'openProject', 'saveProject', 'exportData', 'importBlueprint', 'guiChanges', 'guiImport'];
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.txt': 'text/plain; charset=utf-8', '.ico': 'image/x-icon' };
 
 export async function startWebServer(service, { port = 5175, dist = fileURLToPath(new URL('../../../dist/', import.meta.url)) } = {}) {

@@ -52,7 +52,7 @@ test('GUI edits reach the authoritative service and MCP edits return to the clie
   const added = editProject(client.getSnapshot()).days.create({ name: 'GUI day' }); client.replaceDraft(added.draft);
   assert.equal(await client.flush(), true);
   const state = await service.state(); assert.equal(state.value.days[0].name, 'GUI day');
-  await service.execute({ command: { object: 'days', action: 'update', id: added.id, values: { name: 'Agent day' } }, expectedRevision: state.revision });
+  await service.execute({ command: { object: 'days', action: 'update', id: added.id, values: { display_name: 'Agent day' } }, expectedRevision: state.revision });
   await until(client, (connection) => connection.revision === state.revision + 1);
   assert.equal(client.getSnapshot().days[0].name, 'Agent day');
 });
@@ -88,7 +88,7 @@ test('an open form holds remote updates; a stale edit is retained locally, never
   const added = editProject(client.getSnapshot()).days.create({ name: 'Original' }); client.replaceDraft(added.draft); await client.flush();
   client.setHold(true);
   const revision = (await service.status()).revision;
-  await service.execute({ command: { object: 'days', action: 'update', id: added.id, values: { name: 'Agent edit' } }, expectedRevision: revision });
+  await service.execute({ command: { object: 'days', action: 'update', id: added.id, values: { display_name: 'Agent edit' } }, expectedRevision: revision });
   await until(client, (connection) => connection.remoteUpdates);
   assert.equal(client.getSnapshot().days[0].name, 'Original');
   client.replaceDraft(editProject(client.getSnapshot()).days.update(added.id, { name: 'My form' }).draft);
@@ -102,12 +102,12 @@ test('an open form holds remote updates; a stale edit is retained locally, never
 
 test('unfinished GUI fields are synchronized but block strict MCP edits and saves until fixed', async (t) => {
   const { service, client } = await setup(t);
-  const added = editProject(client.getSnapshot()).days.create({ name: '' }); client.replaceDraft(added.draft);
+  const added = editProject(client.getSnapshot()).days.create({ name: 'Incomplete', symbol: '' }); client.replaceDraft(added.draft);
   assert.equal(await client.flush(), true);
-  assert.equal((await service.state()).value.days[0].name, '');
-  assert.equal((await service.execute({ command: { object: 'days', action: 'create', values: { name: 'Agent' } }, expectedRevision: 1 })).ok, false);
+  assert.equal((await service.state()).value.days[0].symbol, '');
+  assert.equal((await service.execute({ command: { object: 'days', action: 'create', values: { display_name: 'Agent' } }, expectedRevision: 1 })).ok, false);
   assert.equal((await service.saveProject({ path: 'invalid.json', expectedRevision: 1 })).ok, false);
-  client.replaceDraft(editProject(client.getSnapshot()).days.update(added.id, { name: 'Complete' }).draft); await client.flush();
+  client.replaceDraft(editProject(client.getSnapshot()).days.update(added.id, { symbol: 'complete' }).draft); await client.flush();
   assert.equal((await service.saveProject({ path: 'complete.json', expectedRevision: 2 })).ok, true);
 });
 
@@ -145,7 +145,7 @@ test('reconnecting invalidates an older initial snapshot response', async (t) =>
     return fetch(url, options);
   } });
   const stop = client.start(); t.after(stop);
-  const created = await service.execute({ command: { object: 'days', action: 'create', values: { name: 'Latest' } }, expectedRevision: 0 }); assert.equal(created.ok, true);
+  const created = await service.execute({ command: { object: 'days', action: 'create', values: { display_name: 'Latest' } }, expectedRevision: 0 }); assert.equal(created.ok, true);
   assert.equal((await client.reload()).ok, true);
   release(new Response(stringifyWire(oldState)));
   await new Promise((resolve) => setImmediate(resolve));

@@ -19,7 +19,7 @@ export function normalizeTaskMacro(macro) {
 }
 export function macroToData(value) {
   const { id, ...macro } = normalizeTaskMacro(value);
-  return macro.mode === 'branch' ? { ...structuredClone(macro), branches: macro.branches.map(({ condition, task }) => structuredClone({ condition, task })) } : structuredClone(macro);
+  return macro.mode === 'branch' ? { ...structuredClone(macro), branches: macro.branches.map(({ condition, task, description }) => structuredClone({ condition, task, ...(description === undefined ? {} : { description }) })) } : structuredClone(macro);
 }
 export function macroFromData(id, value) {
   const macro = normalizeTaskMacro(value);

@@ -16,7 +16,7 @@ export const progressCandidates = (draft) => Object.entries(draft.operandNodes).
 export function progressBindings(draft, overrides = {}) {
   const candidates = progressCandidates(draft);
   return Object.fromEntries(PROGRESS_ROLES.map((role) => {
-    const matches = candidates.filter(([, node]) => node.engine_key?.trim() === `schedule.${role}`);
+    const matches = candidates.filter(([, node]) => node.symbol?.trim() === `schedule_${role}`);
     return [role, Object.hasOwn(overrides, role) ? overrides[role] : matches.length === 1 ? matches[0][0] : ''];
   }));
 }

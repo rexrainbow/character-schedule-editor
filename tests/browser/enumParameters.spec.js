@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { enumFixture } from '../enumFixture.js';
@@ -40,7 +41,7 @@ test('macro option parameters forward into probability adjustments and can be se
   await page.getByRole('combobox', { name: 'Argument: Property input', exact: true }).selectOption('option:cooldown_days');
   await page.getByRole('combobox', { name: 'Argument: Operation input', exact: true }).selectOption('option:set');
   const data = await save(page); expect(Object.values(data.slots)[0].branches[0].task.arguments[property.id]).toEqual({ type: 'constant', value: 'cooldown_days' });
-  const pending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const pending = page.waitForEvent('download'); await exportRuntime(page);
   const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8'));
   expect(runtime.task_macros[macro.id].steps[0].property).toEqual({ type: 'parameter_reference', parameter_id: property.id });
   await switchMode(page, 'simulation'); await page.getByRole('combobox', { name: 'Simulation target', exact: true }).selectOption('day');

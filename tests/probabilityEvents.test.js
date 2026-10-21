@@ -14,9 +14,9 @@ const t = translator('en');
 const constant = (value) => ({ type: 'constant', value });
 function fixture() {
   const f = sequenceEventsFixture();
-  const group = { ...rule(f.sequence, f.eventDay.id), kind: 'probability', probability_percent: 10, cooldown_days: 7, icon: 'tabler:heart', display_name: 'Cold', engine_key: 'cold' };
+  const group = { ...rule(f.sequence, f.eventDay.id), kind: 'probability', probability_percent: 10, cooldown_days: 7, icon: 'tabler:heart', display_name: 'Cold', symbol: 'cold' };
   f.sequence.eventGroups = [group];
-  f.draft.builtinTasks = { adjust_probability_event: { engine_key: 'events.adjust' } };
+  f.draft.builtinTasks = { adjust_probability_event: { symbol: 'events_adjust' } };
   return { ...f, group };
 }
 const adjust = (value, property = 'probability_percent', operation = 'set', event = { type: 'current_event_reference' }) => ({ builtin: 'adjust_probability_event', event, value: constant(value), property, operation });

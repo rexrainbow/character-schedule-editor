@@ -1,3 +1,4 @@
+import { normalizeSymbols } from '../src/core/symbols.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createProject, compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
@@ -17,15 +18,17 @@ test('variable layers persist independently and cannot move across parents in an
   assert.equal(next[copy.id].order, 0);
   const result = compileProject({ ...createProject(), operandNodes: next });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(projectToDraft(result.data).operandNodes, next);
+  assert.deepEqual(projectToDraft(result.data).operandNodes, normalizeSymbols({operandNodes:next}).operandNodes);
   const invalid = structuredClone(result.data);
   invalid.operand_nodes[copy.id].parent_id = env.id;
   assert.ok(validateDocument(invalid).some((error) => error.key === 'invalidParent'));
 });
 
-test('identical full paths across variable layers are rejected', () => {
+test('display paths may repeat across layers but persistent names may not', () => {
   const env = addOperandNode({}, null, 'value', 'Counter', 'environment');
   const app = addOperandNode(env.nodes, null, 'value', 'Other', 'application');
   app.nodes[app.id].display_name = 'Counter';
-  assert.ok(treeErrors(app.nodes).some((error) => error.key === 'duplicateNodeName'));
+  assert.deepEqual(treeErrors(app.nodes), []);
+  app.nodes[app.id].symbol = env.nodes[env.id].symbol;
+  assert.ok(compileProject({ ...createProject(), operandNodes: app.nodes }).errors.some((error) => error.key === 'duplicateSymbol'));
 });

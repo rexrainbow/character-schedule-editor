@@ -202,3 +202,10 @@ input[readonly] { opacity: .65; cursor: default; }
   .modal { width: calc(100vw - 20px); max-height: calc(100dvh - 24px); }.modal-header { padding: 16px; }.modal-body { padding: 15px; }.modal-footer { padding: 13px; gap: 6px; flex-wrap: wrap; }
   .modal-footer .button { font-size: 11px; padding: 9px 10px; }.modal-footer-right { gap: 6px; }.selector-actions .button { font-size: 11px; }.cell-number { width: 68px; }.cell-content { padding: 12px; gap: 10px; }.day-cells { max-height: 60vh; }
 }
+.description-field { display: flex; flex-direction: column; gap: .35rem; min-width: 0; margin: .6rem 0; font-size: .85rem; color: var(--muted, #9ca3af); }
+.description-field textarea { width: 100%; min-height: 3.6rem; resize: vertical; font: inherit; line-height: 1.45; color: var(--text, #e5e7eb); background: var(--input-bg, #141a24); border: 1px solid var(--border, #374151); border-radius: .4rem; padding: .5rem .65rem; box-sizing: border-box; }
+.parameter-row > .description-field { grid-column: 1 / -1; order: 5; }
+.logic-description-toggle { display: inline-flex; align-items: center; gap: .5rem; }
+.logic-comment { color: #94a3b8; }
+.logic-overview-body .logic-description-toggle { flex-direction: row; justify-content: flex-start; margin-top: .75rem; }
+.logic-overview-body .logic-description-toggle input[type="checkbox"] { width: auto; flex: 0 0 auto; margin: 0; }

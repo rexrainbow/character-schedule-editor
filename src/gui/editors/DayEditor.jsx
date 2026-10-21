@@ -1,3 +1,4 @@
+import DescriptionField from '../components/DescriptionField.jsx';
 import SlotReleaseDialog from '../dialogs/SlotReleaseDialog.jsx';
 import { formatCondition } from '../../core/operandModel.js';
 import EngineKeyField from '../components/EngineKeyField.jsx';
@@ -32,9 +33,9 @@ export default function DayEditor({ day, days = [], slots, nodes = {}, onChange,
   const event = (target) => <EventAssignment day={day} target={target} lookup={lookup} onChoose={onCell} onOpen={open} t={t} />;
   return <div className="day-editor">
     <section className="schedule-titlebar">
-      <div className="schedule-name"><label className="sr-only" htmlFor="day-name">{t('dayName')}</label><div className="name-with-icon"><IconField value={day.icon} onChange={(icon) => onChange({ ...day, icon })} t={t} /><input id="day-name" aria-label={t('dayName')} value={day.name} aria-invalid={!day.name.length} onChange={(e) => onChange({ ...day, name: e.target.value })} /><EngineKeyField kind="days" item={day} onChange={(engine_key) => onChange({ ...day, engine_key })} t={t} /></div><FieldError show={!day.name.length} t={t} /></div>
+      <div className="schedule-name"><label className="sr-only" htmlFor="day-name">{t('dayName')}</label><div className="name-with-icon"><IconField value={day.icon} onChange={(icon) => onChange({ ...day, icon })} t={t} /><input id="day-name" aria-label={t('dayName')} value={day._fallbackValue !== undefined ? '' : day.name} placeholder={day.symbol} onChange={(e) => onChange({ ...day, name: e.target.value })} /><EngineKeyField kind="days" item={day} onChange={(symbol) => onChange({ ...day, symbol })} t={t} /></div></div>
       <ActionMenu label={t('dayActions')} items={[{ label: t('duplicateDay'), icon: Copy, onClick: onDuplicate }, { label: t('deleteDay'), icon: Trash2, danger: true, onClick: onDelete }]} />
-    </section>
+    </section><DescriptionField value={day.description} onChange={(description) => onChange({ ...day, description })} t={t} />
     <DayTagsEditor key={`tags:${day.id}`} day={day} days={days} onChange={onChange} t={t} extra={<DayPurposeEditor day={day} onChange={onChange} t={t} />} />
     <button className="button secondary event-visibility" aria-expanded={showEvents} onClick={() => setShowEvents(!showEvents)}>{showEvents ? <ChevronUp size={15} aria-hidden="true" /> : <ChevronDown size={15} aria-hidden="true" />}{t(showEvents ? 'showConfiguredPositions' : 'showAllPositions')}</button>
     <div className={`day-cells ${showEvents ? '' : 'configured-positions'}`} key={day.id} ref={ref} onScroll={onScroll}>

@@ -1,19 +1,21 @@
 import fs from 'node:fs';
 const source = JSON.parse(fs.readFileSync(new URL('../src/schemas/slots.schema.json', import.meta.url), 'utf8'));
 const defs = structuredClone(source.$defs);
+function stripDescriptions(value) { if (!value || typeof value !== 'object') return; if (value.properties) delete value.properties.description; Object.values(value).forEach(stripDescriptions); }
+stripDescriptions(defs);
 const ref = (name) => ({ $ref: `#/$defs/${name}` });
 const obj = (properties, required = Object.keys(properties)) => ({ type: 'object', properties, required, additionalProperties: false });
 const arr = (items) => ({ type: 'array', items });
 const dictionary = (name) => ({ type: 'object', propertyNames: ref('uuid'), additionalProperties: ref(name) });
-const text = { type: 'string' }, key = { type: 'string', minLength: 1, pattern: '\\S' };
-const metadata = { display_name: text, engine_key: key };
+const text = { type: 'string' }, key = { type: 'string', minLength: 1, pattern: '^[A-Za-z_][A-Za-z0-9_]*$' };
+const metadata = { display_name: text, name: key };
 const entity = (properties, required) => obj({ ...metadata, ...properties }, ['display_name', ...required]);
-defs.environment_reference = obj({ type: { const: 'environment_reference' }, engine_key: key });
+defs.environment_reference = obj({ type: { const: 'environment_reference' }, name: key });
 for (const name of ['operand', 'numeric_operand', 'scoped_operand', 'scoped_numeric_operand']) {
   if (!defs[name]) throw new Error(`Missing shared expression definition ${name}`);
   defs[name].oneOf.push(ref('environment_reference'));
 }
-defs.runtime_variable_reference = { oneOf: [obj({ type: { const: 'variable_reference' }, reference_id: ref('uuid') }), obj({ type: { const: 'variable_reference' }, engine_key: key })] };
+defs.runtime_variable_reference = { oneOf: [obj({ type: { const: 'variable_reference' }, reference_id: ref('uuid') }), obj({ type: { const: 'variable_reference' }, name: key })] };
 defs.runtime_argument = { oneOf: [ref('scoped_operand'), ref('runtime_variable_reference'), ref('event_reference'), ref('current_event_reference')] };
 defs.scoped_task_macro_use.properties.arguments.additionalProperties = ref('runtime_argument');
 defs.runtime_task = obj({ task_key: key, arguments: arr(ref('runtime_argument')) });
@@ -50,7 +52,7 @@ defs.variable_tree = { oneOf: [
 defs.variable_tree.oneOf[1].allOf = structuredClone(defs.value_node.allOf);
 defs.environment_variable_tree = structuredClone(defs.variable_tree);
 defs.environment_variable_tree.oneOf[0].properties.children = arr(ref('environment_variable_tree'));
-defs.environment_variable_tree.oneOf[1].required.push('engine_key');
+defs.environment_variable_tree.oneOf[1].required.push('name');
 
 defs.runtime_day = entity({ slot_ids: arr({ oneOf: [ref('uuid'), { type: 'null' }] }) }, ['slot_ids']);
 defs.runtime_day.properties.tags = structuredClone(source.$defs.day_schedule.properties.tags);
@@ -61,7 +63,7 @@ defs.runtime_week = entity({ days: obj(Object.fromEntries(weekdays.map((day) => 
 defs.runtime_sequence = entity({ start_weekday: { enum: weekdays }, end_weekday: { enum: weekdays }, entries: arr(obj({ week_id: ref('uuid'), day_overrides: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }] }])), []) })) }, ['start_weekday', 'end_weekday', 'entries']);
 defs.runtime_sequence.properties.event_groups = structuredClone(source.$defs.week_sequence.properties.event_groups);
 for (const variant of defs.sequence_event_group.oneOf) {
-  variant.required.push('display_name'); variant.properties.display_name.minLength = 1; variant.properties.engine_key = key; delete variant.properties.icon;
+  variant.required.push('display_name'); variant.properties.display_name.minLength = 0; variant.properties.name = key; delete variant.properties.icon;
 }
 defs.variable_requirement = obj({ ...metadata, value_type: { enum: ['number', 'string', 'boolean'] }, read_only: { type: 'boolean' }, access: { enum: ['read', 'write', 'read_write'] } });
 defs.variable_requirement.properties.integer_only = { type: 'boolean' };
@@ -78,7 +80,7 @@ const schema = { $schema: source.$schema, title: 'Character Schedule Runtime Dat
   environment_variables: arr(ref('environment_variable_tree')), application_variables: arr(ref('variable_tree')), expression_macros: dictionary('runtime_expression'), task_macros: dictionary('runtime_macro'),
   slots: dictionary('runtime_slot'), days: dictionary('runtime_day'), weeks: dictionary('runtime_week'), sequences: dictionary('runtime_sequence'),
   enum_definitions: { type: 'object', propertyNames: ref('uuid'), additionalProperties: entity({ scope: { enum: ['environment', 'application'] }, options: structuredClone(defs.task_parameter.properties.options) }, ['scope', 'options']) },
-  exports: { type: 'object', propertyNames: key, additionalProperties: obj({ kind: { enum: ['operands', 'expressions', 'taskMacros', 'slots', 'days', 'weeks', 'sequences', 'enums'] }, id: ref('uuid') }) },
+  exports: { type: 'object', propertyNames: {type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$'}, additionalProperties: obj({ kind: { enum: ['operands', 'expressions', 'taskMacros', 'slots', 'days', 'weeks', 'sequences', 'enums'] }, id: ref('uuid') }) },
 }) };
 // Keep this standalone schema limited to definitions actually used by runtime data.
 schema.properties.exports.additionalProperties.properties.kind.enum.push('eventGroups');

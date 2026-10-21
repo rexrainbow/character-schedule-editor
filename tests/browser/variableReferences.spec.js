@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { referenceFixture } from '../referenceFixture.js';
@@ -29,7 +30,7 @@ test('typed reference picker filters leaves, cancels drafts and exports an opaqu
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   const project = await download(page, () => exportProject(page));
   expect(project.slots[slot.id].branches[0].task.arguments[target.id]).toEqual({ type: 'variable_reference', reference_id: local });
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
+  const runtime = await download(page, () => exportRuntime(page));
   expect(runtime.slots[slot.id].branches[0].task.arguments[0]).toEqual({ type: 'variable_reference', reference_id: local });
 });
 

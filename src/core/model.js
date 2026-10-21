@@ -1,3 +1,4 @@
+import { normalizeSymbols, symbolErrors, namedData, workingData, newSymbol } from './symbols.js';
 import { scheduledEventErrors } from './scheduledEvents.js';
 import { slotReleaseErrors } from './slotRelease.js';
 import { resolveDraftEnums } from './enumParameters.js';
@@ -22,7 +23,7 @@ export const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-
 export const clone = (value) => structuredClone(value);
 
 export function branchFromData(branch) {
-  return { uid: uid(), condition: clone(branch.condition), task: clone(branch.task ?? { task_id: '', arguments: {} }) };
+  return { uid: uid(), ...(branch.description === undefined ? {} : { description: branch.description }), condition: clone(branch.condition), task: clone(branch.task ?? { task_id: '', arguments: {} }) };
 }
 
 export function documentToDraft(data) {
@@ -38,7 +39,7 @@ export function nextSlotId(slots) {
 }
 
 export function createSlot(slots, name) {
-  return { uid: uid(), id: nextSlotId(slots), name, icon: 'tabler:calendar-event', branches: [] };
+  return { uid: uid(), id: nextSlotId(slots), symbol: newSymbol(slots, name, 'slot'), name, icon: 'tabler:calendar-event', branches: [] };
 }
 
 export function duplicateSlot(slots, slot) {
@@ -70,6 +71,7 @@ export function validateDocument(data, checkEventRefs = true) {
     path: error.instancePath || '/', key: `schema_${error.keyword}`,
     field: error.params.missingProperty ?? error.params.additionalProperty ?? '',
   }));
+  if (!data || typeof data !== 'object') return errors;
   if (data && typeof data.slots === 'object' && !Array.isArray(data.slots) && data.slots) {
     for (const [id, slot] of Object.entries(data.slots)) {
       const branches = slot?.branches;
@@ -154,12 +156,16 @@ export function validateDocument(data, checkEventRefs = true) {
       });
     }
   }
-  const nodes = documentNodes(data);
+  if (Object.values(data.tasks ?? {}).some((item) => !item || !Array.isArray(item.parameters) || item.parameters.some((p) => !p))) return errors;
+  let effective;
+  try { effective = projectToDraft(data); } catch {
+    effective = normalizeSymbols({ operandNodes: documentNodes(workingData(data)), tasks: Object.entries(data.tasks ?? {}).map(([id, item]) => ({ ...workingData(item), id })), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, item]) => ({ ...workingData(item), id })), enumNodes: workingData(data.enum_definitions ?? {}) });
+  }
+  const nodes = effective.operandNodes;
+  errors.push(...symbolErrors(effective));
   for (const id of Object.keys(data?.expression_macros ?? {})) if (Object.hasOwn(data?.operand_nodes ?? {}, id)) errors.push({ path: `/expression_macros/${id}`, key: 'duplicateId' });
   errors.push(...treeErrors(nodes), ...computedErrors(nodes));
-  const rawTasks = data?.tasks && typeof data.tasks === 'object' && !Array.isArray(data.tasks) ? Object.entries(data.tasks).map(([id, task]) => ({ ...task, id })) : [];
-  const rawMacros = data?.task_macros && typeof data.task_macros === 'object' && !Array.isArray(data.task_macros) ? Object.entries(data.task_macros).map(([id, sequence]) => ({ ...sequence, id })) : [];
-  const enumNodes = data?.enum_definitions ?? {};
+  const rawTasks = effective.tasks, rawMacros = effective.taskMacros, enumNodes = effective.enumNodes;
   const rawEnumDraft = { tasks: rawTasks, taskMacros: rawMacros, enumNodes };
   errors.push(...enumTreeErrors(enumNodes), ...enumReferenceErrors(rawEnumDraft));
   const { tasks, taskMacros } = resolveDraftEnums(rawEnumDraft);
@@ -170,6 +176,7 @@ export function validateDocument(data, checkEventRefs = true) {
 }
 
 export function compileDraft(slots, operandNodes = {}, tasks = [], taskMacros = [], enumNodes = {}) {
+  ({ slots, operandNodes, tasks, taskMacros, enumNodes } = normalizeSymbols({ slots, operandNodes, tasks, taskMacros, enumNodes }));
   const errors = [];
   const entries = [];
   const seen = new Set();
@@ -178,11 +185,11 @@ export function compileDraft(slots, operandNodes = {}, tasks = [], taskMacros = 
     if (!idPattern.test(slot.id)) errors.push({ path, key: 'idPattern' });
     if (seen.has(slot.id)) errors.push({ path, key: 'duplicateId' });
     seen.add(slot.id);
-    const branches = (slot.branches ?? []).map((branch) => ({ condition: branch.condition, task: clone(branch.task) }));
+    const branches = (slot.branches ?? []).map((branch) => ({ ...(branch.description === undefined ? {} : { description: branch.description }), condition: branch.condition, task: clone(branch.task) }));
     entries.push([slot.id, { display_name: slot.name, ...engineMetadata(slot), icon: slot.icon, ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: clone(slot.candidates) } : { branches }) }]);
   }
   const data = { slots: Object.fromEntries(entries) };
-  errors.push(...validateDocument({ project: createProject().project, enum_definitions: enumNodes, ...data, day_schedules: {}, ...serializeNodes(operandNodes), tasks: Object.fromEntries(tasks.map(({ id, ...task }) => [id, task])), task_macros: Object.fromEntries(taskMacros.map((macro) => [macro.id, macroToData(macro)])) }, false));
+  errors.push(...validateDocument(namedData({ project: createProject().project, enum_definitions: enumNodes, ...data, day_schedules: {}, ...serializeNodes(operandNodes), tasks: Object.fromEntries(tasks.map(({ id, ...task }) => [id, task])), task_macros: Object.fromEntries(taskMacros.map((macro) => [macro.id, macroToData(macro)])) }), false));
   return { data, errors };
 }
 
@@ -191,7 +198,8 @@ export function createProject() {
 }
 
 export function projectToDraft(data) {
-  return { ...(data.environment === undefined ? {} : { environment: clone(data.environment) }), ...(data.builtin_tasks === undefined ? {} : { builtinTasks: clone(data.builtin_tasks) }), project: clone(data.project), enumNodes: clone(data.enum_definitions ?? {}), operandNodes: documentNodes(data), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, macro]) => macroFromData(id, macro)), tasks: Object.entries(data.tasks).map(([id, task]) => ({ ...clone(task), id })), slots: documentToDraft(data),
+  data = { ...workingData(data), project: clone(data.project) };
+  const draft = { ...(data.environment === undefined ? {} : { environment: clone(data.environment) }), ...(data.builtin_tasks === undefined ? {} : { builtinTasks: clone(data.builtin_tasks) }), project: clone(data.project), enumNodes: clone(data.enum_definitions ?? {}), operandNodes: documentNodes(data), taskMacros: Object.entries(data.task_macros ?? {}).map(([id, macro]) => macroFromData(id, macro)), tasks: Object.entries(data.tasks).map(([id, task]) => ({ ...clone(task), id })), slots: documentToDraft(data),
     days: Object.entries(data.day_schedules).map(([id, day]) => ({ id, name: day.display_name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slotIds: [...day.slot_ids], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsFromData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) })),
@@ -201,9 +209,11 @@ export function projectToDraft(data) {
       ...(sequence.event_groups === undefined ? {} : { eventGroups: eventGroupsFromData(sequence.event_groups) }),
       rows: sequence.week_schedule_ids.map((weekId, index) => ({ uid: uid(), weekId,
         overrides: Object.fromEntries(sequence.day_overrides.filter((item) => item.week_number === index + 1).map((item) => [item.weekday, item.day_schedule_id])) })) })) };
+  return normalizeSymbols(draft);
 }
 
 export function compileProject(draft) {
+  draft = normalizeSymbols(draft);
   const { data, errors } = compileDraft(draft.slots, draft.operandNodes, draft.tasks, draft.taskMacros, draft.enumNodes);
   const resolved = resolveDraftEnums(draft);
   errors.push(...taskDefinitionErrors(resolved.tasks), ...taskMacroDefinitionErrors(resolved.taskMacros));
@@ -212,7 +222,7 @@ export function compileProject(draft) {
     if (seen.has(day.id)) errors.push({ path: `/day_schedules/${day.id}`, key: 'duplicateId' });
     seen.add(day.id);
   }
-  const document = { ...(draft.environment === undefined ? {} : { environment: clone(draft.environment) }), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: clone(draft.builtinTasks) }), ...(Object.keys(draft.enumNodes ?? {}).length ? { enum_definitions: clone(draft.enumNodes) } : {}), task_macros: Object.fromEntries((draft.taskMacros ?? []).map((macro) => [macro.id, macroToData(macro)])), tasks: Object.fromEntries((draft.tasks ?? []).map(({ id, ...task }) => [id, clone(task)])), ...serializeNodes(draft.operandNodes), project: clone(draft.project), slots: data.slots,
+  let document = { ...(draft.environment === undefined ? {} : { environment: clone(draft.environment) }), ...(draft.builtinTasks === undefined ? {} : { builtin_tasks: clone(draft.builtinTasks) }), ...(Object.keys(draft.enumNodes ?? {}).length ? { enum_definitions: clone(draft.enumNodes) } : {}), task_macros: Object.fromEntries((draft.taskMacros ?? []).map((macro) => [macro.id, macroToData(macro)])), tasks: Object.fromEntries((draft.tasks ?? []).map(({ id, ...task }) => [id, clone(task)])), ...serializeNodes(draft.operandNodes), project: clone(draft.project), slots: data.slots,
     day_schedules: Object.fromEntries(draft.days.map((day) => [day.id, { display_name: day.name, ...engineMetadata(day), icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slot_ids: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }),
       ...dayEventsToData(day),
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) }])),
@@ -233,16 +243,17 @@ export function compileProject(draft) {
     if (weekIds.has(week.id)) errors.push({ path: `/week_schedules/${week.id}`, key: 'duplicateId' });
     weekIds.add(week.id);
   }
-  const combined = [...errors, ...validateDocument(document)];
+  document = namedData(document);
+  const combined = [...errors, ...symbolErrors(draft), ...validateDocument(document)];
   return { data: document, errors: combined.filter((error, index) => combined.findIndex((other) => other.path === error.path && other.key === error.key && other.field === error.field) === index) };
 }
 
 export function createDay(draft, name) {
-  return { id: nextSlotId(draft.days), name, icon: 'tabler:calendar', purposes: ['main'], slotIds: Array(draft.project.settings.slots_per_day).fill(null) };
+  return { id: nextSlotId(draft.days), symbol: newSymbol(draft.days, name, 'day'), name, icon: 'tabler:calendar', purposes: ['main'], slotIds: Array(draft.project.settings.slots_per_day).fill(null) };
 }
 
 export function duplicateDay(draft, day) {
-  return { id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slotIds: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }), ...clone(dayEventsFromData(dayEventsToData(day))) };
+  return { symbol: newSymbol(draft.days, `${day.symbol}_copy`, 'day'), id: nextSlotId(draft.days), name: `${day.name} (副本)`, icon: day.icon ?? 'tabler:calendar', ...(day.purposes === undefined ? {} : { purposes: [...day.purposes] }), slotIds: [...day.slotIds], ...(day.tags === undefined ? {} : { tags: [...day.tags] }), ...clone(dayEventsFromData(dayEventsToData(day))) };
 }
 
 export function referenceCount(draft, slotId) {

@@ -1,5 +1,7 @@
 # 環境層計算式巨集與行程進度
 
+識別契約已更新：進度使用 schedule_current_week 等合法 name，取代舊 schedule.* engine_key；詳見 [NAMING.md](./NAMING.md)。
+
 環境層巨集同樣支援分支計算式；條件與每個回傳結果均只允許環境依賴，並隨環境檔保存、載入與重連。格式與轉換操作見 [COMPUTED_BRANCHES.md](./COMPUTED_BRANCHES.md)。
 
 計算式巨集新增 `scope: "environment" | "application"`，省略時視為 application。專案仍以同一個 `expression_macros` UUID 字典保存兩層巨集。巨集是計算定義，不會在變數空間建立儲存欄位。

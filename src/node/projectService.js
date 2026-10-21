@@ -4,6 +4,7 @@ import { commandCatalog, inspectCommand, executeCommand, executeBatch } from '..
 import { translator } from '../i18n/index.js';
 import { createProjectFiles, serviceError } from './projectFiles.js';
 import { applyDraftChanges, stringifyWire } from '../core/draftChanges.js';
+import { importBlueprint } from '../core/blueprint/index.js';
 
 /** One authoritative project per service; all requests, including I/O, are queued. */
 export async function createProjectService({ root = process.cwd(), mode = 'user', language = 'en' } = {}) {
@@ -37,8 +38,8 @@ export async function createProjectService({ root = process.cwd(), mode = 'user'
     return task;
   }
   function exported(format, options = {}) {
-    const methods = { project: () => session.toDocument(), environment: () => session.exportEnvironment(), runtime: () => session.exportRuntime(), report: () => session.exportReport({ includeUnreferenced: !!options.includeUnreferenced }) };
-    if (!Object.hasOwn(methods, format)) throw serviceError('invalidExportFormat', 'Choose project, environment, runtime or report.');
+    const methods = { project: () => session.toDocument(), environment: () => session.exportEnvironment(), runtime: () => session.exportRuntime(), report: () => session.exportReport({ includeUnreferenced: !!options.includeUnreferenced }), yaml: () => session.exportBlueprint() };
+    if (!Object.hasOwn(methods, format)) throw serviceError('invalidExportFormat', 'Choose project, environment, runtime, report or yaml.');
     return methods[format]();
   }
   const api = {
@@ -108,14 +109,27 @@ export async function createProjectService({ root = process.cwd(), mode = 'user'
       const result = session.loadDocument(data); if (!result.ok) return wrap(result);
       file = null; fileHash = undefined; baseline = null; notify('imported'); return ok();
     }),
+    importBlueprint: ({ yaml, path, preview = false, expectedRevision, discardChanges = false } = {}) => request(async () => {
+      expected(expectedRevision, !preview);
+      if ((yaml !== undefined) === (path !== undefined)) throw serviceError('blueprintInputRequired', 'Supply exactly one of yaml or path.');
+      const text = path === undefined ? yaml : (await files.readText(path, /\.yml$/i.test(path) ? '.yml' : '.yaml')).text;
+      const compiled = importBlueprint(text);
+      if (compiled.errors.length) return wrap({ ok: false, errors: compiled.errors });
+      const summary = { name: compiled.data.project.name, replacesProject: true, counts: Object.fromEntries(['operand_nodes', 'expression_macros', 'tasks', 'task_macros', 'slots', 'day_schedules', 'week_schedules', 'week_sequences', 'enum_definitions'].map((key) => [key, Object.keys(compiled.data[key] ?? {}).length])) };
+      if (preview) return ok(summary);
+      if (session.getMode() === 'simulation') throw serviceError('projectModeLocked', 'Simulation mode cannot import a blueprint.');
+      protectDraft(discardChanges);
+      const result = session.loadDocument(compiled.data); if (!result.ok) return wrap(result);
+      file = null; fileHash = undefined; baseline = null; notify('imported'); return ok(summary);
+    }),
     exportData: ({ format, path, expectedRevision, overwrite = false, includeUnreferenced = false } = {}) => request(async () => {
       expected(expectedRevision, !!path);
       const result = exported(format, { includeUnreferenced });
       if (result.errors.length) return wrap({ ok: false, errors: result.errors });
       if (!path) return ok(result.data);
-      const extension = format === 'report' ? '.md' : '.json', canonical = await files.pathFor(path, extension);
+      const extension = format === 'yaml' ? /\.yml$/i.test(path) ? '.yml' : '.yaml' : format === 'report' ? '.md' : '.json', canonical = await files.pathFor(path, extension);
       if (canonical === file) throw serviceError('projectFileIsReserved', 'Use project_save to update the open project file.');
-      const content = format === 'report' ? result.data : JSON.stringify(result.data, null, 2) + '\n';
+      const content = ['report', 'yaml'].includes(format) ? result.data : JSON.stringify(result.data, null, 2) + '\n';
       const saved = await files.write(canonical, content, { extension, overwrite });
       return ok({ path: saved.path });
     }),

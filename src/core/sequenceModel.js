@@ -1,3 +1,4 @@
+import { newSymbol } from './symbols.js';
 import { clearEngineKey } from './engineKeyModel.js';
 import { clone, nextSlotId, uid } from './model.js';
 import { WEEKDAYS } from './scheduleConstants.js';
@@ -5,7 +6,7 @@ import { normalizeSequenceRange } from './sequenceRange.js';
 import { fitEventGroups, duplicateEventGroup } from './sequenceEvents.js';
 
 export function createSequence(draft, name) {
-  return { id: nextSlotId(draft.sequences), name, icon: 'tabler:calendar-stats', startWeekday: 'mon', endWeekday: 'sun', rows: [] };
+  return { symbol: newSymbol(draft.sequences, name, 'sequence'), id: nextSlotId(draft.sequences), name, icon: 'tabler:calendar-stats', startWeekday: 'mon', endWeekday: 'sun', rows: [] };
 }
 
 export function duplicateSequence(draft, sequence) {

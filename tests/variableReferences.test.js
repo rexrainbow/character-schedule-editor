@@ -13,7 +13,7 @@ test('reference arguments and forwarded macro contracts round-trip, exporting op
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.deepEqual(runtime.data.slots[slot.id].branches[0].task.arguments[0], { type: 'variable_reference', engine_key: 'counter' });
+  assert.deepEqual(runtime.data.slots[slot.id].branches[0].task.arguments[0], { type: 'variable_reference', name: 'counter' });
   assert.deepEqual(runtime.data.slots[macroSlot.id].branches[0].task.arguments[macroTarget.id], { type: 'variable_reference', reference_id: local });
   assert.equal(runtime.data.task_macros[macro.id].steps[0].arguments[0].parameter_id, macroTarget.id);
   assert.equal(runtime.data.environment_requirements.variables[0].access, 'read_write');

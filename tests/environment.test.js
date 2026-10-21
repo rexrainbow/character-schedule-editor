@@ -8,9 +8,9 @@ import { compileRuntime } from '../src/core/runtimeModel.js';
 
 function setup() {
   const draft = projectToDraft(example); draft.environment = createEnvironmentInfo('Engine environment');
-  for (const [id, node] of Object.entries(draft.operandNodes)) if (node.source !== 'computed') node.engine_key = 'var_' + id;
-  for (const task of draft.tasks) task.engine_key = 'task_' + task.id;
-  draft.builtinTasks = { set_variable: { engine_key: 'assign_state' } };
+  for (const [id, node] of Object.entries(draft.operandNodes)) if (node.source !== 'computed') node.symbol = 'var_' + id.replaceAll('-', '_');
+  for (const task of draft.tasks) task.symbol = 'task_' + task.id.replaceAll('-', '_');
+  draft.builtinTasks = { set_variable: { symbol: 'assign_state' } };
   return { draft, environment: compileEnvironment(draft).data };
 }
 function regenerateIds(environment) {
@@ -55,8 +55,8 @@ test('replacement reconnects UUID-changed variables, task signatures and macro e
 
 test('same environment UUID keeps reference identity when display names and contract keys change', () => {
   const { draft, environment } = setup();
-  for (const node of Object.values(environment.operand_nodes)) { node.engine_key = ''; node.display_name += '_renamed'; }
-  for (const task of Object.values(environment.tasks)) task.engine_key = '';
+  for (const node of Object.values(environment.operand_nodes)) { node.name += '_renamed'; node.display_name += '_renamed'; }
+  for (const task of Object.values(environment.tasks)) task.name += '_renamed';
   const result = prepareEnvironmentImport(draft, environment);
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.draft.slots, draft.slots);
@@ -66,7 +66,7 @@ test('incompatible counts, missing/ambiguous references, permissions and task in
   const { draft, environment } = setup(), before = structuredClone(draft);
   const cases = [
     (data) => { data.settings.slots_per_day = 3; },
-    (data) => { for (const node of Object.values(data.operand_nodes)) node.engine_key = ''; },
+    (data) => { for (const node of Object.values(data.operand_nodes)) node.symbol = ''; },
     (data) => { for (const node of Object.values(data.operand_nodes)) if (node.display_name === 'energy') node.read_only = true; },
     (data) => { for (const task of Object.values(data.tasks)) task.parameters.push({ id: crypto.randomUUID(), display_name: 'Added', type: 'number' }); },
     (data) => { const source = Object.values(data.operand_nodes).find((node) => node.display_name === 'energy'); const siblings = Object.values(data.operand_nodes).filter((node) => node.parent_id === source.parent_id); data.operand_nodes[crypto.randomUUID()] = { ...source, display_name: 'Alias', order: siblings.length }; },

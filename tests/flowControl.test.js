@@ -75,7 +75,7 @@ test('release rules round-trip on days, runtime contracts have one parameter and
   assert.deepEqual(projectToDraft(project.data).days.find((d) => d.id === days.High.id).slotReleases, days.High.slotReleases);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
   assert.equal(runtime.data.days[days.High.id].slot_releases[0].flow_control, 'release_slot');
-  assert.equal(runtime.data.environment_requirements.tasks.find((t) => t.engine_key === 'control.release').parameters.length, 1);
+  assert.equal(runtime.data.environment_requirements.tasks.find((t) => t.name === 'control_release').parameters.length, 1);
   const bad = structuredClone(project.data); bad.task_macros[macro.id].steps[0].task = createRelease(); assert.ok(validateDocument(bad).length);
   for (const patch of [{ execution_mode: 'unknown' }, { priority: -1 }, { takeovers: {} }]) {
     const invalid = structuredClone(project.data); Object.assign(invalid.week_sequences[sequence.id].event_groups[0], patch); assert.ok(validateDocument(invalid).length);

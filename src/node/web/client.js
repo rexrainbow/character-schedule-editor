@@ -12,7 +12,7 @@ export async function connectProjectService(input) {
   const catalogResponse = await fetch(new URL('catalog', base), { headers, signal: AbortSignal.timeout(10000) });
   const catalog = await catalogResponse.json(); if (!catalog.ok) throw new Error('Cannot read command catalog.');
   const api = { commands: (object) => structuredClone(catalog.value.filter((item) => !object || item.object === object)) };
-  for (const method of ['status', 'execute', 'batch', 'setMode', 'newProject', 'openProject', 'saveProject', 'exportData']) api[method] = async (args = {}) => {
+  for (const method of ['status', 'execute', 'batch', 'setMode', 'newProject', 'openProject', 'saveProject', 'exportData', 'importBlueprint']) api[method] = async (args = {}) => {
     try {
       const response = await fetch(new URL(`api/${method}`, base), { method: 'POST', headers, body: stringifyWire(args), signal: AbortSignal.timeout(30000) });
       return parseWire(await response.text());

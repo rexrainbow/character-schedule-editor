@@ -1,3 +1,5 @@
+import { descriptionComments } from './descriptions.js';
+import { symbolBase, normalizeSymbols } from './symbols.js';
 import { scheduleTaskErrors } from './scheduledEvents.js';
 import { eventReferenceErrors, eventProperties } from './eventReferences.js';
 import { enumArgumentErrors, parameterValueType, probabilityEnumContract } from './enumParameters.js';
@@ -231,7 +233,7 @@ export function serializeNodes(nodes) {
 export function expressionNameErrors(nodes) {
   const errors = [], names = new Set();
   for (const [id, node] of Object.entries(expressionNodes(nodes))) {
-    const name = typeof node.display_name === 'string' ? node.display_name.trim() : '';
+    const name = node.symbol ?? '';
     if (!name) errors.push({ path: `/expression_macros/${id}/display_name`, key: 'requiredText' });
     if (names.has(name)) errors.push({ path: `/expression_macros/${id}/display_name`, key: 'duplicateExpressionName' }); names.add(name);
   }
@@ -347,7 +349,7 @@ export function defaultDefinition(kind) {
   return kind === 'number' ? { kind, expression: { type: 'constant', value: 0 } } : { kind: 'boolean', condition: { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', operand_a: { type: 'constant', value: 0 }, comparator: '==', operand_b: { type: 'constant', value: 0 } }] } };
 }
 export function formatComputedDefinition(definition, nodes, missing = '?') {
-  if (definition?.kind === 'branch') return (definition.branches ?? []).map((branch, index) => `${branch.condition === null ? 'ELSE' : index === 0 ? 'IF' : 'ELSE IF'}${branch.condition === null ? '' : ` ${formatCondition(branch.condition, nodes, missing)}`} → ${formatComputedDefinition(branch.result, nodes, missing)}`).join('\n');
+  if (definition?.kind === 'branch') return (definition.branches ?? []).map((branch, index) => `${descriptionComments(branch.description).length ? descriptionComments(branch.description).join('\n') + '\n' : ''}${branch.condition === null ? 'ELSE' : index === 0 ? 'IF' : 'ELSE IF'}${branch.condition === null ? '' : ` ${formatCondition(branch.condition, nodes, missing)}`} → ${formatComputedDefinition(branch.result, nodes, missing)}`).join('\n');
   return definition?.kind === 'number' ? formatOperand(definition.expression, nodes, missing) : formatCondition(definition?.condition, nodes, missing);
 }
 export function changeComputedMode(definition, mode, keepIndex = null) {
@@ -401,21 +403,13 @@ export function treeErrors(nodes) {
     const names = new Map();
     list.forEach(([id, node], i) => {
       if (node.order !== i) errors.push({ path: `/operand_nodes/${id}/order`, key: 'invalidOrder' });
-      const name = typeof node.display_name === 'string' ? node.display_name.trim() : '';
+      const name = node.symbol ?? '';
       if (names.has(name)) {
         errors.push({ path: `/operand_nodes/${id}/display_name`, key: 'duplicateNodeName' });
         errors.push({ path: `/operand_nodes/${names.get(name)}/display_name`, key: 'duplicateNodeName' });
       }
       names.set(name, id);
     });
-  }
-  const paths = new Map();
-  for (const [id, node] of Object.entries(variableNodes(nodes))) {
-    const path = nodePath(nodes, id).trim();
-    if (paths.has(path) && variableScope(nodes[paths.get(path)]) !== variableScope(node)) {
-      for (const key of [id, paths.get(path)]) errors.push({ path: `/operand_nodes/${key}/display_name`, key: 'duplicateNodeName' });
-    }
-    paths.set(path, id);
   }
   return errors;
 }
@@ -428,18 +422,18 @@ function uniqueName(nodes, parent, base) {
 export function addOperandNode(nodes, selected, type, name, scope = variableScope(nodes[selected])) {
   const parent = nodes[selected]?.node_type === 'group' && variableScope(nodes[selected]) === scope ? selected : null;
   const id = crypto.randomUUID();
-  return { id, nodes: { ...nodes, [id]: { display_name: uniqueName(nodes, parent, name), parent_id: parent, order: childrenOf(nodes, parent, scope).length, scope, node_type: type, ...(type === 'value' ? { read_only: false, value_type: 'number', initial_value: 0 } : {}) } } };
+  return { id, nodes: { ...nodes, [id]: { symbol: (() => { const used = new Set(Object.values(nodes).filter((n) => n.source !== 'computed').map((n) => n.symbol)); const base = symbolBase(name, 'variable'); let key = base, i = 2; while (used.has(key)) key = `${base}_${i++}`; return key; })(), display_name: uniqueName(nodes, parent, name), parent_id: parent, order: childrenOf(nodes, parent, scope).length, scope, node_type: type, ...(type === 'value' ? { read_only: false, value_type: 'number', initial_value: 0 } : {}) } } };
 }
 export function addComputedNode(nodes, selected, name, scope = 'application') {
   const id = crypto.randomUUID(), names = new Set(Object.values(nodes).filter(isComputed).map((n) => n.display_name));
   let unique = name, index = 2; while (names.has(unique)) unique = `${name} ${index++}`;
-  return { id, nodes: { ...nodes, [id]: { display_name: unique, parent_id: null, order: 0, node_type: 'value', source: 'computed', ...(scope === 'environment' ? { scope } : {}), value_type: 'number', definition: defaultDefinition('number') } } };
+  return { id, nodes: { ...nodes, [id]: { symbol: (() => { const used = new Set(Object.values(nodes).filter((n) => n.source === 'computed').map((n) => n.symbol)); const base = symbolBase(name, 'expression'); let key = base, i = 2; while (used.has(key)) key = `${base}_${i++}`; return key; })(), display_name: unique, parent_id: null, order: 0, node_type: 'value', source: 'computed', ...(scope === 'environment' ? { scope } : {}), value_type: 'number', definition: defaultDefinition('number') } } };
 }
 function orderSiblings(nodes, parent, ids) { ids.forEach((id, order) => { nodes[id] = { ...nodes[id], parent_id: parent, order }; }); }
 export function moveOperandNode(nodes, id, parent, position) {
   if (!nodes[id] || parent !== null && (nodes[parent]?.node_type !== 'group' || variableScope(nodes[parent]) !== variableScope(nodes[id]) || subtreeIds(nodes, id).has(parent))) throw new Error('invalidParent');
   if (!Number.isInteger(position) || position < 0) throw new Error('invalidOrder');
-  if (parent !== nodes[id].parent_id && childrenOf(nodes, parent, variableScope(nodes[id])).some(([key, n]) => key !== id && n.display_name.trim() === nodes[id].display_name.trim())) throw new Error('duplicateNodeName');
+  if (parent !== nodes[id].parent_id && childrenOf(nodes, parent, variableScope(nodes[id])).some(([key, n]) => key !== id && n.symbol === nodes[id].symbol)) throw new Error('duplicateNodeName');
   const next = { ...nodes }, previous = nodes[id].parent_id;
   const targets = childrenOf(nodes, parent, variableScope(nodes[id])).map(([key]) => key).filter((key) => key !== id);
   if (position > targets.length) throw new Error('invalidOrder');
@@ -450,7 +444,7 @@ export function moveOperandNode(nodes, id, parent, position) {
 }
 export function duplicateOperandSubtree(nodes, id) {
   if (!nodes[id]) throw new Error('missingOperand');
-  if (isComputed(nodes[id])) { const result = addComputedNode(nodes, null, `${nodes[id].display_name} (\u526f\u672c)`); result.nodes[result.id] = { ...clearEngineKey(nodes[id]), display_name: result.nodes[result.id].display_name }; return result; }
+  if (isComputed(nodes[id])) { const result = addComputedNode(nodes, null, `${nodes[id].display_name} (\u526f\u672c)`); result.nodes[result.id] = { ...clearEngineKey(nodes[id]), display_name: result.nodes[result.id].display_name }; result.nodes[result.id] = normalizeSymbols({ operandNodes: result.nodes }).operandNodes[result.id]; return result; }
   const ids = subtreeIds(nodes, id), mapping = new Map([...ids].map((key) => [key, crypto.randomUUID()]));
   const next = { ...nodes }, source = nodes[id];
   const names = new Set(childrenOf(nodes, source.parent_id, variableScope(source)).map(([, n]) => n.display_name.trim()));
@@ -466,6 +460,8 @@ export function duplicateOperandSubtree(nodes, id) {
   }
   const siblings = childrenOf(nodes, source.parent_id, variableScope(source)).map(([key]) => key);
   siblings.splice(siblings.indexOf(id) + 1, 0, mapping.get(id)); orderSiblings(next, source.parent_id, siblings);
+  const normalized = normalizeSymbols({ operandNodes: next }).operandNodes;
+  for (const copiedId of mapping.values()) next[copiedId] = normalized[copiedId];
   return { id: mapping.get(id), nodes: next };
 }
 export function deleteOperandNode(nodes, slots, id, sequences = [], tasks = []) {

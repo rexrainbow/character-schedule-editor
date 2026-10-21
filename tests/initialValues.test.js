@@ -10,9 +10,9 @@ function fixture() {
   let result = addOperandNode({}, null, 'group', 'Engine');
   const root = result.id;
   result = addOperandNode(result.nodes, root, 'value', 'Counter'); const counter = result.id;
-  result.nodes[counter] = { ...result.nodes[counter], engine_key: 'counter', initial_value: 12.5, read_only: true };
+  result.nodes[counter] = { ...result.nodes[counter], symbol: 'counter', initial_value: 12.5, read_only: true };
   result = addOperandNode(result.nodes, root, 'value', 'Label'); const label = result.id;
-  result.nodes[label] = { ...result.nodes[label], engine_key: 'label', value_type: 'string', initial_value: '起點' };
+  result.nodes[label] = { ...result.nodes[label], symbol: 'label', value_type: 'string', initial_value: '起點' };
   result = addOperandNode(result.nodes, null, 'value', 'Enabled', 'application'); const local = result.id;
   result.nodes[local] = { ...result.nodes[local], value_type: 'boolean', initial_value: true };
   draft.operandNodes = result.nodes;
@@ -47,8 +47,8 @@ test('runtime includes unused environment variables and typed defaults but only 
   assert.equal(compileRuntime(draft).data.application_variables[0].initial_value, false);
   const invalid = structuredClone(result.data); invalid.application_variables[0].initial_value = 1;
   assert.ok(validateRuntimeDocument(invalid).length);
-  delete draft.operandNodes[counter].engine_key;
-  assert.ok(compileRuntime(draft).errors.some((e) => e.path === `/operand_nodes/${counter}/engine_key`));
+  draft.operandNodes[counter].symbol = '';
+  assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'invalidSymbol'));
 });
 
 test('wrong types, null and non-finite initial values fail with field locations', () => {

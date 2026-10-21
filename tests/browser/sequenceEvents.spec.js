@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { showAllDayPurposes } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -171,7 +172,7 @@ test('calendar pages reach later weeks and deleting their source week warns abou
 });
 
 test('icon day picker, independent names, four-line preview summaries and draft key warnings persist correctly', async ({ page }) => {
-  const { draft, sequence, main } = sequenceEventsFixture(); main.engine_key = 'day.workday';
+  const { draft, sequence, main } = sequenceEventsFixture(); main.symbol = 'day_workday';
   await load(page, draft); const dialog = await manager(page, 0);
   await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('');
@@ -192,7 +193,7 @@ test('icon day picker, independent names, four-line preview summaries and draft 
   await dialog.getByRole('textbox', { name: 'Event name', exact: true }).fill('Night inspection');
   await picker.click(); await showAllDayPurposes(page); await options.getByRole('option', { name: 'Workday', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('Night inspection');
-  await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('event.inspection');
+  await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('event_inspection');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.locator('.sequence-event-icon').first().focus();
   await expect(page.locator('.event-preview-summary')).toBeVisible();
@@ -200,12 +201,12 @@ test('icon day picker, independent names, four-line preview summaries and draft 
   await page.keyboard.press('Escape');
   expect(tooltip).toHaveLength(3); expect(tooltip[0]).toContain('Once'); expect(tooltip[2]).toBe('Priority: 0');
   let group = (await saved(page)).week_sequences[sequence.id].event_groups[0];
-  expect(group.display_name).toBe('Night inspection'); expect(group.engine_key).toBe('event.inspection');
-  await manager(page, 1); await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('day.workday');
+  expect(group.display_name).toBe('Night inspection'); expect(group.symbol).toBe('event_inspection');
+  await manager(page, 1); await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('day_workday');
   await expect(dialog.locator('.engine-key-warning')).toHaveCount(1);
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeEnabled();
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  expect((await saved(page)).week_sequences[sequence.id].event_groups[0].engine_key).toBe('event.inspection');
+  expect((await saved(page)).week_sequences[sequence.id].event_groups[0].symbol).toBe('event_inspection');
   await manager(page, 1); await dialog.getByRole('textbox', { name: 'Event name', exact: true }).fill('');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   group = (await saved(page)).week_sequences[sequence.id].event_groups[0]; expect(group.display_name).toBe('Workday');
@@ -239,7 +240,7 @@ test('tag counting updates recurrence, calendar markers, summaries and runtime t
   await page.keyboard.press('Escape');
   const data = await saved(page); expect(data.week_sequences[sequence.id].event_groups[0].count_filter).toEqual({ kind: 'tag', tag: 'Work' });
   expect(data.week_sequences[sequence.id].event_groups[0].skip_weekdays).toBeUndefined();
-  const pending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const pending = page.waitForEvent('download'); await exportRuntime(page);
   const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8')); expect(runtime.days[main.id].tags).toEqual(['Work']);
   await manager(page, 1); await dialog.getByRole('combobox', { name: 'Count dates by', exact: true }).selectOption('all');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();

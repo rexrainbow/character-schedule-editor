@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { showAllDayPurposes } from './dayOptions.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -10,7 +11,7 @@ import { translator } from '../../src/i18n/index.js';
 function fixture() {
   const f = sequenceEventsFixture();
   f.draft.weeks[0].days.mon = f.eventDay.id;
-  f.draft.builtinTasks = { schedule_event: { engine_key: 'events.schedule' } };
+  f.draft.builtinTasks = { schedule_event: { symbol: 'events_schedule' } };
   return f;
 }
 async function load(page, draft) {
@@ -49,7 +50,7 @@ test('flow-control task selects date and weighted day candidates, exports and pr
   expect(use.builtin).toBe('schedule_event'); expect(use.date).toEqual({ mode: 'weeks_weekday', offset: { type: 'constant', value: 1 }, weekday: 'thu' });
   await navigate(page, 'days');
   await expect(page.locator('.day-use-group-interrupt')).toHaveCount(0); // Assigning a reservation never edits intended uses.
-  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export runtime data', exact: true }).click();
+  const download = page.waitForEvent('download'); await exportRuntime(page);
   const runtime = JSON.parse(await readFile(await (await download).path(), 'utf8'));
   expect(runtime.slots[activity.id].branches[0].task.flow_control).toBe('schedule_event');
   expect(runtime.slots[activity.id].branches[0].task.icon).toBeUndefined();

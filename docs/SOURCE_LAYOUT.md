@@ -6,6 +6,7 @@ src/
 ├─ core/                   # Project API、資料操作、引用檢查、驗證及模擬
 │  ├─ projectApi.js         # 共用專案操作入口
 │  ├─ commands.js           # 可傳輸的白名單命令、輸入驗證與原子批次
+│  ├─ blueprint/            # YAML 宣告、文字運算式 parser、Schema 定義與專案重建
 │  ├─ model.js              # 專案存檔與工作資料的轉換
 │  ├─ builtinTaskModel.js   # 內建任務純資料定義
 │  └─ ...Model.js           # 各類物件的資料規則
@@ -23,7 +24,7 @@ src/
 │  ├─ components/          # 共用按鈕、樹狀清單、預覽及其他顯示元件
 │  ├─ hooks/               # React hooks，包括 useProject 與內建任務 hooks
 │  └─ contexts/            # React contexts
-├─ schemas/                # 專案、環境與 runtime JSON Schema
+├─ schemas/                # 專案、環境、runtime 與 blueprint JSON Schema
 ├─ examples/               # 可手動匯入的範例 JSON
 ├─ i18n/                   # 英文、繁體中文與語系選擇
 ├─ styles/                 # 共用、工作區及變數樹樣式

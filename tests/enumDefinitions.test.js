@@ -1,3 +1,4 @@
+import { workingData } from '../src/core/symbols.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { enumDefinitionsFixture } from './enumDefinitionsFixture.js';
@@ -28,17 +29,17 @@ test('resolved enum references execute and export runtime catalogs with no edito
   assert.equal(runtime.data.enum_definitions[propertyEnumId].icon, undefined);
   assert.equal(runtime.data.enum_definitions[propertyEnumId].parent_id, undefined);
   assert.equal(runtime.data.enum_definitions[enumGroupId], undefined);
-  assert.deepEqual(runtime.data.exports['enum.event_property'], { kind: 'enums', id: propertyEnumId });
+  assert.deepEqual(runtime.data.exports['enums.enum_event_property'], { kind: 'enums', id: propertyEnumId });
   const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
   assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 15);
   const bad = structuredClone(runtime.data); delete bad.enum_definitions[propertyEnumId]; assert.ok(validateRuntimeDocument(bad).some((error) => error.key === 'missingEnumDefinition'));
 });
 test('environment exports isolate their definitions and task references; application references cannot leak upward', () => {
   const { draft, property, propertyEnumId, operationEnumId } = enumDefinitionsFixture();
-  draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine task', engine_key: 'engine.task', parameters: [structuredClone(property)] }];
+  draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine task', symbol: 'engine_task', parameters: [structuredClone(property)] }];
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
   assert.equal(env.data.enum_definitions[propertyEnumId].scope, 'environment'); assert.equal(env.data.enum_definitions[operationEnumId], undefined);
-  const next = createProjectWithEnvironment('New', 3, env.data); assert.deepEqual(next.enumNodes, env.data.enum_definitions);
+  const next = createProjectWithEnvironment('New', 3, env.data); assert.deepEqual(next.enumNodes, workingData(env.data.enum_definitions));
   draft.tasks[0].parameters[0].enum_id = operationEnumId;
   assert.ok(compileProject(draft).errors.some((error) => error.key === 'enumEnvironmentOnly'));
   assert.ok(compileEnvironment(draft).errors.length);
@@ -59,7 +60,7 @@ test('tree operations preserve scope, prevent cycles, duplicate independent UUID
   const copy = duplicateEnumSubtree(draft.enumNodes, enumGroupId);
   assert.equal(enumSubtree(copy.nodes, copy.id).size, 3);
   const copiedChild = Object.values(copy.nodes).find((node) => node.parent_id === copy.id && node.display_name === 'Event property');
-  assert.equal(copiedChild.engine_key, undefined); copiedChild.options[0].display_name = 'Changed'; assert.notEqual(draft.enumNodes[propertyEnumId].options[0].display_name, 'Changed');
+  assert.equal(copiedChild.symbol, undefined); copiedChild.options[0].display_name = 'Changed'; assert.notEqual(draft.enumNodes[propertyEnumId].options[0].display_name, 'Changed');
   assert.throws(() => moveEnumNode(draft.enumNodes, enumGroupId, propertyEnumId), /invalidEnumParent/);
   assert.throws(() => moveEnumNode(draft.enumNodes, operationEnumId, enumGroupId), /invalidEnumParent/);
   const moved = moveEnumNode(draft.enumNodes, propertyEnumId, null); assert.equal(enumPath(moved, propertyEnumId), 'Event property'); assert.deepEqual(enumTreeErrors(moved), []);

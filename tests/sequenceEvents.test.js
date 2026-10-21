@@ -31,7 +31,7 @@ test('event groups round-trip and export runtime rules referencing complete shar
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups, project.data.week_sequences[sequence.id].event_groups.map(({ engine_key, icon, ...group }) => group));
+  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups, project.data.week_sequences[sequence.id].event_groups.map(({ symbol, icon, ...group }) => group));
   assert.ok(runtime.data.days[eventDay.id].day_start_slot_id);
   for (const mutate of [
     (g) => { g.interval_days = -1; }, (g) => { g.priority = .5; }, (g) => { g.end.week_number = 4; },
@@ -46,20 +46,20 @@ test('event groups round-trip and export runtime rules referencing complete shar
 
 test('event names fall back, keys join global contracts, copies clear keys and tooltips have four lines', () => {
   const { draft, sequence, eventDay } = sequenceEventsFixture();
-  const group = rule(sequence, eventDay.id); group.engine_key = 'event.inspection'; sequence.eventGroups = [group];
+  const group = rule(sequence, eventDay.id); group.symbol = 'event_inspection'; sequence.eventGroups = [group];
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
-  assert.equal(project.data.week_sequences[sequence.id].event_groups[0].display_name, 'Inspection');
+  assert.equal(project.data.week_sequences[sequence.id].event_groups[0].display_name, '');
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.deepEqual(runtime.data.exports['event.inspection'], { kind: 'eventGroups', id: group.id, sequence_id: sequence.id });
+  assert.deepEqual(runtime.data.exports['eventGroups.event_inspection'], { kind: 'eventGroups', id: group.id, sequence_id: sequence.id });
   group.display_name = 'Routine inspection';
   const tooltip = eventTooltip(group, draft.days, translator('en')).split('\n');
   assert.equal(tooltip.length, 4); assert.equal(tooltip[0], 'Routine inspection'); assert.ok(tooltip[1].includes('Every 7 days')); assert.ok(tooltip[2].includes('Week 1 / Monday')); assert.equal(tooltip[3], 'Priority: 0');
-  const copy = duplicateEventGroup(group, draft.days); assert.equal(copy.display_name, 'Routine inspection (副本)'); assert.equal(copy.engine_key, undefined); assert.notEqual(copy.id, group.id);
-  const sequenceCopy = duplicateSequence(draft, sequence); assert.equal(sequenceCopy.eventGroups[0].engine_key, undefined);
-  draft.days[0].engine_key = group.engine_key;
-  assert.equal(engineKeyConflicts(engineKeyEntries(draft), 'eventGroups', group.id, group.engine_key).length, 1);
+  const copy = duplicateEventGroup(group, draft.days); assert.equal(copy.display_name, 'Routine inspection (副本)'); assert.equal(copy.symbol, 'event_inspection_copy'); assert.notEqual(copy.id, group.id);
+  const sequenceCopy = duplicateSequence(draft, sequence); assert.equal(sequenceCopy.eventGroups[0].symbol, 'event_inspection_copy');
+  draft.days[0].symbol = group.symbol;
+  assert.equal(engineKeyConflicts(engineKeyEntries(draft), 'eventGroups', group.id, group.symbol).length, 0);
   assert.deepEqual(compileProject(draft).errors, []);
-  assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'runtimeDuplicateKey' && e.path.includes('/event_groups/0/engine_key')));
+  assert.deepEqual(compileRuntime(draft).errors, []);
 });
 
 test('week operations keep rule positions; shortening removes whole invalid groups; shared-day deletion clears references', () => {

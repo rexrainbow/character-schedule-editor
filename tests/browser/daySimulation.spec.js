@@ -58,7 +58,7 @@ test('calendar limits active dates and progress bindings can be changed or disab
   await page.getByText('Schedule progress variables', { exact: true }).click();
   await page.getByRole('combobox', { name: 'Current day', exact: true }).selectOption('');
   await expect(page.getByRole('spinbutton', { name: 'Schedule progress.Current day', exact: true })).toBeEnabled();
-  const slotId = Object.entries(draft.operandNodes).find(([, node]) => node.engine_key === 'schedule.current_slot')[0];
+  const slotId = Object.entries(draft.operandNodes).find(([, node]) => node.symbol === 'schedule_current_slot')[0];
   await page.getByRole('combobox', { name: 'Current day', exact: true }).selectOption(slotId);
   await expect(page.getByRole('button', { name: 'Run simulation', exact: true })).toBeDisabled();
   await expect(page.locator('.simulation-inputs .issues')).toContainText('distinct environment number variable');

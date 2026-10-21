@@ -14,10 +14,10 @@ const contracts = {
 };
 export function builtinVariableDefinition(kind, config, t) {
   const item = config?.[kind] ?? {}, contract = contracts[kind];
-  return { id: `builtin:${kind}`, display_name: item.display_name ?? t(contract.name), icon: item.icon || contract.icon, engine_key: item.engine_key ?? '', parameters: [
-    { id: 'target', display_name: item.parameters?.target?.display_name ?? t('writeTarget'), type: 'variable_reference', value_type: contract.value_type, access: contract.access },
-    ...(contract.value ? [{ id: 'value', display_name: item.parameters?.value?.display_name ?? t(contract.valueName), type: contract.value }] : []),
-    ...(kind === 'increment_variable' ? [{ id: 'random_amplitude', display_name: item.parameters?.random_amplitude?.display_name ?? t('randomAmplitude'), type: 'number' }] : []),
+  return { id: `builtin:${kind}`, description: item.description, display_name: item.display_name || t(contract.name), icon: item.icon || contract.icon, symbol: item.symbol ?? kind, parameters: [
+    { id: 'target', description: item.parameters?.target?.description, symbol: item.parameters?.target?.symbol ?? 'target', display_name: item.parameters?.target?.display_name ?? t('writeTarget'), type: 'variable_reference', value_type: contract.value_type, access: contract.access },
+    ...(contract.value ? [{ id: 'value', description: item.parameters?.value?.description, symbol: item.parameters?.value?.symbol ?? 'value', display_name: item.parameters?.value?.display_name ?? t(contract.valueName), type: contract.value }] : []),
+    ...(kind === 'increment_variable' ? [{ id: 'random_amplitude', description: item.parameters?.random_amplitude?.description, symbol: item.parameters?.random_amplitude?.symbol ?? 'random_amplitude', display_name: item.parameters?.random_amplitude?.display_name ?? t('randomAmplitude'), type: 'number' }] : []),
   ] };
 }
 export const builtinVariableDefinitions = (config, t) => builtinVariableKinds.map((kind) => builtinVariableDefinition(kind, config, t));
@@ -26,15 +26,15 @@ export function builtinTaskDefinition(kind, config, t) {
     const item = config?.[kind] ?? {};
     const fields = ['display_name', 'date_mode', 'offset', 'weekday', 'day_source', 'execution_mode', 'priority'];
     const choices = { date_mode: ['days', 'weeks_weekday'], weekday: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], execution_mode: ['overlay', 'interrupt_main', 'interrupt_lower'] };
-    return { id: `builtin:${kind}`, display_name: item.display_name ?? t('scheduleEvent'), icon: item.icon || 'tabler:calendar-event', engine_key: item.engine_key ?? '', category: 'flowControl', parameters: fields.map((id) => ({ id, display_name: item.parameters?.[id]?.display_name ?? t(`scheduleField_${id}`), type: choices[id] ? 'enum' : ['offset', 'priority'].includes(id) ? 'number' : 'string', ...(choices[id] ? { options: choices[id].map((value) => ({ display_name: t(id === 'weekday' ? value : id === 'execution_mode' ? `executionMode_${value}` : `scheduleDate_${value}`), value })) } : {}) })) };
+    return { id: `builtin:${kind}`, description: item.description, display_name: item.display_name ?? t('scheduleEvent'), icon: item.icon || 'tabler:calendar-event', symbol: item.symbol ?? kind, category: 'flowControl', parameters: fields.map((id) => ({ id, description: item.parameters?.[id]?.description, symbol: item.parameters?.[id]?.symbol ?? id, display_name: item.parameters?.[id]?.display_name ?? t(`scheduleField_${id}`), type: choices[id] ? 'enum' : ['offset', 'priority'].includes(id) ? 'number' : 'string', ...(choices[id] ? { options: choices[id].map((value) => ({ display_name: t(id === 'weekday' ? value : id === 'execution_mode' ? `executionMode_${value}` : `scheduleDate_${value}`), value })) } : {}) })) };
   }
   if (kind === 'adjust_probability_event') {
     const item = config?.[kind] ?? {};
-    return { id: `builtin:${kind}`, display_name: item.display_name ?? t('adjustProbabilityEvent'), icon: item.icon || 'tabler:repeat', engine_key: item.engine_key ?? '', category: 'flowControl', parameters: ['event', 'property', 'operation', 'value'].map((id) => ({ id, display_name: item.parameters?.[id]?.display_name ?? t(`eventAdjust_${id}`), type: id === 'event' ? 'event_reference' : id === 'value' ? 'number' : 'string', ...(id === 'event' ? { event_kind: 'probability' } : ['property', 'operation'].includes(id) ? probabilityEnumContract(id, t) : {}) })) };
+    return { id: `builtin:${kind}`, description: item.description, display_name: item.display_name ?? t('adjustProbabilityEvent'), icon: item.icon || 'tabler:repeat', symbol: item.symbol ?? kind, category: 'flowControl', parameters: ['event', 'property', 'operation', 'value'].map((id) => ({ id, description: item.parameters?.[id]?.description, symbol: item.parameters?.[id]?.symbol ?? id, display_name: item.parameters?.[id]?.display_name ?? t(`eventAdjust_${id}`), type: id === 'event' ? 'event_reference' : id === 'value' ? 'number' : 'string', ...(id === 'event' ? { event_kind: 'probability' } : ['property', 'operation'].includes(id) ? probabilityEnumContract(id, t) : {}) })) };
   }
   if (!builtinFlowKinds.includes(kind)) return { ...builtinVariableDefinition(kind, config, t), category: 'variableOperations' };
   const item = config?.[kind] ?? {};
-  return { id: `builtin:${kind}`, display_name: item.display_name ?? t('releaseSlot'), icon: item.icon || 'tabler:door-exit', engine_key: item.engine_key ?? '', parameters: [{ id: 'condition', display_name: item.parameters?.condition?.display_name ?? t('releaseCondition'), type: 'boolean' }], category: 'flowControl' };
+  return { id: `builtin:${kind}`, description: item.description, display_name: item.display_name ?? t('releaseSlot'), icon: item.icon || 'tabler:door-exit', symbol: item.symbol ?? kind, parameters: [{ id: 'condition', description: item.parameters?.condition?.description, symbol: item.parameters?.condition?.symbol ?? 'condition', display_name: item.parameters?.condition?.display_name ?? t('releaseCondition'), type: 'boolean' }], category: 'flowControl' };
 }
 export const builtinTaskDefinitions = (config, t) => [...builtinVariableKinds, ...builtinFlowKinds, 'adjust_probability_event', 'schedule_event'].map((kind) => builtinTaskDefinition(kind, config, t));
 export const setVariableDefinition = (config, t) => builtinVariableDefinition('set_variable', config, t);
@@ -42,9 +42,11 @@ export const setVariableDefinition = (config, t) => builtinVariableDefinition('s
 export function changeBuiltinDefinition(config, current, next) {
   const kind = current.id.slice('builtin:'.length);
   const item = structuredClone(config?.[kind] ?? {});
-  for (const key of ['display_name', 'icon', 'engine_key']) if (next[key] !== current[key]) item[key] = next[key];
+  for (const key of ['display_name', 'icon', 'symbol', 'description']) if (next[key] !== current[key]) item[key] = next[key];
+  for (const p of next.parameters) if (p.description !== current.parameters.find((previous) => previous.id === p.id)?.description) item.parameters = { ...item.parameters, [p.id]: { ...item.parameters?.[p.id], description: p.description } };
+  for (const p of next.parameters) if (p.symbol !== current.parameters.find((previous) => previous.id === p.id)?.symbol) item.parameters = { ...item.parameters, [p.id]: { ...item.parameters?.[p.id], symbol: p.symbol } };
   for (const p of next.parameters) if (p.display_name !== current.parameters.find((previous) => previous.id === p.id)?.display_name) {
-    item.parameters = { ...item.parameters, [p.id]: { display_name: p.display_name } };
+    item.parameters = { ...item.parameters, [p.id]: { ...item.parameters?.[p.id], display_name: p.display_name } };
   }
   return { ...config, [kind]: item };
 }

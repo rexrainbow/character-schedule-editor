@@ -1,5 +1,7 @@
 # Runtime data v1
 
+識別契約已更新：name 為必填持久化符號，取代 engine_key；下文舊 key 敘述以 [NAMING.md](./NAMING.md) 為準。
+
 共用列舉以頂層 enum_definitions 保存；參數可用 enum_id 引用，也可繼續以 options 自訂選項。Runtime catalog 不含群組或圖示。詳見 [ENUM_DEFINITIONS.md](./ENUM_DEFINITIONS.md)。
 
 任務與巨集的參數支援 `type: "enum"`，需附帶非空 `options: [{display_name, value}]`。呼叫可使用合法字串常數或相容的 enum 參數引用。內建調整機率事件的 property、operation 現在也能是參數引用，須先在巨集作用域解析後執行。完整契約見 [ENUM_PARAMETERS.md](./ENUM_PARAMETERS.md)。

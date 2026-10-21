@@ -21,3 +21,9 @@ export async function navigate(page, key, locale = 'en', mode) {
   if (await picker.isVisible()) await picker.selectOption(key);
   else await page.getByRole('tab', { name: label, exact: true }).click();
 }
+
+export async function exportRuntime(page) {
+  const t = translator(await page.locator('html').getAttribute('lang'));
+  await page.getByRole('button', { name: t('exportMenu'), exact: true }).click();
+  await page.getByRole('menuitem', { name: t('exportRuntimeOption'), exact: true }).click();
+}

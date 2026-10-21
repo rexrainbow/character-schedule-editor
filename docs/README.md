@@ -1,5 +1,11 @@
 # Character Schedule Editor
 
+現行識別規則：必填 name（符號）取代 engine_key，display_name 留白時使用 name。YAML 保留 mapping，API 可直接依名稱定位，詳見 [NAMING.md](./NAMING.md)。舊文件中的 engine_key 規則僅為開發歷程。
+
+可透過不含 UUID／圖示的 YAML 藍圖重建專案，支援文字運算式 parser、獨立 Schema、預覽與 MCP 匯入／匯出，見 [BLUEPRINT.md](./BLUEPRINT.md)。
+
+需要判斷自然語言需求如何由現有功能組合時，先讀 [系統能力與執行語意](./SYSTEM_SEMANTICS.md)，再由 [需求組合範例索引](./RECIPES.md) 選讀 `recipes/` 的獨立範例；內容包含必要假設、物件關係、執行順序與驗證限制。
+
 Node.js 專案服務支援 MCP 與 GUI 即時同步，包含版本檢查、草稿保留、衝突與斷線處理。GitHub Pages 固定為純網頁模式，啟動見 [GUI_SYNC.md](./GUI_SYNC.md)，MCP 工具見 [MCP_SERVER.md](./MCP_SERVER.md)。
 
 日行程可手動複選適用用途「主要／疊加事件／中斷事件」，未選擇則為「未分類」。清單依用途分群，選取器依情境預設篩選，也可顯示全部用途，詳見 [DAY_USES.md](./DAY_USES.md)。事件容器決定中斷對象，日行程在時段開始後設定「放行本時段」，詳見 [SLOT_RELEASE.md](./SLOT_RELEASE.md)。

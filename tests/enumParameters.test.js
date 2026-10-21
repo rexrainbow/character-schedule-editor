@@ -21,7 +21,7 @@ test('enum contracts round-trip in projects, runtime macros, requirements and en
   assert.deepEqual(runtime.data.task_macros[macro.id].parameters[0].options, property.options);
   assert.deepEqual(runtime.data.task_macros[macro.id].steps[0].property, parameterRef(property));
   assert.equal(runtime.data.environment_requirements.tasks[0].parameters[1].type, 'enum');
-  draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine action', engine_key: 'engine.action', parameters: [structuredClone(property)] }];
+  draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine action', symbol: 'engine_action', parameters: [structuredClone(property)] }];
   draft.environment = createEnvironmentInfo('Engine');
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
   const created = createProjectWithEnvironment('New', 3, env.data);
@@ -66,7 +66,7 @@ test('edits protect used option values and forwarding contracts while allowing l
 test('environment replacement rejects narrowed enum contracts and accepts equivalent or broader options', () => {
   const { draft, property, macro } = enumFixture();
   draft.environment = createEnvironmentInfo('Engine');
-  const task = { id: crypto.randomUUID(), display_name: 'Engine task', engine_key: 'engine.task', parameters: [structuredClone(property)] }; draft.tasks = [task];
+  const task = { id: crypto.randomUUID(), display_name: 'Engine task', symbol: 'engine_task', parameters: [structuredClone(property)] }; draft.tasks = [task];
   macro.steps[0].task = { task_id: task.id, arguments: { [property.id]: parameterRef(property) } };
   const env = compileEnvironment(draft).data;
   assert.deepEqual(prepareEnvironmentImport(draft, env).errors, []);
@@ -75,11 +75,11 @@ test('environment replacement rejects narrowed enum contracts and accepts equiva
 });
 test('engine task enum arguments export as positional strings and copied options are independent', () => {
   const { draft, property, activity } = enumFixture();
-  const task = { id: crypto.randomUUID(), display_name: 'Engine task', engine_key: 'engine.task', parameters: [structuredClone(property)] }; draft.tasks = [task];
+  const task = { id: crypto.randomUUID(), display_name: 'Engine task', symbol: 'engine_task', parameters: [structuredClone(property)] }; draft.tasks = [task];
   activity.branches[0].task = { task_id: task.id, arguments: { [property.id]: constant('probability_percent') } };
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(runtime.data.slots[activity.id].branches[0].task.arguments, [constant('probability_percent')]);
-  assert.deepEqual(runtime.data.environment_requirements.tasks.find((item) => item.engine_key === 'engine.task').parameters[0].options, property.options);
+  assert.deepEqual(runtime.data.environment_requirements.tasks.find((item) => item.name === 'engine_task').parameters[0].options, property.options);
   const result = simulateSlot(draft, activity.id); assert.deepEqual(result.errors, []); assert.equal(result.calls[0].arguments[0].value, 'probability_percent');
   const copy = duplicateTask(task); copy.parameters[0].options[0].display_name = 'Renamed';
   assert.notEqual(task.parameters[0].options[0].display_name, 'Renamed');

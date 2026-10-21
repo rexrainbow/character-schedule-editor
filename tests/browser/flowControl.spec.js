@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { flowControlFixture } from '../flowControlFixture.js';
@@ -38,9 +39,9 @@ test('dedicated day slot adds unconditional release, exports one-parameter runti
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   await expect(page.locator('.day-slot-release.configured')).toHaveCount(1);
   const data = await download(page, () => exportProject(page)); expect(data.day_schedules[days.High.id].slot_releases).toEqual([createRelease(), null, null]);
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
-  expect(runtime.days[days.High.id].slot_releases[0]).toEqual({ task_key: 'control.release', flow_control: 'release_slot', condition: null });
-  expect(runtime.environment_requirements.tasks.find((t) => t.engine_key === 'control.release').parameters).toHaveLength(1);
+  const runtime = await download(page, () => exportRuntime(page));
+  expect(runtime.days[days.High.id].slot_releases[0]).toEqual({ task_key: 'control_release', flow_control: 'release_slot', condition: null });
+  expect(runtime.environment_requirements.tasks.find((t) => t.name === 'control_release').parameters).toHaveLength(1);
   await page.screenshot({ path: 'test-results/day-slot-release-desktop.png' });
   await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(26);
   await expect(page.locator('.simulation-results')).toContainText('Slot released; skip this event');

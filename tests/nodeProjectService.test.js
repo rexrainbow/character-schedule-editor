@@ -12,7 +12,7 @@ async function directory(t) {
   assert.ok(resolve(root).startsWith(resolve(tmpdir()) + (process.platform === 'win32' ? '\\' : '/')));
   t.after(() => rm(root, { recursive: true, force: true })); return root;
 }
-const createDay = { object: 'days', action: 'create', values: { name: 'Work' } };
+const createDay = { object: 'days', action: 'create', values: { display_name: 'Work' } };
 
 test('service serializes concurrent edits, checks revisions and emits only committed changes', async (t) => {
   const service = await createProjectService({ root: await directory(t) }), changes = [];
@@ -23,7 +23,7 @@ test('service serializes concurrent edits, checks revisions and emits only commi
   assert.equal(changes.length, 1);
   assert.equal((await service.execute({ command: createDay })).errors[0].code, 'revisionRequired');
   assert.equal((await service.execute({ command: { object: 'days', action: 'list' } })).value.length, 1);
-  const failed = await service.batch({ expectedRevision: 1, commands: [{ object: 'days', action: 'update', id: first.id, values: { name: 'Rollback' } }, { object: 'days', action: 'remove', id: crypto.randomUUID() }] });
+  const failed = await service.batch({ expectedRevision: 1, commands: [{ object: 'days', action: 'update', id: first.id, values: { display_name: 'Rollback' } }, { object: 'days', action: 'remove', id: crypto.randomUUID() }] });
   assert.equal(failed.ok, false); assert.equal(failed.revision, 1); assert.equal(changes.length, 1);
   assert.equal((await service.setMode({ mode: 'environment', expectedRevision: 1 })).revision, 2);
   assert.equal((await service.execute({ command: createDay, expectedRevision: 2 })).ok, false);
@@ -39,7 +39,7 @@ test('project save/open are validated, atomic, dirty-aware and detect external f
   assert.equal(saved.ok, true); assert.equal(saved.dirty, false);
   const text = await readFile(join(root, 'project.json'), 'utf8');
   assert.equal(JSON.parse(text).day_schedules[created.id].display_name, 'Work');
-  await service.execute({ command: { object: 'days', action: 'update', id: created.id, values: { name: 'Unsaved' } }, expectedRevision: 1 });
+  await service.execute({ command: { object: 'days', action: 'update', id: created.id, values: { display_name: 'Unsaved' } }, expectedRevision: 1 });
   assert.equal((await service.openProject({ path: 'project.json', expectedRevision: 2 })).errors[0].code, 'unsavedChanges');
   await writeFile(join(root, 'project.json'), text + '\n');
   const conflict = await service.saveProject({ expectedRevision: 2, overwrite: true });

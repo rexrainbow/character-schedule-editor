@@ -81,7 +81,7 @@ test('progress bindings follow date and phases, remain independent of initial va
   assert.deepEqual(result.errors, []); assert.equal(result.state[number], 16);
   assert.equal(result.input[ids.current_week], 2); assert.equal(result.input[ids.current_weekday], 3); assert.equal(result.input[ids.current_day], 7);
   assert.equal(result.input[ids.current_slot], 1); assert.equal(result.state[ids.current_slot], 3); assert.equal(result.state[ids.total_weeks], 3);
-  draft.operandNodes[ids.current_day].engine_key = 'engine.day';
+  draft.operandNodes[ids.current_day].symbol = 'engine_day';
   assert.equal(progressBindings(draft).current_day, '');
   const explicit = simulateSequenceDay(draft, sequence.id, 9, undefined, undefined, undefined, { current_day: ids.current_day });
   assert.equal(explicit.state[ids.current_day], 7);

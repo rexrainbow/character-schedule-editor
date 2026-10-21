@@ -9,7 +9,11 @@ const nullableId = { anyOf: [text, { type: 'null' }] };
 const target = { anyOf: [integer, { enum: ['dayStart', 'dayEnd'] }, { type: 'object', properties: { index: integer, edge: { enum: ['start', 'end'] } }, required: ['index', 'edge'], additionalProperties: false }] };
 const weekday = { enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] };
 function register(object, action, mutates, fields, required, run, description = `${object}.${action}`) {
+  const namedTarget = fields.id && required.includes('id');
+  if (namedTarget) fields = { ...fields, name: text };
+  if (namedTarget) required = required.filter((key) => key !== 'id');
   const schema = { type: 'object', properties: { object: { const: object }, action: { const: action }, ...fields }, required: ['object', 'action', ...required], additionalProperties: false };
+  if (namedTarget) schema.anyOf = [{ required: ['id'] }, { required: ['name'] }];
   definitions.set(`${object}.${action}`, { object, action, mutates, description, schema, validate: ajv.compile(schema), run });
 }
 const add = (object, action, mutates, fields, required, run, description) => register(object, action, mutates, fields, required, run, description);
@@ -25,6 +29,7 @@ for (const object of ['slots', 'days', 'weeks', 'sequences', 'tasks', 'taskMacro
 add('project', 'snapshot', false, {}, [], (p) => p.getSnapshot(), 'Editor working data, using core API field names.');
 add('project', 'document', false, {}, [], (p) => p.toDocument(), 'Validated project save format.');
 add('project', 'validate', false, {}, [], (p) => p.validate());
+add('project', 'blueprint', false, {}, [], (p) => p.exportBlueprint(), 'Export a UUID-free YAML blueprint; includes errors if the project is incomplete.');
 add('settings', 'get', false, {}, [], (p) => p.settings.get());
 add('settings', 'update', true, { values }, ['values'], (p, c) => p.settings.update(c.values));
 add('days', 'uses', false, { id: text }, [], (p, c) => p.days.uses(c.id));
@@ -76,9 +81,64 @@ function compact(result) {
 function invoke(project, command) {
   const definition = definitions.get(`${command.object}.${command.action}`);
   try {
+    command = resolveCommand(project, command);
     const result = definition.run(project, command);
-    return definition.mutates ? compact(result) : { ok: true, value: result, errors: [], warnings: [] };
+    const publicResult = publicValues(result);
+    return definition.mutates ? compact(publicResult) : { ok: true, value: publicResult, errors: [], warnings: [] };
   } catch (error) { return { ok: false, value: null, errors: error.issues ?? [{ code: 'commandFailed', path: '', message: error.message }], warnings: [] }; }
+}
+
+function publicValues(value) {
+  if (Array.isArray(value)) return value.map(publicValues);
+  if (!value || typeof value !== 'object') return value;
+  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !key.startsWith('_') && key !== 'symbol').map(([key, item]) => [key, publicValues(item)]));
+  if (value.symbol !== undefined) { result.name = value.symbol; result.display_name = value._fallbackValue !== undefined ? '' : value.display_name ?? value.name ?? ''; }
+  return result;
+}
+
+function resolveCommand(project, input) {
+  const c = structuredClone(input), draft = project.getSnapshot();
+  const groups = { variables: Object.entries(draft.operandNodes).filter(([, item]) => item.source !== 'computed').map(([id, item]) => ({ ...item, id })), expressions: Object.entries(draft.operandNodes).filter(([, item]) => item.source === 'computed').map(([id, item]) => ({ ...item, id })), enums: Object.entries(draft.enumNodes ?? {}).map(([id, item]) => ({ ...item, id })), taskMacros: draft.taskMacros, tasks: draft.tasks, slots: draft.slots, days: draft.days, weeks: draft.weeks, sequences: draft.sequences };
+  function find(group, value) {
+    if (value == null) return value;
+    const items = Array.isArray(group) ? group : groups[group] ?? [];
+    const direct = items.find((item) => item.id === value); if (direct) return direct.id;
+    const matches = items.filter((item) => item.symbol === value);
+    if (matches.length === 1) return matches[0].id;
+    if (/^[0-9a-f]{8}-/.test(value)) return value;
+    throw Object.assign(new Error(`Unknown or ambiguous name: ${value}`), { issues: [{ code: 'unknownName', path: '/command', message: `Cannot resolve ${value}.` }] });
+  }
+  if (c.sequenceId !== undefined) c.sequenceId = find('sequences', c.sequenceId);
+  const events = draft.sequences.flatMap((sequence) => sequence.eventGroups ?? []);
+  const ownerGroup = c.object.split('.')[0];
+  if (c.ownerId !== undefined) c.ownerId = find(ownerGroup, c.ownerId);
+  const owner = groups[ownerGroup]?.find((item) => item.id === c.ownerId);
+  if (c.id !== undefined || c.name !== undefined && c.action !== 'create' && !(c.object.endsWith('.parameters') && c.action === 'add')) {
+    const target = c.object === 'events' ? draft.sequences.find((item) => item.id === c.sequenceId)?.eventGroups ?? [] : c.object === 'tasks.builtins' ? project.tasks.builtins.list() : c.object.endsWith('.parameters') ? owner?.parameters ?? [] : c.object;
+    if (c.id !== undefined && c.name !== undefined && find(target, c.id) !== find(target, c.name)) throw new Error('id and name refer to different objects');
+    c.id = find(target, c.id ?? c.name);
+    delete c.name;
+  }
+  for (const [field, group] of Object.entries({ dayId: 'days', slotId: 'slots', weekId: 'weeks', parentId: c.object === 'enums' ? 'enums' : 'variables' })) if (c[field] !== undefined && !(field === 'dayId' && c.action === 'setOverride' && c[field] === 'inherit')) c[field] = find(group, c[field]);
+  function walk(value) {
+    if (!value || typeof value !== 'object') return;
+    const refs = { reference_id: 'variables', expression_macro_id: 'expressions', target_variable_id: 'variables', task_id: 'tasks', task_macro_id: 'taskMacros', enum_id: 'enums', day_schedule_id: 'days', event_group_id: events, dayId: 'days', weekId: 'weeks', dayStartId: 'slots', dayEndId: 'slots', startId: 'slots', endId: 'slots', parent_id: c.object === 'enums' ? 'enums' : 'variables' };
+    for (const [key, group] of Object.entries(refs)) if (value[key] != null) value[key] = find(group, value[key]);
+    if (value.slotIds) value.slotIds = value.slotIds.map((id) => find('slots', id));
+    if (value.days && !Array.isArray(value.days)) value.days = Object.fromEntries(Object.entries(value.days).map(([key, id]) => [key, find('days', id)]));
+    if (value.arguments && (value.task_id || value.task_macro_id)) {
+      const target = [...draft.tasks, ...draft.taskMacros].find((item) => item.id === (value.task_id ?? value.task_macro_id));
+      value.arguments = Object.fromEntries(Object.entries(value.arguments).map(([key, arg]) => [find(target?.parameters ?? [], key), arg]));
+    }
+    if (value.type === 'parameter_reference') { const parameters = owner?.parameters ?? groups.taskMacros.find((item) => item.id === c.id)?.parameters ?? c.values?.parameters ?? []; value.parameter_id = find(parameters, value.parameter_id); }
+    for (const child of Object.values(value)) walk(child);
+  }
+  if (c.values) {
+    if (c.values.name !== undefined) { c.values.symbol = c.values.name; delete c.values.name; }
+    if (c.values.parameters) c.values.parameters = c.values.parameters.map((item) => { const next = { ...item, symbol: item.name ?? item.symbol }; delete next.name; return next; });
+    walk(c.values);
+  }
+  return c;
 }
 export function executeCommand(project, command) {
   const checked = inspectCommand(command);

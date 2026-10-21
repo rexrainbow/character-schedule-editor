@@ -1,3 +1,4 @@
+import DescriptionField from '../components/DescriptionField.jsx';
 import EventCandidatesDialog from './EventCandidatesDialog.jsx';
 import EventDaySourceEditor from './EventDaySourceEditor.jsx';
 import { eventDaySourceMode, eventFirstDayId, eventDayCandidates } from '../../core/eventDaySource.js';
@@ -19,6 +20,7 @@ import EngineKeyField, { EngineKeysContext } from '../components/EngineKeyField.
 import { engineKeyEntries } from '../../core/engineKeyModel.js';
 import { eventGroupName, duplicateEventGroup } from '../../core/sequenceEvents.js';
 import { availableDayTags } from '../../core/dayTags.js';
+import { normalizeSymbols, symbolErrors } from '../../core/symbols.js';
 
 export default function SequenceEventsDialog({ draft, sequence, request, onApply, onClose, t }) {
   const [groups, setGroups] = useState(() => [...structuredClone(sequence.eventGroups ?? []), ...(request.createAt === undefined ? [] : [editProject(draft, t).sequences.events(sequence.id).newDraft(request.createAt)])]);
@@ -37,10 +39,10 @@ export default function SequenceEventsDialog({ draft, sequence, request, onApply
   const ordered = [...shown].sort((a, b) => (Number.isFinite(b.priority) ? b.priority : 0) - (Number.isFinite(a.priority) ? a.priority : 0) || originalOrder.get(a.id) - originalOrder.get(b.id));
   const selected = shown.find((group) => group.id === selectedId) ?? (request.createAt !== undefined && !selectedId ? shown.at(-1) : shown[0]);
   const candidateDraft = { ...draft, sequences: draft.sequences.map((item) => item.id === sequence.id ? candidate : item) };
-  const errors = [...eventGroupErrors(sequence, days, groups), ...eventUsageErrors(candidateDraft), ...slotReleaseErrors(candidateDraft)];
+  const errors = [...eventGroupErrors(sequence, days, groups), ...symbolErrors(normalizeSymbols(candidateDraft)).filter((error) => error.path.startsWith('/events/')), ...eventUsageErrors(candidateDraft), ...slotReleaseErrors(candidateDraft)];
   const stats = selected ? eventCounts(sequence, selected, draft) : null;
   const lookup = new Map(days.map((day) => [day.id, day]));
-  function patch(values) { setGroups(groups.map((group) => group.id === selected.id ? { ...group, ...values } : group)); setSelectedId(selected.id); }
+  function patch(values) { setGroups(groups.map((group) => group.id === selected.id ? { ...group, ...values, ...(values.symbol === undefined ? {} : { _autoSymbol: false }) } : group)); setSelectedId(selected.id); }
   function add() { const group = editProject(draft, t).sequences.events(sequence.id).newDraft(request.position); setGroups([...groups, group]); setSelectedId(group.id); setTodayOnly(false); }
   function duplicate() { const group = editProject(draft, t).sequences.events(sequence.id).duplicateDraft(selected); setGroups([...groups, group]); setSelectedId(group.id); }
   function changeKind(kind) {
@@ -62,9 +64,9 @@ export default function SequenceEventsDialog({ draft, sequence, request, onApply
         <div className="event-identity-row">
         <IconField value={selected.icon ?? lookup.get(eventFirstDayId(selected))?.icon} onChange={(icon) => patch({ icon })} t={t} />
         <label>{t('eventName')}<input aria-label={t('eventName')} value={selected.display_name ?? ''} placeholder={lookup.get(eventFirstDayId(selected))?.name ?? ''} onChange={(e) => patch({ display_name: e.target.value })} /></label>
-        <div className="event-engine-field"><span className="field-label">{t('engineKey')}</span><EngineKeyField kind="eventGroups" item={selected} onChange={(engine_key) => patch({ engine_key })} t={t} /></div>
+        <div className="event-engine-field"><span className="field-label">{t('engineKey')}</span><EngineKeyField kind="eventGroups" item={selected} onChange={(symbol) => patch({ symbol })} t={t} /></div>
         </div>
-        <div className="event-properties-row">
+        <DescriptionField value={selected.description} onChange={(description) => patch({ description })} t={t} /><div className="event-properties-row">
         <label>{t('eventType')}<select aria-label={t('eventType')} value={eventKind(selected)} onChange={(event) => changeKind(event.target.value)}>{['once', 'periodic', 'probability'].map((kind) => <option key={kind} value={kind}>{t(`eventType_${kind}`)}</option>)}</select></label>
 
         <label>{t('eventPriority')}<input type="number" step="1" min={eventExecutionMode(selected) === 'overlay' ? undefined : 0} aria-label={t('eventPriority')} value={Number.isNaN(selected.priority) ? '' : selected.priority} onChange={(e) => patch({ priority: e.target.value === '' ? NaN : e.target.valueAsNumber })} /></label>

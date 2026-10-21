@@ -39,7 +39,7 @@ test('real MCP stdio process discovers tools, edits a probability event, saves, 
   assert.equal(denied.isError, true); assert.equal(denied.structuredContent.errors[0].code, 'mutationInQuery');
   const added = await call('project_execute', { expectedRevision: 1, command: { object: 'events', action: 'create', sequenceId: sequence.id, values: { display_name: 'Cold', dayId: eventDay.id, kind: 'probability', end: { week: 3, weekday: 'sun' }, probability_percent: 10, cooldown_days: 7, countFilter: { kind: 'all' } } } });
   assert.equal(added.structuredContent.ok, true); assert.equal(added.structuredContent.revision, 2);
-  const stale = await call('project_execute', { expectedRevision: 1, command: { object: 'days', action: 'update', id: eventDay.id, values: { name: 'Stale edit' } } });
+  const stale = await call('project_execute', { expectedRevision: 1, command: { object: 'days', action: 'update', id: eventDay.id, values: { display_name: 'Stale edit' } } });
   assert.equal(stale.isError, true); assert.equal(stale.structuredContent.errors[0].code, 'revisionConflict');
   const saved = await call('project_save', { path: 'output.json', expectedRevision: 2 }); assert.equal(saved.structuredContent.ok, true); assert.equal(saved.structuredContent.dirty, false);
   const data = JSON.parse(await readFile(join(root, 'output.json'), 'utf8'));
@@ -62,5 +62,5 @@ test('stdio --web exposes a GUI sharing the same project instance', { timeout: 2
   const id = crypto.randomUUID();
   const response = await fetch(`${status.webUrl}/__schedule/api/guiChanges`, { method: 'POST', headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json', 'X-Schedule-Instance': config.instanceId }, body: JSON.stringify({ expectedRevision: status.revision, mode: 'user', changes: [{ collection: 'days', kind: 'put', id, value: { id, name: 'GUI shared day', icon: 'tabler:calendar', slotIds: [null, null, null] } }] }) });
   assert.equal((await response.json()).ok, true);
-  assert.equal((await call('project_query', { command: { object: 'days', action: 'get', id } })).value.name, 'GUI shared day');
+  assert.equal((await call('project_query', { command: { object: 'days', action: 'get', id } })).value.display_name, 'GUI shared day');
 });

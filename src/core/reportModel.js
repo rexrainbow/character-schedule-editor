@@ -51,6 +51,7 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   if (!sequences.length) push(escape(t('reportNoSequences')), '');
   for (const sequence of sequences) {
     heading(3, `sequence-${sequence.id}`, sequenceNames.get(sequence.id));
+    if (sequence.description?.trim()) field('description', escape(sequence.description));
     const range = sequenceRange(sequence);
     if (!sequence.rows.length) { push(escape(t('emptySequence')), ''); continue; }
     field('eventStart', escape(eventDateLabel({ week: 1, weekday: range.startWeekday }, t)));
@@ -80,6 +81,7 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   if (!catalog.length) push(escape(t('eventNoGroups')), '');
   for (const sequence of sequences) for (const group of sequence.eventGroups ?? []) {
     heading(3, `event-${eventKey(sequence, group)}`, eventNames.get(eventKey(sequence, group)));
+    if (group.description?.trim()) field('description', escape(group.description));
     field('reportOwnerSequence', link(sequenceNames.get(sequence.id), `sequence-${sequence.id}`));
     field('eventDaySource', escape(t(`eventSource_${eventDaySourceMode(group)}`)));
     field('eventDay', eventDayIds(group).map((id, i) => dayLink(draft.days.find((day) => day.id === id)) + (eventDaySourceMode(group) === 'random' ? ` (${group.dayCandidates[i].weight})` : '')).join(' / '));
@@ -110,6 +112,7 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
   if (!days.length) push(escape(t('reportNoReferencedDays')), '');
   for (const day of days) {
     heading(3, `day-${day.id}`, `${dayNames.get(day.id)}${referencedDays.has(day.id) ? '' : ` [${t('reportUnreferenced')}]`}`);
+    if (day.description?.trim()) field('description', escape(day.description));
     field('dayTags', dayTags(day).length ? dayTags(day).map(escape).join(', ') : '—');
     field('dayUses', uses[day.id].roles.map((role) => escape(t(`dayUse_${role}`))).join(', '));
     for (const entry of dayAssignments(day)) {

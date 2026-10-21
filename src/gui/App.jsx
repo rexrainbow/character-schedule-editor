@@ -9,6 +9,7 @@ import ServerFileDialog from './dialogs/ServerFileDialog.jsx';
 import { ProjectConnectionContext } from './contexts/ProjectConnectionContext.js';
 import ReportExportDialog from './dialogs/ReportExportDialog.jsx';
 import { editProject } from '../core/projectApi.js';
+import { importBlueprint } from '../core/blueprint/index.js';
 import EnumDefinitionsEditor from './editors/EnumDefinitionsEditor.jsx';
 import { eventCatalog } from '../core/eventReferences.js';
 import { countDayReferences } from '../core/sequenceEvents.js';
@@ -114,7 +115,7 @@ export default function App() {
 
   function filterDayUse(role) { setDayUseFilter(role); setCollapsedDayUses((previous) => previous.filter((key) => key !== role)); }
   function revealDayUses(id) { setDayUseFilter(''); const roles = uses[id]?.roles ?? ['main']; setCollapsedDayUses((previous) => previous.filter((role) => !roles.includes(role))); }
-  function renderItem(item) { return <div key={item.id} className="schedule-list-entry"><button className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => tab === 'slots' ? setSelectedSlot(item.id) : tab === 'days' ? setSelectedDay(item.id) : tab === 'weeks' ? setSelectedWeek(item.id) : setSelectedSequence(item.id)}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.engine_key} t={t} /></div></>}<ChevronRight size={16} /></button>{tab === 'days' && <><DayUseChips use={uses[item.id]} hideSingle={dayListView === 'grouped'} onFilter={filterDayUse} t={t} /><DayTagChips day={item} onFilter={setDayTagFilter} t={t} /></>}</div>; }
+  function renderItem(item) { return <div key={item.id} className="schedule-list-entry"><button className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => tab === 'slots' ? setSelectedSlot(item.id) : tab === 'days' ? setSelectedDay(item.id) : tab === 'weeks' ? setSelectedWeek(item.id) : setSelectedSequence(item.id)}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.symbol} t={t} /></div></>}<ChevronRight size={16} /></button>{tab === 'days' && <><DayUseChips use={uses[item.id]} hideSingle={dayListView === 'grouped'} onFilter={filterDayUse} t={t} /><DayTagChips day={item} onFilter={setDayTagFilter} t={t} /></>}</div>; }
 
   useEffect(() => {
     document.documentElement.lang = locale; document.title = t('title');
@@ -256,15 +257,19 @@ export default function App() {
   async function importFile(event) {
     const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
     try {
-      const data = JSON.parse((await file.text()).replace(/^\uFEFF/, ''));
-      const errors = validateDocument(data);
+      const yaml = /\.ya?ml$/i.test(file.name);
+      if (!yaml && !/\.json$/i.test(file.name)) { setOperationIssues([]); setNotice({ key: 'projectFileTypeError', error: true }); return; }
+      const text = (await file.text()).replace(/^\uFEFF/, '');
+      const compiled = yaml ? importBlueprint(text) : null;
+      const data = yaml ? compiled.data : JSON.parse(text);
+      const errors = yaml ? compiled.errors : validateDocument(data);
       if (errors.length) { setOperationIssues(errors); setNotice({ key: 'importInvalid', error: true, issueTitle: 'errorsForImport' }); return; }
       if (projectDirty && !window.confirm(t('importConfirm'))) return;
       const result = await project.loadDocument(data);
-      if (!result.ok) { setOperationIssues(result.errors); setNotice({ key: 'importInvalid', error: true }); return; }
+      if (!result.ok) { setOperationIssues(result.errors); setNotice({ key: 'importInvalid', error: true, issueTitle: 'errorsForImport' }); return; }
       setSelectedSlot(null); setSelectedDay(null); setSelectedWeek(null); setSelectedSequence(null); setSearches({ slots: '', days: '', weeks: '', sequences: '' }); resetNavigation();
-      setInitialized(true); setSettings(null); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null); setEnvironmentSettings(false); setEnvironmentPreview(null); setDirty(false); setOperationIssues([]); setNotice({ key: 'imported' });
-    } catch { setOperationIssues([]); setNotice({ key: 'parseError', error: true }); }
+      setInitialized(true); setSettings(null); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null); setEnvironmentSettings(false); setEnvironmentPreview(null); setDirty(yaml); setOperationIssues([]); setNotice({ key: yaml ? 'blueprintImported' : 'imported' });
+    } catch { setOperationIssues([]); setNotice({ key: 'projectReadError', error: true }); }
   }
   function exportFile() {
     const result = project.toDocument();
@@ -280,6 +285,14 @@ export default function App() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(result.data, null, 2) + '\n'], { type: 'application/json' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'character-schedule-runtime.json'; anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000); setOperationIssues([]); setNotice({ key: 'runtimeExported' });
+  }
+
+  function exportBlueprintFile() {
+    const result = editProject(draft, t).exportBlueprint();
+    if (result.errors.length) { setOperationIssues(result.errors); setNotice({ key: 'blueprintExportInvalid', error: true, issueTitle: 'errorsForExport' }); return; }
+    const url = URL.createObjectURL(new Blob([result.data], { type: 'application/yaml;charset=utf-8' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'character-schedule-blueprint.yaml'; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000); setOperationIssues([]); setNotice({ key: 'blueprintExported' });
   }
 
   function exportReport(options) {
@@ -298,8 +311,8 @@ export default function App() {
       {initialized && <><nav className="header-tabs" aria-label={t('editorPage')}><div role="tablist">{EDITOR_PAGES.map((page) => <button key={page} role="tab" aria-selected={tab === page} onClick={() => setTab(page)}>{pageLabel(page)}</button>)}</div></nav><select className="mobile-page-picker" aria-label={t('editorPage')} value={tab} onChange={(event) => setTab(event.target.value)}>{EDITOR_PAGES.map((page) => <option key={page} value={page}>{pageLabel(page)}</option>)}</select></>}
       <div className="header-actions"><label className="language-picker"><Globe2 size={16} /><select aria-label={t('language')} value={preference} onChange={(e) => setPreference(e.target.value)}><option value="system">{t('system')}</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></label>
         {initialized && mode === 'environment' && <ActionMenu label={t('environmentActions')} icon={Settings2} items={[{ label: t('environmentSettings'), icon: Settings2, onClick: () => setEnvironmentSettings(true) }, { label: t('importEnvironment'), icon: Upload, onClick: () => environmentInput.current.click() }, { label: t('exportEnvironment'), icon: Download, onClick: exportEnvironmentFile }]} />}
-        {initialized && mode === 'user' && <button className="button primary export-button" aria-label={t('exportRuntime')} onClick={exportRuntime}><Download size={17} /><span>{t('exportRuntime')}</span></button>}
-        <input className="sr-only" ref={fileInput} type="file" accept=".json,application/json" aria-label={t('import')} onChange={importFile} />
+        {initialized && mode === 'user' && <ActionMenu label={t('exportMenu')} triggerClassName="button primary export-button" items={[{ label: t('exportRuntimeOption'), icon: Download, onClick: exportRuntime }, { label: t('exportBlueprintOption'), icon: Download, onClick: exportBlueprintFile }]}><Download size={17} /><span>{t('exportMenu')}</span><ChevronDown size={14} /></ActionMenu>}
+        <input className="sr-only" ref={fileInput} type="file" accept=".json,.yaml,.yml,application/json,application/yaml,text/yaml" aria-label={t('import')} onChange={importFile} />
         {initialized && <input className="sr-only" ref={environmentInput} type="file" accept=".json,application/json" aria-label={t('importEnvironment')} onChange={importEnvironmentFile} />}
       </div>
     </header>

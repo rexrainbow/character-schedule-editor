@@ -8,7 +8,7 @@ import { createTaskMacro } from '../src/core/taskMacroModel.js';
 export function flowControlFixture(options = {}, target = { index: 0, edge: 'start' }, controller = 'High') {
   const { draft, sequence } = sequenceEventsFixture(), vars = builtinVariableFixture();
   draft.environment = vars.draft.environment;
-  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, release_slot: { engine_key: 'control.release' } };
+  draft.operandNodes = vars.draft.operandNodes; draft.builtinTasks = { ...vars.draft.builtinTasks, release_slot: { symbol: 'control_release' } };
   draft.tasks = []; draft.slots = []; draft.days = []; draft.taskMacros = [];
   function slot(name, task) { const result = createSlot(draft.slots, name); result.branches = [{ condition: null, task }]; draft.slots.push(result); return result; }
   const increment = { builtin: 'increment_variable', target_variable_id: vars.number, value: { type: 'constant', value: 1 } };

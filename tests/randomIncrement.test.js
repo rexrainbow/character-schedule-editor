@@ -57,7 +57,7 @@ test('integer metadata and random expressions round-trip through all formats and
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(createProjectWithEnvironment('New', 3, env.data).operandNodes[number].integer_only, true);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
   assert.equal(runtime.data.environment_variables[0].children.find((item) => item.id === number).integer_only, true);
-  assert.equal(runtime.data.environment_requirements.variables.find((item) => item.engine_key === 'Counter').integer_only, true);
+  assert.equal(runtime.data.environment_requirements.variables.find((item) => item.name === 'Counter').integer_only, true);
   assert.deepEqual(runtime.data.slots[slot.id].branches[0].task.random_amplitude, task.random_amplitude);
   for (const key of ['initial_value', 'min_value', 'max_value']) { const bad = structuredClone(project.data); bad.operand_nodes[number][key] = .5; assert.ok(validateDocument(bad).length); }
   const changed = changeOperandType(draft.operandNodes, [], number, 'string'); assert.equal(changed.nodes[number].integer_only, undefined); assert.equal(changed.nodes[number].min_value, undefined);

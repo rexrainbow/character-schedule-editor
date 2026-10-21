@@ -163,14 +163,14 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       const event = { kind: 'reservation', label: definition.display_name, path, children, accepted: !reason }; out.push(event);
       if (reason) {
         children.push({ kind: 'message', label: `${t('scheduleRejected')}: ${t(reason)}` });
-        calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, accepted: false, reason, path }); return;
+        calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, symbol: definition.symbol, accepted: false, reason, path }); return;
       }
       const date = positionDate(target.position), name = use.display_name.trim() || draft.days.find((day) => day.id === eventFirstDayId(eventDaySourceFromData(use)))?.name || '';
       const reservation = { id: crypto.randomUUID(), kind: 'once', sequence_id: sequence.id, display_name: name, icon: use.icon || 'tabler:calendar-event', start: { week_number: date.week, weekday: date.weekday }, target_position: target.position, execution_mode: use.execution_mode, priority: use.priority, ...(use.day_source ? { day_source: structuredClone(use.day_source) } : { day_schedule_id: use.day_schedule_id }), created_at: { position: eventContext.position, ...(eventContext.current?.() ?? {}) }, source_path: path };
       reservations.push(reservation);
       event.reservation_id = reservation.id;
       children.push({ kind: 'message', label: `${t('scheduleAccepted')}: ${name}` }, { kind: 'message', label: eventDateLabel(date, t) }, { kind: 'message', label: reservationSourceText(use, draft.days, t) }, { kind: 'message', label: `${t(`executionMode_${use.execution_mode}`)}; ${t('eventPriority')}: ${use.priority}` });
-      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, accepted: true, reservation_id: reservation.id, path }); return;
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, symbol: definition.symbol, accepted: true, reservation_id: reservation.id, path }); return;
     }
     if (use.builtin === 'adjust_probability_event') {
       const reference = resolveEvent(use.event, scope, `${path}/event`, 'probability'), settings = eventValues[reference.event_group_id];
@@ -183,7 +183,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       settings[property] = Math.max(0, property === 'probability_percent' ? Math.min(100, requested) : requested);
       event.after = settings[property];
       event.children.push({ kind: 'message', label: t('eventAdjustmentNextDay') });
-      calls.push({ kind: 'builtin', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, event_group_id: reference.event_group_id, property, operation, before: event.before, after: event.after, path });
+      calls.push({ kind: 'builtin', builtin: use.builtin, display_name: definition.display_name, symbol: definition.symbol, event_group_id: reference.event_group_id, property, operation, before: event.before, after: event.after, path });
       return;
     }
     if (isBuiltinFlowTask(use)) {
@@ -192,7 +192,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       const control = { builtin: use.builtin, result, label: definition.display_name, path };
       const outcome = onControl ? onControl(control) : { applied: false, reason: 'controlNoDayContext' };
       out.push({ kind: 'control', ...control, ...outcome, children });
-      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, engine_key: definition.engine_key, result, path, ...outcome });
+      calls.push({ kind: 'control', builtin: use.builtin, display_name: definition.display_name, symbol: definition.symbol, result, path, ...outcome });
       return;
     }
     if (use.builtin) {
@@ -218,7 +218,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
       if (!Object.is(truncated, event.requested)) event.children.push({ kind: 'truncate', label: t('simulationTruncated', { requested: event.requested, value: Object.is(truncated, -0) ? 0 : truncated }) });
       state[id] = clampVariable(nodes[id], value); event.after = state[id];
       if (!Object.is(truncated, event.after) && !(truncated === 0 && event.after === 0)) event.children.push({ kind: 'clamp', label: t('simulationClamped', { requested: truncated, value: event.after }) });
-      calls.push({ kind: 'builtin', display_name: definition.display_name, engine_key: definition.engine_key, target_variable_id: id, before: event.before, after: event.after, path, ...(amplitude > 0 ? { increment, random_amplitude: amplitude, random_offset: offset } : {}) });
+      calls.push({ kind: 'builtin', display_name: definition.display_name, symbol: definition.symbol, target_variable_id: id, before: event.before, after: event.after, path, ...(amplitude > 0 ? { increment, random_amplitude: amplitude, random_offset: offset } : {}) });
       return;
     }
     const macro = use.task_macro_id ? draft.taskMacros.find((m) => m.id === use.task_macro_id) : null;
@@ -227,7 +227,7 @@ export function createSimulationEvaluator(draft, values, baseline, t, onControl 
     const args = qualified?.args ?? Object.fromEntries(definition.parameters.map((p) => [p.id, argument(use.arguments[p.id], p, scope, `${path}/arguments/${p.id}`, event.children, depth + 1)]));
     if (!macro) {
       event.unmodeled = true; unmodeled = true;
-      calls.push({ kind: 'task', display_name: definition.display_name, engine_key: definition.engine_key, arguments: definition.parameters.map((p) => ({ id: p.id, display_name: p.display_name, type: p.type, value: args[p.id] })), path, effectsModeled: false });
+      calls.push({ kind: 'task', display_name: definition.display_name, symbol: definition.symbol, arguments: definition.parameters.map((p) => ({ id: p.id, display_name: p.display_name, type: p.type, value: args[p.id] })), path, effectsModeled: false });
       return;
     }
     const definitionErrors = taskMacroDefinitionErrors([macro]);

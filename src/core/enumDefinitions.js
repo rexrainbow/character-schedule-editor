@@ -67,6 +67,6 @@ export function moveEnumNode(nodes, id, parent, offset) {
 }
 export function duplicateEnumSubtree(nodes, id) {
   const ids = [...enumSubtree(nodes, id)], mapping = new Map(ids.map((key) => [key, crypto.randomUUID()])), next = { ...nodes };
-  for (const key of ids) { const copy = structuredClone(nodes[key]); delete copy.engine_key; next[mapping.get(key)] = { ...copy, parent_id: mapping.get(copy.parent_id) ?? copy.parent_id, ...(key === id ? { display_name: `${copy.display_name} (副本)`, order: enumChildren(nodes, copy.parent_id, enumScope(copy)).length } : {}) }; }
+  for (const key of ids) { const copy = structuredClone(nodes[key]); delete copy.symbol; next[mapping.get(key)] = { ...copy, parent_id: mapping.get(copy.parent_id) ?? copy.parent_id, ...(key === id ? { display_name: `${copy.display_name} (副本)`, order: enumChildren(nodes, copy.parent_id, enumScope(copy)).length } : {}) }; }
   return { nodes: next, id: mapping.get(id) };
 }

@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createProject, compileProject } from '../../src/core/model.js';
@@ -38,10 +39,10 @@ test('environment expressions are editable only in environment mode, filter depe
   expect(Object.keys(environment.expression_macros)).toHaveLength(3);
   expect(Object.values(environment.expression_macros).every((macro) => macro.scope === 'environment')).toBe(true);
   await navigate(page, 'expressions');
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
+  const runtime = await download(page, () => exportRuntime(page));
   expect(Object.keys(runtime.expression_macros)).toHaveLength(4);
   expect(runtime.expression_macros[computed.id].display_name).toBe('User number');
-  expect(Object.values(runtime.expression_macros).some((macro) => macro.engine_key === 'schedule.is_first_slot')).toBe(true);
+  expect(Object.values(runtime.expression_macros).some((macro) => macro.name === 'schedule_is_first_slot')).toBe(true);
 });
 
 test('existing projects can add the progress preset repeatedly without duplicating UUIDs', async ({ page }) => {

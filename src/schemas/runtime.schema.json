@@ -125,10 +125,10 @@
           "display_name": {
             "type": "string"
           },
-          "engine_key": {
+          "name": {
             "type": "string",
             "minLength": 1,
-            "pattern": "\\S"
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
           },
           "scope": {
             "enum": [
@@ -143,9 +143,7 @@
               "type": "object",
               "properties": {
                 "display_name": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
+                  "type": "string"
                 },
                 "value": {
                   "type": "string",
@@ -173,8 +171,7 @@
       "type": "object",
       "propertyNames": {
         "type": "string",
-        "minLength": 1,
-        "pattern": "\\S"
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
       },
       "additionalProperties": {
         "type": "object",
@@ -247,10 +244,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "value_type": {
           "enum": [
@@ -275,7 +272,7 @@
       },
       "required": [
         "display_name",
-        "engine_key",
+        "name",
         "value_type",
         "read_only",
         "access"
@@ -306,10 +303,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "parameters": {
           "type": "array",
@@ -320,7 +317,7 @@
       },
       "required": [
         "display_name",
-        "engine_key",
+        "name",
         "parameters"
       ],
       "additionalProperties": false
@@ -328,13 +325,12 @@
     "runtime_parameter_requirement": {
       "type": "object",
       "required": [
-        "display_name",
-        "type"
+        "type",
+        "name"
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "type": {
           "enum": [
@@ -375,9 +371,7 @@
             "type": "object",
             "properties": {
               "display_name": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "type": "string"
               },
               "value": {
                 "type": "string",
@@ -394,6 +388,10 @@
         },
         "enum_id": {
           "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         }
       },
       "additionalProperties": false,
@@ -517,8 +515,7 @@
           "$ref": "#/$defs/uuid"
         },
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "version": {
           "type": "string",
@@ -535,10 +532,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "id": {
               "$ref": "#/$defs/uuid"
@@ -567,10 +564,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "id": {
               "$ref": "#/$defs/uuid"
@@ -612,7 +609,7 @@
             "value_type",
             "read_only",
             "initial_value",
-            "engine_key"
+            "name"
           ],
           "additionalProperties": false,
           "allOf": [
@@ -742,10 +739,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "id": {
               "$ref": "#/$defs/uuid"
@@ -774,10 +771,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "id": {
               "$ref": "#/$defs/uuid"
@@ -946,10 +943,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "value_type": {
           "enum": [
@@ -1269,15 +1266,15 @@
         "type": {
           "const": "environment_reference"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         }
       },
       "required": [
         "type",
-        "engine_key"
+        "name"
       ],
       "additionalProperties": false
     },
@@ -1472,10 +1469,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "parameters": {
               "type": "array",
@@ -1517,10 +1514,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "parameters": {
               "type": "array",
@@ -1562,10 +1559,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "parameters": {
               "type": "array",
@@ -1607,16 +1604,15 @@
       "type": "object",
       "required": [
         "id",
-        "display_name",
-        "type"
+        "type",
+        "name"
       ],
       "properties": {
         "id": {
           "$ref": "#/$defs/uuid"
         },
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "type": {
           "enum": [
@@ -1656,9 +1652,7 @@
             "type": "object",
             "properties": {
               "display_name": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "type": "string"
               },
               "value": {
                 "type": "string",
@@ -1675,6 +1669,10 @@
         },
         "enum_id": {
           "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         }
       },
       "additionalProperties": false,
@@ -1810,7 +1808,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "arguments": {
           "type": "array",
@@ -1971,15 +1969,15 @@
             "type": {
               "const": "variable_reference"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             }
           },
           "required": [
             "type",
-            "engine_key"
+            "name"
           ],
           "additionalProperties": false
         }
@@ -1991,7 +1989,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "target": {
           "oneOf": [
@@ -2042,7 +2040,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "target": {
           "oneOf": [
@@ -2067,7 +2065,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "event_operation": {
           "const": "adjust_probability"
@@ -2180,7 +2178,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "flow_control": {
           "const": "schedule_event"
@@ -2431,10 +2429,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "branches": {
               "type": "array",
@@ -2455,10 +2453,10 @@
             "display_name": {
               "type": "string"
             },
-            "engine_key": {
+            "name": {
               "type": "string",
               "minLength": 1,
-              "pattern": "\\S"
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             },
             "mode": {
               "const": "priority"
@@ -2485,10 +2483,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "slot_ids": {
           "type": "array",
@@ -2592,7 +2590,7 @@
         "task_key": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "flow_control": {
           "const": "release_slot"
@@ -2621,10 +2619,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "days": {
           "type": "object",
@@ -2745,10 +2743,10 @@
         "display_name": {
           "type": "string"
         },
-        "engine_key": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "pattern": "\\S"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
         },
         "start_weekday": {
           "enum": [
@@ -2901,12 +2899,7 @@
             },
             "display_name": {
               "type": "string",
-              "minLength": 1
-            },
-            "engine_key": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
+              "minLength": 0
             },
             "kind": {
               "const": "once"
@@ -2920,6 +2913,11 @@
             },
             "day_source": {
               "$ref": "#/$defs/event_day_source"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             }
           },
           "required": [
@@ -2927,6 +2925,7 @@
             "kind",
             "start",
             "priority",
+            "name",
             "display_name"
           ],
           "additionalProperties": false,
@@ -2972,12 +2971,7 @@
             },
             "display_name": {
               "type": "string",
-              "minLength": 1
-            },
-            "engine_key": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
+              "minLength": 0
             },
             "kind": {
               "const": "periodic"
@@ -3052,6 +3046,11 @@
             },
             "day_source": {
               "$ref": "#/$defs/event_day_source"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             }
           },
           "required": [
@@ -3061,6 +3060,7 @@
             "priority",
             "end",
             "interval_days",
+            "name",
             "display_name"
           ],
           "additionalProperties": false,
@@ -3106,12 +3106,7 @@
             },
             "display_name": {
               "type": "string",
-              "minLength": 1
-            },
-            "engine_key": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
+              "minLength": 0
             },
             "kind": {
               "const": "probability"
@@ -3191,6 +3186,11 @@
             },
             "day_source": {
               "$ref": "#/$defs/event_day_source"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
             }
           },
           "required": [
@@ -3201,6 +3201,7 @@
             "end",
             "probability_percent",
             "cooldown_days",
+            "name",
             "display_name"
           ],
           "additionalProperties": false,

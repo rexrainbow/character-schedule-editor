@@ -1,3 +1,4 @@
+import { exportRuntime } from './navigation.js';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { referenceFixture } from '../referenceFixture.js';
@@ -28,7 +29,7 @@ test('optional limits validate initial values, export both layers and clear with
   await navigate(page, 'operands', 'en', 'user'); await page.getByRole('treeitem', { name: 'counter', exact: true }).click();
   await expect(min).toBeDisabled(); await expect(max).toBeDisabled();
   await page.getByRole('treeitem', { name: 'Local counter', exact: true }).click(); await min.fill('-5');
-  const runtime = await download(page, () => page.getByRole('button', { name: 'Export runtime data', exact: true }).click());
+  const runtime = await download(page, () => exportRuntime(page));
   expect(runtime.environment_variables[0].children.find((node) => node.id === counter).max_value).toBe(100);
   expect(runtime.application_variables.find((node) => node.id === local).min_value).toBe(-5);
   await min.fill(''); const project = await download(page, () => exportProject(page));

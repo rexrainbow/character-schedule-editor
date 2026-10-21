@@ -21,7 +21,7 @@ function fixture() {
   delete use.day_schedule_id;
   activity.branches = [{ condition: null, task: use }];
   draft.weeks[0].days.fri = eventDay.id;
-  draft.builtinTasks = { schedule_event: { engine_key: 'events.schedule' } };
+  draft.builtinTasks = { schedule_event: { symbol: 'events_schedule' } };
   return { ...f, use };
 }
 
@@ -39,17 +39,17 @@ test('project, runtime and environment contracts round-trip reservations and omi
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
   const task = runtime.data.slots[activity.id].branches[0].task;
-  assert.equal(task.flow_control, 'schedule_event'); assert.equal(task.task_key, 'events.schedule');
+  assert.equal(task.flow_control, 'schedule_event'); assert.equal(task.task_key, 'events_schedule');
   assert.equal(task.icon, undefined); assert.equal(task.builtin, undefined); assert.deepEqual(task.day_source, use.day_source);
   assert.equal(runtime.data.sequences[sequence.id].event_groups, undefined);
-  assert.equal(runtime.data.environment_requirements.tasks.find((item) => item.engine_key === 'events.schedule').parameters.length, 7);
+  assert.equal(runtime.data.environment_requirements.tasks.find((item) => item.name === 'events_schedule').parameters.length, 7);
   draft.environment = createEnvironmentInfo('Engine', '1');
   const current = builtinTaskDefinition('schedule_event', draft.builtinTasks, t);
   assert.equal(current.category, 'flowControl');
   draft.builtinTasks = changeBuiltinDefinition(draft.builtinTasks, current, { ...current, display_name: 'Book appointment', parameters: current.parameters.map((p) => ({ ...p, display_name: `Custom ${p.id}` })) });
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
   assert.deepEqual(createProjectWithEnvironment('New project', 3, env.data).builtinTasks, draft.builtinTasks);
-  delete draft.builtinTasks.schedule_event.engine_key; assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'runtimeMissingKey'));
+  draft.builtinTasks.schedule_event.symbol = ''; assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'invalidSymbol'));
 });
 
 test('a day simulation creates independent one-time instances without drawing candidates or modifying the project', () => {

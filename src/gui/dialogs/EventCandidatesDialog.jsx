@@ -48,7 +48,7 @@ function EventCandidatesContent({ draft, group, view, onViewChange, onOpenDay, o
         </aside>
         <section className="event-candidate-detail" aria-label={t('eventCandidateDetails')}>
           {day ? <><div className="event-candidate-day-heading"><span className="entity-name"><SlotIcon name={day.icon} /><strong>{day.name}</strong></span>{onOpenDay && <button type="button" className="icon-button" aria-label={t('openDayEditor')} title={t('openDayEditor')} onClick={() => navigate('day', day)}><ExternalLink size={16} /></button>}</div>
-            {day.engine_key && <p className="field-hint">{day.engine_key}</p>}
+            {day.symbol && <p className="field-hint">{day.symbol}</p>}
             <button className="button secondary event-visibility" aria-expanded={!!view.showAll} onClick={() => onViewChange({ ...view, showAll: !view.showAll, scrollTop: 0 })}>{view.showAll ? <ChevronUp size={15} /> : <ChevronDown size={15} />}{t(view.showAll ? 'showConfiguredPositions' : 'showAllPositions')}</button>
             <div className="event-candidate-rows" ref={ref} onScroll={onScroll}><div style={{ height: totalHeight, position: 'relative' }}>
               {entries.slice(first, end).map((entry, offset) => {

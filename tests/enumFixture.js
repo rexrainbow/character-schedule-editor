@@ -11,7 +11,7 @@ export function enumFixture() {
   const macro = { ...createTaskMacro('Adjust event settings'), parameters: [property, operation, amount], steps: [{ ...createTaskStep(), task: { builtin: 'adjust_probability_event', event: { type: 'current_event_reference' }, property: parameterRef(property), operation: parameterRef(operation), value: parameterRef(amount) } }] };
   f.activity.branches = [{ condition: null, task: { task_macro_id: macro.id, arguments: { [property.id]: constant('probability_percent'), [operation.id]: constant('increase'), [amount.id]: constant(5) } } }];
   f.draft.taskMacros = [macro];
-  f.draft.builtinTasks = { adjust_probability_event: { engine_key: 'events.adjust' } };
+  f.draft.builtinTasks = { adjust_probability_event: { symbol: 'events_adjust' } };
   const group = { ...rule(f.sequence, f.eventDay.id), kind: 'probability', display_name: 'Cold', probability_percent: 10, cooldown_days: 7 };
   f.sequence.eventGroups = [group];
   return { ...f, macro, property, operation, amount, group };

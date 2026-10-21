@@ -1,0 +1,225 @@
+# Fixed regression fixture; independent of editable documentation examples.
+project:
+  name: 生活與薪資測試
+  slots_per_day: 2
+variables:
+  stamina:
+    initial: 60
+    min: 0
+    max: 100
+    display_name: 體力
+  money:
+    initial: 90
+    min: 0
+    display_name: 金錢
+  mood:
+    initial: 65
+    min: 0
+    max: 100
+    display_name: 心情
+  worked_shifts:
+    initial: 0
+    min: 0
+    integer: true
+    display_name: 本周完成班數
+expressions:
+  weekly_pay:
+    type: number
+    branches:
+      - when: vars.worked_shifts == 10
+        value: (vars.worked_shifts * 10) + 20
+      - when: vars.worked_shifts >= 1 and vars.worked_shifts <= 4
+        value: "-10"
+      - when: null
+        value: vars.worked_shifts * 10
+    display_name: 本期薪資
+task_macros:
+  work:
+    steps:
+      - builtin: increment_variable
+        target: stamina
+        value: "-12"
+      - builtin: increment_variable
+        target: worked_shifts
+        value: "1"
+    display_name: 工作動作
+  rest:
+    steps:
+      - builtin: increment_variable
+        target: stamina
+        value: "15"
+    display_name: 休息動作
+  entertain:
+    steps:
+      - builtin: increment_variable
+        target: money
+        value: "-30"
+      - builtin: increment_variable
+        target: mood
+        value: "18"
+    display_name: 娛樂動作
+  payroll:
+    steps:
+      - builtin: increment_variable
+        target: money
+        value: expr.weekly_pay
+      - builtin: reset_variable
+        target: worked_shifts
+    display_name: 結算工資
+slots:
+  work:
+    branches:
+      - when: null
+        run:
+          macro: work
+    display_name: 工作
+  rest:
+    branches:
+      - when: null
+        run:
+          macro: rest
+    display_name: 休息
+  entertain:
+    branches:
+      - when: null
+        run:
+          macro: entertain
+    display_name: 娛樂
+  payroll:
+    branches:
+      - when: null
+        run:
+          macro: payroll
+    display_name: 薪資結算
+  mood_decay:
+    branches:
+      - when: null
+        run:
+          builtin: increment_variable
+          target: mood
+          value: "-6"
+    display_name: 每日心情消耗
+  doctor:
+    display_name: 看醫生
+  rent:
+    branches:
+      - when: null
+        run:
+          builtin: increment_variable
+          target: money
+          value: "-100"
+    display_name: Rent
+days:
+  working:
+    slots:
+      - work
+      - work
+    tags:
+      - 工作
+    purposes:
+      - main
+    display_name: 工作日
+  holiday:
+    slots:
+      - rest
+      - entertain
+    purposes:
+      - main
+    display_name: 休假日
+  payroll:
+    purposes:
+      - overlay
+    end: payroll
+    display_name: 結算日
+  daily_mood:
+    end: mood_decay
+    purposes:
+      - overlay
+    display_name: 心情消耗日
+  cold:
+    slots:
+      - doctor
+      - rest
+    purposes:
+      - interrupt
+    display_name: 感冒日
+  rent:
+    start: rent
+    purposes:
+      - overlay
+    display_name: Rent day
+weeks:
+  normal:
+    days:
+      mon: working
+      tue: working
+      wed: working
+      thu: working
+      fri: working
+      sat: holiday
+      sun: holiday
+    display_name: 正常周
+sequences:
+  life:
+    weeks:
+      - normal
+      - normal
+      - normal
+      - normal
+    events:
+      daily_mood:
+        kind: periodic
+        start:
+          week: 1
+          weekday: mon
+        end:
+          week: 4
+          weekday: sun
+        every: 1
+        day: daily_mood
+        execution: overlay
+        priority: 0
+        display_name: 每日心情消耗
+      payroll:
+        kind: periodic
+        start:
+          week: 1
+          weekday: sun
+        end:
+          week: 4
+          weekday: sun
+        every: 7
+        day: payroll
+        execution: overlay
+        priority: -1
+        display_name: 周日結算
+      rent:
+        kind: periodic
+        start:
+          week: 1
+          weekday: sun
+        end:
+          week: 4
+          weekday: sun
+        every: 7
+        day: rent
+        execution: overlay
+        display_name: Rent
+      cold:
+        kind: probability
+        start:
+          week: 1
+          weekday: mon
+        end:
+          week: 4
+          weekday: sun
+        probability: 4
+        cooldown_days: 7
+        day: cold
+        execution: interrupt_main
+        priority: 1
+        display_name: 感冒
+    display_name: 四周生活
+builtins:
+  increment_variable: {}
+  reset_variable: {}

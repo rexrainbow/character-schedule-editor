@@ -1,3 +1,4 @@
+import { newSymbol } from './symbols.js';
 import { scheduledDayReferences } from './scheduledEvents.js';
 import { eventDayIds, eventDaySourceMode } from './eventDaySource.js';
 import { clearEngineKey } from './engineKeyModel.js';
@@ -11,7 +12,7 @@ export const isPrivateDay = (day) => day?.scope === 'week_private';
 export const sharedDays = (draft) => draft.days.filter((day) => !isPrivateDay(day));
 
 export function createWeek(draft, name) {
-  return { id: nextSlotId(draft.weeks), name, icon: 'tabler:calendar-week', days: Object.fromEntries(WEEKDAYS.map((weekday) => [weekday, null])) };
+  return { symbol: newSymbol(draft.weeks, name, 'week'), id: nextSlotId(draft.weeks), name, icon: 'tabler:calendar-week', days: Object.fromEntries(WEEKDAYS.map((weekday) => [weekday, null])) };
 }
 
 export function weekDay(draft, weekId, weekday) {

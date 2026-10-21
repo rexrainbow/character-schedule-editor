@@ -53,13 +53,9 @@
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -69,8 +65,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -80,8 +83,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -90,22 +100,29 @@
               },
               "required": [],
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "required": [],
+          "required": [
+            "name"
+          ],
           "additionalProperties": false
         },
         "increment_variable": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -115,8 +132,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -126,8 +150,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -137,8 +168,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -147,22 +185,29 @@
               },
               "required": [],
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "required": [],
+          "required": [
+            "name"
+          ],
           "additionalProperties": false
         },
         "toggle_variable": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -172,8 +217,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -182,22 +234,29 @@
               },
               "required": [],
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "required": [],
+          "required": [
+            "name"
+          ],
           "additionalProperties": false
         },
         "reset_variable": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -207,8 +266,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -217,22 +283,29 @@
               },
               "required": [],
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "required": [],
+          "required": [
+            "name"
+          ],
           "additionalProperties": false
         },
         "adjust_probability_event": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -242,8 +315,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -253,8 +333,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -264,8 +351,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -275,8 +369,15 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "required": [],
@@ -284,21 +385,29 @@
                 }
               },
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
         },
         "release_slot": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -308,29 +417,44 @@
                   "type": "object",
                   "properties": {
                     "display_name": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string",
-                      "minLength": 1
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
                 }
               },
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
         },
         "schedule_event": {
           "type": "object",
           "properties": {
             "display_name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "icon": {
               "type": "string"
             },
-            "engine_key": {
+            "icon": {
               "type": "string"
             },
             "parameters": {
@@ -341,6 +465,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -350,6 +482,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -359,6 +499,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -368,6 +516,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -377,6 +533,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -386,6 +550,14 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
@@ -395,15 +567,39 @@
                   "properties": {
                     "display_name": {
                       "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional editor/blueprint explanation. Does not affect execution."
                     }
                   },
                   "additionalProperties": false
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Optional editor/blueprint explanation. Does not affect execution."
                 }
               },
               "additionalProperties": false
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional editor/blueprint explanation. Does not affect execution."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
         }
       },
       "required": [],
@@ -433,12 +629,15 @@
           "$ref": "#/$defs/uuid"
         },
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "version": {
           "type": "string",
           "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false
@@ -474,15 +673,14 @@
     "group_node": {
       "type": "object",
       "required": [
-        "display_name",
         "parent_id",
         "order",
-        "node_type"
+        "node_type",
+        "name"
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "parent_id": {
           "oneOf": [
@@ -504,12 +702,17 @@
         "scope": {
           "const": "environment"
         },
-        "engine_key": {
-          "type": "string",
-          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
-        },
         "icon": {
           "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false
@@ -517,17 +720,16 @@
     "value_node": {
       "type": "object",
       "required": [
-        "display_name",
         "parent_id",
         "order",
         "node_type",
         "value_type",
-        "read_only"
+        "read_only",
+        "name"
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "parent_id": {
           "oneOf": [
@@ -561,10 +763,6 @@
         "scope": {
           "const": "environment"
         },
-        "engine_key": {
-          "type": "string",
-          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
-        },
         "icon": {
           "type": "string"
         },
@@ -586,6 +784,15 @@
         },
         "integer_only": {
           "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false,
@@ -709,14 +916,13 @@
     "expression_macro": {
       "type": "object",
       "required": [
-        "display_name",
         "value_type",
-        "definition"
+        "definition",
+        "name"
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "value_type": {
           "enum": [
@@ -727,15 +933,20 @@
         "definition": {
           "$ref": "#/$defs/computed_definition"
         },
-        "engine_key": {
-          "type": "string",
-          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
-        },
         "icon": {
           "type": "string"
         },
         "scope": {
           "const": "environment"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false,
@@ -1208,6 +1419,10 @@
         },
         "result": {
           "$ref": "#/$defs/scalar_computed_definition"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false
@@ -1215,13 +1430,12 @@
     "task_definition": {
       "type": "object",
       "required": [
-        "display_name",
-        "parameters"
+        "parameters",
+        "name"
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "parameters": {
           "type": "array",
@@ -1229,12 +1443,17 @@
             "$ref": "#/$defs/task_parameter"
           }
         },
-        "engine_key": {
-          "type": "string",
-          "description": "Optional engine contract name. Duplicate nonempty keys warn in the editor but do not invalidate the project."
-        },
         "icon": {
           "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false
@@ -1243,16 +1462,15 @@
       "type": "object",
       "required": [
         "id",
-        "display_name",
-        "type"
+        "type",
+        "name"
       ],
       "properties": {
         "id": {
           "$ref": "#/$defs/uuid"
         },
         "display_name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "type": {
           "enum": [
@@ -1292,9 +1510,7 @@
             "type": "object",
             "properties": {
               "display_name": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "type": "string"
               },
               "value": {
                 "type": "string",
@@ -1311,6 +1527,14 @@
         },
         "enum_id": {
           "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "additionalProperties": false,
@@ -1428,13 +1652,9 @@
           ]
         },
         "display_name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "icon": {
           "type": "string"
         },
-        "engine_key": {
+        "icon": {
           "type": "string"
         },
         "scope": {
@@ -1461,9 +1681,7 @@
             "type": "object",
             "properties": {
               "display_name": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "type": "string"
               },
               "value": {
                 "type": "string",
@@ -1477,14 +1695,23 @@
             ],
             "additionalProperties": false
           }
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
         }
       },
       "required": [
         "node_type",
-        "display_name",
         "scope",
         "parent_id",
-        "order"
+        "order",
+        "name"
       ],
       "additionalProperties": false,
       "allOf": [

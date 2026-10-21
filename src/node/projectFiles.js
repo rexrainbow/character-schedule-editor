@@ -30,6 +30,10 @@ export async function createProjectFiles(rootDirectory) {
   }
   return {
     root, pathFor,
+    async readText(input, extension = '.yaml') {
+      const path = await pathFor(input, extension);
+      return { path, text: await readFile(path, 'utf8') };
+    },
     async readProject(input) {
       const path = await pathFor(input), bytes = await readFile(path);
       let data;

@@ -16,7 +16,7 @@ test('numeric and boolean branch definitions preserve project/environment/runtim
   assert.deepEqual(createProjectWithEnvironment('Imported', 3, environment.data).operandNodes[later].definition, draft.operandNodes[later].definition);
   const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.expression_macros[reward].definition.branches[0].condition.operand_a.engine_key, 'schedule.current_weekday');
+  assert.equal(runtime.data.expression_macros[reward].definition.branches[0].condition.operand_a.name, 'schedule_current_weekday');
   const invalid = structuredClone(runtime.data); invalid.expression_macros[reward].definition.branches[0].result = boolean(true);
   assert.ok(validateRuntimeDocument(invalid).length);
 });
@@ -38,7 +38,7 @@ test('branch conditions and every result participate in dependency, type, cycle 
   assert.throws(() => deleteOperandNode(draft.operandNodes, [], weekday), /nodeInUse/);
   assert.ok(changeOperandType(draft.operandNodes, [], weekday, 'boolean').blocked.length);
   const copy = duplicateOperandSubtree(draft.operandNodes, reward);
-  assert.deepEqual(copy.nodes[copy.id].definition, draft.operandNodes[reward].definition); assert.equal(copy.nodes[copy.id].engine_key, undefined);
+  assert.deepEqual(copy.nodes[copy.id].definition, draft.operandNodes[reward].definition); assert.equal(copy.nodes[copy.id].symbol, 'calc_reward_copy');
   for (const change of ['empty', 'missingElse', 'wrongType', 'nested']) {
     const data = compileProject(draft).data, definition = data.expression_macros[reward].definition;
     if (change === 'empty') definition.branches = [];

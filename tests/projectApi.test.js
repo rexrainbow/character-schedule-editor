@@ -62,8 +62,8 @@ test('failed actions, failed final validation and exceptions roll back the whole
   project.subscribe(() => notifications++);
   assert.equal(project.transaction((tx) => { tx.days.create({ name: 'A' }); tx.days.assignSlot('missing', 0, null); }).ok, false);
   assert.equal(project.getSnapshot(), before); assert.equal(notifications, 0); assert.deepEqual(project.changes(), []);
-  const invalid = project.transaction((tx) => { tx.days.create({ name: '' }); });
-  assert.equal(invalid.ok, false); assert.ok(invalid.errors.some((e) => e.path.includes('display_name')));
+  const invalid = project.transaction((tx) => { tx.days.create({ name: '', symbol: '' }); });
+  assert.equal(invalid.ok, false); assert.ok(invalid.errors.some((e) => e.path.includes('symbol')));
   assert.equal(project.getSnapshot(), before);
   assert.equal(project.transaction((tx) => { tx.days.create({ name: 'A' }); throw new Error('abort'); }).ok, false);
   assert.equal(project.getSnapshot(), before);
@@ -73,10 +73,10 @@ test('failed actions, failed final validation and exceptions roll back the whole
 
 test('GUI draft mode keeps field errors editable, whereas strict actions and exports reject invalid fields', () => {
   const project = createProjectSession(), day = project.days.create({ name: 'A' }).value;
-  assert.equal(project.days.update(day.id, { name: '' }).ok, false); assert.equal(project.days.get(day.id).name, 'A');
-  const editor = editProject(project.getSnapshot()); assert.equal(editor.days.update(day.id, { name: '' }).ok, true);
+  assert.equal(project.days.update(day.id, { symbol: '' }).ok, false); assert.equal(project.days.get(day.id).name, 'A');
+  const editor = editProject(project.getSnapshot()); assert.equal(editor.days.update(day.id, { symbol: '' }).ok, true);
   assert.ok(editor.validate().errors.length); assert.ok(editor.toDocument().errors.length);
-  editor.days.update(day.id, { name: 'Fixed' }); assert.deepEqual(editor.validate().errors, []);
+  editor.days.update(day.id, { symbol: 'fixed' }); assert.deepEqual(editor.validate().errors, []);
   const before = editor.getSnapshot();
   assert.equal(editor.replaceDraft({ ...before, days: null }).ok, false);
   assert.equal(editor.getSnapshot(), before);
@@ -152,10 +152,10 @@ test('deleting schedules clears assignments and trims sequence rows using the sa
   assert.deepEqual(project.validate().errors, []);
 });
 
-test('engine key conflicts are warnings and do not block valid updates or exports', () => {
-  const project = createProjectSession(); project.days.create({ name: 'A', engine_key: 'same' });
-  const result = project.days.create({ name: 'B', engine_key: 'same' });
-  assert.equal(result.ok, true); assert.equal(result.warnings.length, 2); assert.deepEqual(project.toDocument().errors, []);
+test('duplicate names reject updates within the same type', () => {
+  const project = createProjectSession(); project.days.create({ name: 'A', symbol: 'same' });
+  const result = project.days.create({ name: 'B', symbol: 'same' });
+  assert.equal(result.ok, false); assert.ok(result.errors.some((error) => error.key === 'duplicateSymbol')); assert.deepEqual(project.toDocument().errors, []);
 });
 
 test('environment parameter removal allows only derived argument cleanup in application content', () => {

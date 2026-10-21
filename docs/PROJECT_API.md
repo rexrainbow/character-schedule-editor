@@ -1,5 +1,7 @@
 # 共用專案操作 API
 
+目前公開命令使用持久化 name 與選填 display_name，可用名稱取代 UUID 作為操作目標與引用；GUI 工作資料以 symbol 儲存符號。engine_key 已移除，完整規則及範例見 [NAMING.md](./NAMING.md)。
+
 檔案位置已依 [原始碼目錄](./SOURCE_LAYOUT.md) 整理，純 JS 核心集中於 `src/core/`，React 整合位於 `src/gui/`。
 
 `src/core/projectApi.js` 是 Web 與 Node.js 共用的記憶體專案操作入口。`core/commands.js` 將其包裝為可傳輸的白名單命令；Node 專案服務與 MCP stdio 入口見 [MCP_SERVER.md](./MCP_SERVER.md)。GUI 在純網頁模式使用本地 session，在本機服務模式使用遠端工作副本，詳見 [GUI_SYNC.md](./GUI_SYNC.md)。
@@ -110,6 +112,8 @@ const result = project.transaction(tx => {
 搜尋、選取、確認對話框、顯示語系、導覽位置及模擬測試值維持 GUI 狀態。按 Apply 前的運算式、分支及事件表單亦維持隔離草稿，Cancel／Back 不會提交。核心提供 `newDraft`、`duplicateDraft`、`changeKindDraft` 等輔助方法處理這些表單的物件建立與預設值，不直接控制視窗。
 
 ## 序列化與平台邊界
+
+`exportBlueprint()` 回傳 `{data: YAML字串, errors}`；`importBlueprint(text)` 解析並完整驗證後，以新 UUID 重建整份專案，與 loadDocument 一樣屬於專案替換，不是模式內的物件更新。單純預覽可使用 `core/blueprint/index.js` 的純函數，不修改 session。Node service 的 `importBlueprint({yaml|path, preview, expectedRevision, discardChanges})` 另負責版本、未儲存資料及模擬模式保護。格式、文字運算式與 MCP 用法見 [BLUEPRINT.md](./BLUEPRINT.md)。
 
 `toDocument()`、`exportEnvironment()`、`exportRuntime()` 回傳既有 `{ data, errors }`。`exportReport({ includeUnreferenced })` 使用相同結果格式，`data` 為 Markdown 行程報告字串，詳見 [REPORT.md](./REPORT.md)。呼叫端確認無錯誤後，Web 產生下載、Node.js 由 `node/projectFiles.js` 寫入檔案。核心不負責檔案路徑、下載、localStorage、確認視窗或 toast。
 
