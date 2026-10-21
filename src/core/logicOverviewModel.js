@@ -36,7 +36,10 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
       if (expressionStack.has(id)) return `${name} [${t('logicCycle')}]`;
       expressionStack.add(id);
       const text = definition(node.definition, scope, remaining - 1, level + 1);
-      expressionStack.delete(id); return `${name} { ${showDescriptions ? descriptionComments(node.description).map((line) => line + '\n').join('') : ''}${text} }`;
+      expressionStack.delete(id);
+      const notes = showDescriptions ? descriptionComments(node.description) : [];
+      const content = [...notes, text].join('\n');
+      return notes.length || content.includes('\n') ? `${name} {\n${content.split('\n').map((line) => `  ${line}`).join('\n')}\n}` : `${name} { ${text} }`;
     }
     return missing();
   }
@@ -49,7 +52,10 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
   function definition(value, scope, remaining, level) {
     if (!guard(level)) return t('logicExpansionLimit');
     if (value?.kind === 'branch' && value.branches?.length === 1 && value.branches[0].condition === null) return `${showDescriptions ? descriptionComments(value.branches[0].description).map((line) => line + '\n').join('') : ''}${definition(value.branches[0].result, scope, remaining, level + 1)}`;
-    if (value?.kind === 'branch') return (value.branches ?? []).map((item, index) => `${showDescriptions && item.description?.trim() ? descriptionComments(item.description).join('\n') + '\n' : ''}${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining, level + 1)})`} → ${definition(item.result, scope, remaining, level + 1)}`).join('; ') || t('logicNoActions');
+    if (value?.kind === 'branch') {
+      const branches = (value.branches ?? []).map((item, index) => `${showDescriptions && item.description?.trim() ? descriptionComments(item.description).join('\n') + '\n' : ''}${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining, level + 1)})`} → ${definition(item.result, scope, remaining, level + 1)}`);
+      return branches.join(branches.some((text) => text.includes('\n')) ? '\n' : '; ') || t('logicNoActions');
+    }
     return value?.kind === 'number' ? operand(value.expression, scope, remaining, level + 1) : condition(value?.condition, scope, remaining, level + 1);
   }
   function invocation(use, scope, remaining) {

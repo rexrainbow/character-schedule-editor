@@ -88,3 +88,22 @@ test('summaries show line-prefixed comments at visible depths and can hide them 
   const computed = Object.values(draft.operandNodes).find((item) => item.symbol === 'weekly_pay');
   assert.match(formatComputedDefinition(computed.definition, draft.operandNodes), /\/\//);
 });
+
+test('Markdown expanded computed branch comments start on their own lines before their rules', async () => {
+  const draft = good(importBlueprint(await readFile(new URL('../docs/recipes/examples/life-simulation.yaml', import.meta.url), 'utf8'))).draft;
+  const report = good(compileReport(draft, { t })).data;
+  const computed = Object.values(draft.operandNodes).find((node) => node.symbol === 'weekly_pay');
+  const comments = [computed.description, ...computed.definition.branches.map((branch) => branch.description)];
+  for (const description of comments) {
+    const line = report.split('\n').find((line) => line.includes(`// ${description}`));
+    assert.ok(line, `Missing comment: ${description}`);
+    assert.equal(line.trimStart(), `// ${description}`);
+  }
+  const lines = report.split('\n');
+  for (const [index, branch] of computed.definition.branches.entries()) {
+    const commentIndex = lines.findIndex((line) => line.trim() === `// ${branch.description}`);
+    assert.ok(commentIndex >= 0);
+    assert.match(lines[commentIndex + 1].trimStart(), index === 0 ? /^IF / : branch.condition === null ? /^ELSE →/ : /^ELSE IF /);
+  }
+  assert.doesNotMatch(report, /; \/\//);
+});

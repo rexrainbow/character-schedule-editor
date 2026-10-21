@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { importBlueprint } from '../../src/core/blueprint/index.js';
+import { exportProject } from './navigation.js';
 
 const fixture = fileURLToPath(new URL('../../docs/recipes/examples/life-simulation.yaml', import.meta.url));
 async function load(page) { await page.goto('/'); await page.locator('.app-header input[type=file]').first().setInputFiles(fixture); }
@@ -13,6 +14,7 @@ test('export menu downloads a rebuildable YAML blueprint with descriptions and k
   await page.getByRole('textbox', { name: 'Description (optional)', exact: true }).fill('Blueprint export intent.');
   await page.getByRole('button', { name: 'Export', exact: true }).click();
   await expect(page.getByRole('menuitem', { name: 'Runtime data (JSON)', exact: true })).toBeVisible();
+  await expect(page.getByRole('menuitem')).toHaveText(['Runtime data (JSON)', 'Blueprint (YAML)', 'Schedule report (Markdown)', 'Project file (JSON)']);
   const pending = page.waitForEvent('download');
   await page.getByRole('menuitem', { name: 'Blueprint (YAML)', exact: true }).click();
   const download = await pending;
@@ -57,8 +59,27 @@ test('Chinese export menu fits a narrow screen and closes with Escape', async ({
   await expect(trigger).toBeInViewport(); await trigger.click();
   await expect(page.getByRole('menuitem', { name: '執行資料（JSON）', exact: true })).toBeInViewport();
   await expect(page.getByRole('menuitem', { name: '藍圖（YAML）', exact: true })).toBeInViewport();
+  await expect(page.getByRole('menuitem', { name: '行程報告（Markdown）', exact: true })).toBeInViewport();
+  await expect(page.getByRole('menuitem', { name: '專案存檔（JSON）', exact: true })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'artifacts/export-menu-mobile.png' });
   await page.keyboard.press('Escape'); await expect(trigger).toBeFocused();
   await expect(page.getByRole('menu', { name: '匯出', exact: true })).toHaveCount(0);
+});
+
+test('project download in the export menu preserves UUIDs and matches the original project-menu action', async ({ page }) => {
+  await load(page);
+  await page.getByRole('textbox', { name: 'Day name', exact: true }).fill('Saved working day');
+  expect(await dirty(page)).toBe(true);
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  let pending = page.waitForEvent('download');
+  await page.getByRole('menuitem', { name: 'Project file (JSON)', exact: true }).click();
+  const download = await pending;
+  expect(download.suggestedFilename()).toBe('character-schedule.json');
+  const first = JSON.parse(await readFile(await download.path(), 'utf8'));
+  expect(Object.values(first.day_schedules).some((day) => day.display_name === 'Saved working day')).toBe(true);
+  expect(Object.keys(first.day_schedules)[0]).toMatch(/^[0-9a-f-]{36}$/);
+  expect(await dirty(page)).toBe(false);
+  pending = page.waitForEvent('download'); await exportProject(page);
+  expect(JSON.parse(await readFile(await (await pending).path(), 'utf8'))).toEqual(first);
 });

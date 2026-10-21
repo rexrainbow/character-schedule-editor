@@ -1,5 +1,6 @@
 export const messages = {
   en: {
+    exportReportOption: 'Schedule report (Markdown)', exportProjectOption: 'Project file (JSON)',
     exportMenu: 'Export', exportRuntimeOption: 'Runtime data (JSON)', exportBlueprintOption: 'Blueprint (YAML)', blueprintExported: 'Blueprint exported. Save the project separately to preserve UUIDs and icons.', blueprintExportInvalid: 'Unable to export blueprint. Fix project errors first.',
     description: 'Description (optional)', descriptionHint: 'Purpose, intent, or explanation of this rule.', showDescriptions: 'Show descriptions',
     releaseConditionalPreview: 'Conditional release', releaseAssignmentUnreachable: 'This slot assignment will not run.', releaseInactivePreview: 'Inactive in this context',
@@ -126,6 +127,7 @@ export const messages = {
     branchLabel: 'Branch {count}', errorsForImport: 'Import issues', close: 'Close',
   },
   'zh-TW': {
+    exportReportOption: '行程報告（Markdown）', exportProjectOption: '專案存檔（JSON）',
     exportMenu: '匯出', exportRuntimeOption: '執行資料（JSON）', exportBlueprintOption: '藍圖（YAML）', blueprintExported: '已匯出藍圖；請另外匯出專案以保留 UUID 與圖示。', blueprintExportInvalid: '無法匯出藍圖，請先修正專案錯誤。',
     description: '說明（選填）', descriptionHint: '說明用途、設計意圖或這項規則的意義。', showDescriptions: '顯示說明',
     releaseConditionalPreview: '條件式放行', releaseAssignmentUnreachable: '此時段行程不會執行', releaseInactivePreview: '此情境下未生效',

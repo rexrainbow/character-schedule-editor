@@ -10,7 +10,7 @@ Node.js 專案服務支援 MCP 與 GUI 即時同步，包含版本檢查、草�
 
 日行程可手動複選適用用途「主要／疊加事件／中斷事件」，未選擇則為「未分類」。清單依用途分群，選取器依情境預設篩選，也可顯示全部用途，詳見 [DAY_USES.md](./DAY_USES.md)。事件容器決定中斷對象，日行程在時段開始後設定「放行本時段」，詳見 [SLOT_RELEASE.md](./SLOT_RELEASE.md)。
 
-周序列操作選單可匯出 Markdown 行程報告，依序列出全專案周序列、事件、日行程與完整展開的時段任務邏輯，詳見 [REPORT.md](./REPORT.md)。
+右上角「匯出」選單可匯出 Markdown 行程報告，依序列出全專案周序列、事件、日行程與完整展開的時段任務邏輯，詳見 [REPORT.md](./REPORT.md)。同一選單也提供執行資料、YAML 藍圖與完整專案存檔。
 
 原始碼依資料核心、GUI、Schema、範例、語系與樣式分目錄，目錄用途詳見 [SOURCE_LAYOUT.md](./SOURCE_LAYOUT.md)。
 

@@ -7,7 +7,7 @@ import DayReferencePreview from '../components/DayReferencePreview.jsx';
 import IconField from '../components/IconField.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
 import { useEffect, useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays, Play, FileText } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays, Play } from 'lucide-react';
 import { FieldError, IconButton, Issues } from '../components/ui.jsx';
 import ActionMenu from '../components/ActionMenu.jsx';
 import WeekPicker from '../dialogs/WeekPicker.jsx';
@@ -20,7 +20,7 @@ import SequenceEventsDialog from '../dialogs/SequenceEventsDialog.jsx';
 import { eventsOnDate } from '../../core/sequenceEvents.js';
 
 const rowHeight = 184;
-export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onReport, candidateView, onCandidateViewChange, t }) {
+export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, candidateView, onCandidateViewChange, t }) {
   const [weekPicker, setWeekPicker] = useState(null);
   const [override, setOverride] = useState(null);
   const [rangeNotice, setRangeNotice] = useState(null);
@@ -46,7 +46,7 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
   const candidateGroup = candidateView?.sequenceId === sequence.id && candidateView.open ? sequence.eventGroups?.find((group) => group.id === candidateView.groupId) : null;
   const weeks = new Map(draft.weeks.map((week) => [week.id, week]));
   return <div className="sequence-editor">
-    <section className="schedule-titlebar"><div className="schedule-name"><label className="sr-only" htmlFor="sequence-name">{t('sequenceName')}</label><div className="name-with-icon"><IconField value={sequence.icon} onChange={(icon) => onChange({ ...sequence, icon })} t={t} /><input id="sequence-name" aria-label={t('sequenceName')} value={sequence._fallbackValue !== undefined ? '' : sequence.name} placeholder={sequence.symbol} onChange={(event) => onChange({ ...sequence, name: event.target.value })} /><EngineKeyField kind="sequences" item={sequence} onChange={(symbol) => onChange({ ...sequence, symbol })} t={t} /></div></div><button className="button secondary sequence-event-manager" title={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} aria-label={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} onClick={() => setEventManager({})}><CalendarDays size={16} /><span>{t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })}</span></button><ActionMenu label={t('sequenceActions')} items={[{ label: t('duplicateSequence'), icon: Copy, onClick: onDuplicate }, { label: t('deleteSequence'), icon: Trash2, danger: true, onClick: onDelete }, { separator: true }, { label: t('exportReport'), icon: FileText, onClick: onReport }]}  /></section><DescriptionField value={sequence.description} onChange={(description) => onChange({ ...sequence, description })} t={t} />
+    <section className="schedule-titlebar"><div className="schedule-name"><label className="sr-only" htmlFor="sequence-name">{t('sequenceName')}</label><div className="name-with-icon"><IconField value={sequence.icon} onChange={(icon) => onChange({ ...sequence, icon })} t={t} /><input id="sequence-name" aria-label={t('sequenceName')} value={sequence._fallbackValue !== undefined ? '' : sequence.name} placeholder={sequence.symbol} onChange={(event) => onChange({ ...sequence, name: event.target.value })} /><EngineKeyField kind="sequences" item={sequence} onChange={(symbol) => onChange({ ...sequence, symbol })} t={t} /></div></div><button className="button secondary sequence-event-manager" title={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} aria-label={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} onClick={() => setEventManager({})}><CalendarDays size={16} /><span>{t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })}</span></button><ActionMenu label={t('sequenceActions')} items={[{ label: t('duplicateSequence'), icon: Copy, onClick: onDuplicate }, { label: t('deleteSequence'), icon: Trash2, danger: true, onClick: onDelete }]}  /></section><DescriptionField value={sequence.description} onChange={(description) => onChange({ ...sequence, description })} t={t} />
     {!!actionErrors.length && <Issues errors={actionErrors} t={t} />}
     <div className="sequence-matrix" ref={ref} onScroll={onScroll}>
       <div className="sequence-grid sequence-grid-header"><div className="sequence-corner" />{WEEKDAYS.map((weekday) => <div key={weekday} className={`sequence-weekday ${weekday === 'sat' || weekday === 'sun' ? 'weekend' : 'weekdays'}`}>{t(weekday)}</div>)}</div>

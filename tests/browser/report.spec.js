@@ -13,14 +13,19 @@ async function load(page) {
   await navigate(page, 'sequences'); return result.data;
 }
 async function open(page, locale = 'en') {
-  const t = translator(locale); await page.getByRole('button', { name: t('sequenceActions'), exact: true }).click();
-  await expect(page.getByRole('menu').getByRole('menuitem').last()).toHaveText(t('exportReport'));
-  await page.getByRole('menuitem', { name: t('exportReport'), exact: true }).click();
+  const t = translator(locale); await page.getByRole('button', { name: t('exportMenu'), exact: true }).click();
+  await expect(page.getByRole('menu').getByRole('menuitem')).toHaveCount(4);
+  await page.getByRole('menuitem', { name: t('exportReportOption'), exact: true }).click();
   return page.getByRole('dialog');
 }
 
-test('last sequence action exports all sequences as linked Markdown without changing project contents', async ({ page }) => {
-  const before = await load(page), dialog = await open(page);
+test('global export menu exports all sequences as linked Markdown without changing project contents', async ({ page }) => {
+  const before = await load(page);
+  await page.getByRole('button', { name: translator('en')('sequenceActions'), exact: true }).click();
+  await expect(page.getByRole('menuitem', { name: translator('en')('exportReport'), exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await navigate(page, 'days');
+  const dialog = await open(page);
   await expect(dialog.getByRole('checkbox', { name: 'Include unreferenced content', exact: true })).not.toBeChecked();
   const pending = page.waitForEvent('download'); await dialog.getByRole('button', { name: 'Download Markdown', exact: true }).click();
   const download = await pending; expect(download.suggestedFilename()).toBe('character-schedule-report.md');
@@ -55,11 +60,12 @@ test('Chinese mobile report options fit, cancel keeps content unchanged, and unr
 
 test('invalid current fields block report export and report download preserves unsaved project state', async ({ page }) => {
   await load(page);
-  await page.getByRole('textbox', { name: 'Sequence name', exact: true }).fill('');
+  await page.getByRole('textbox', { name: 'Name (symbol)', exact: true }).fill('bad.name');
   const dialog = await open(page); await dialog.getByRole('button', { name: 'Download Markdown', exact: true }).click();
   await expect(dialog.getByRole('alert')).toContainText('Fix these project errors');
-  await expect(dialog.locator('code')).toContainText('/display_name');
+  await expect(dialog.locator('code').first()).toContainText('/symbol');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Name (symbol)', exact: true }).fill('edited_sequence');
   await page.getByRole('textbox', { name: 'Sequence name', exact: true }).fill('Edited sequence');
   const fixed = await open(page), pending = page.waitForEvent('download');
   await fixed.getByRole('button', { name: 'Download Markdown', exact: true }).click(); await pending;

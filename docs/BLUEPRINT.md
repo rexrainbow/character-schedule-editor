@@ -6,7 +6,7 @@
 
 ## 格式、Schema 與範例
 
-使用者編輯模式的右上角「匯出」選單提供「執行資料（JSON）」與「藍圖（YAML）」。藍圖下載為 `character-schedule-blueprint.yaml`，可透過啟動畫面或專案選單的匯入功能重建專案。匯出藍圖不會清除專案尚未儲存的狀態；完整專案存檔仍位於左側專案選單。
+使用者編輯模式的右上角「匯出」選單提供「執行資料（JSON）」、「藍圖（YAML）」、「行程報告（Markdown）」與「專案存檔（JSON）」。報告涵蓋全部周序列，可選擇是否包含未引用內容。藍圖下載為 `character-schedule-blueprint.yaml`，可透過啟動畫面或專案選單的匯入功能重建專案。匯出藍圖或報告不會清除專案尚未儲存的狀態；完整專案存檔在左側專案選單也有入口。
 
 - [blueprint.schema.json](../src/schemas/blueprint.schema.json)：YAML 轉成 JSON 後的欄位契約；`npm run schema:blueprint` 重新產生。
 - [生活與薪資 YAML](./recipes/examples/life-simulation.yaml)：可直接匯入的完整測試案例。
