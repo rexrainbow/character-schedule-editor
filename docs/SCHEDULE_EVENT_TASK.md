@@ -1,6 +1,6 @@
 # 流程控制：預約事件
 
-內建任務 `schedule_event` 可放在一般時段行程、分支或任務巨集內。每次實際執行都建立獨立的 runtime 單次事件，不修改專案的 `event_groups`，也不依事件名稱合併預約。內建任務定義位於「流程控制」，名稱、圖示、engine_key 與固定欄位名稱可由環境編輯模式修改；不能新增或移除固定欄位。
+內建任務 `schedule_event` 可放在一般時段行程、分支或任務巨集內。每次實際執行都建立獨立的 runtime 單次事件，不修改專案的 `event_groups`，也不依事件名稱合併預約。內建任務定義位於「流程控制」，名稱、圖示、name 與固定欄位名稱可由環境編輯模式修改；不能新增或移除固定欄位。
 
 ## 設定
 
@@ -50,7 +50,7 @@
 
 固定來源改用 `day_schedule_id`，與 `day_source` 二擇一。`date.mode = "days"` 時不包含 weekday。一般時段使用數字 operand；任務巨集另支援區域 parameter_reference。
 
-runtime 匯出將 `builtin` 改成 `task_key` 與 `flow_control: "schedule_event"`，移除 icon，保留事件 display_name、日期、來源、執行方式與優先權。環境變數引用會轉換為 engine_key 契約；使用此任務前，環境須為內建任務填入 engine_key。
+runtime 匯出將 builtin 改成 task_key 與 `flow_control: "schedule_event"`，移除 icon，保留事件 display_name、日期、來源、執行方式與優先權。環境變數引用使用 name；task_key 的內容為內建任務的 name。
 
 執行中的預約佇列不屬於專案存檔。Runtime 每次成功預約產生新 UUID，保存目前序列、目標日期、建立位置與來源任務供除錯。到預約日才依權重選一次日行程，整天使用同一個結果；預約當下不抽選。當天再依既有三種執行模式、優先權及「放行本時段」規則運作。同優先權時原有事件在前，預約事件依建立順序排列。此版未加入取消、改期或防重複任務。
 

@@ -2,7 +2,7 @@
 
 任務介面將下列範本歸於「變數操作」，另有兩個固定無參數的 [流程控制任務](./FLOW_CONTROL_TASKS.md)，供周序列某日取消尚未執行的低優先行程。
 
-任務清單固定提供四個範本。環境模式可修改圖示、顯示名稱、engine_key 及各參數名稱；不得新增／刪除／排序／改變參數型別，也不能刪除或複製範本。未自訂名稱跟隨繁體中文／英文介面，自訂名稱保留原文。
+任務清單固定提供四個範本。環境模式可修改圖示、顯示名稱、name 及各參數名稱；不得新增／刪除／排序／改變參數型別，也不能刪除或複製範本。未自訂名稱跟隨繁體中文／英文介面，自訂名稱保留原文。
 
 | 編輯器識別 | 預設名稱 | 目標型別 | 目標權限 | 其他參數 |
 | --- | --- | --- | --- | --- |
@@ -35,12 +35,12 @@ Runtime 呼叫沿用特殊目標介面：
 
 ```json
 {
-  "task_key": "engine.increase",
-  "target": { "type": "environment_reference", "engine_key": "energy" },
+  "task_key": "increment_variable",
+  "target": { "type": "environment_reference", "name": "energy" },
   "value": { "type": "constant", "value": -10 }
 }
 ```
 
 切換與重設的 runtime 呼叫省略 value。目標也可為應用變數 `{type: "reference", reference_id: UUID}`。Runtime 不輸出 builtin 識別或固定操作碼，engine 依使用者填寫的 task_key 實作相對應契約。
 
-只有實際使用的範本才要求非空 engine_key，並列入 environment_requirements.tasks；全域重複 key 仍會阻擋 runtime 匯出。增加及切換的環境變數依賴標記 read_write；重設標記 write；同一變數的多處使用會合併權限。編輯器僅編輯、檢查及匯出，不執行任務。
+實際使用的範本列入 environment_requirements.tasks，task_key 使用範本的 name；名稱依任務命名空間檢查唯一性。增加及切換的環境變數依賴標記 read_write；重設標記 write；同一變數的多處使用會合併權限。執行規則見 [ENGINE_SEMANTICS.md](./ENGINE_SEMANTICS.md)。

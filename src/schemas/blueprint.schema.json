@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Character Schedule Blueprint",
-  "description": "Declarative rebuild input/output without UUIDs or icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and project semantic validation.",
+  "description": "Declarative rebuild input/output without UUIDs or icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
+  "$comment": "This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
   "type": "object",
   "properties": {
     "project": {
@@ -869,14 +870,16 @@
                     "mode",
                     "candidates"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
                 },
                 "execution": {
                   "enum": [
                     "overlay",
                     "interrupt_main",
                     "interrupt_lower"
-                  ]
+                  ],
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
                 },
                 "priority": {
                   "type": "integer"
@@ -1509,14 +1512,16 @@
                     "mode",
                     "candidates"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
                 },
                 "execution": {
                   "enum": [
                     "overlay",
                     "interrupt_main",
                     "interrupt_lower"
-                  ]
+                  ],
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
                 },
                 "priority": {
                   "type": "integer"
@@ -1715,7 +1720,8 @@
           ],
           "additionalProperties": false
         }
-      ]
+      ],
+      "description": "Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated."
     },
     "parameter": {
       "type": "object",
@@ -1838,16 +1844,20 @@
             "number",
             "string",
             "boolean"
-          ]
+          ],
+          "description": "Constant validated before runtime creation. Default reset baseline comes from Program initial values; simulation input overrides do not redefine it."
         },
         "min": {
-          "type": "number"
+          "type": "number",
+          "description": "Optional inclusive lower bound applied on every successful write, not once at macro/day end."
         },
         "max": {
-          "type": "number"
+          "type": "number",
+          "description": "Optional inclusive upper bound applied on every successful write, after integer truncation."
         },
         "integer": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Writes truncate toward zero, then clamp to optional min/max. Intermediate arithmetic is not truncated. Initial values must already satisfy integer constraints."
         },
         "read_only": {
           "type": "boolean"
@@ -1964,7 +1974,8 @@
                   {
                     "type": "null"
                   }
-                ]
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
               },
               "value": {
                 "type": "string",
@@ -1985,7 +1996,8 @@
       "required": [
         "type"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Evaluated against current state on every reference. Branches return only the first matching result; no state storage or implicit accumulation."
     },
     "macro": {
       "type": "object",
@@ -2026,7 +2038,8 @@
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
         },
         "steps": {
           "type": "array",
@@ -2053,7 +2066,8 @@
                   {
                     "type": "null"
                   }
-                ]
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
               },
               "run": {
                 "$ref": "#/$defs/action"
@@ -2063,7 +2077,8 @@
               "when",
               "run"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
           }
         },
         "candidates": {
@@ -2074,7 +2089,8 @@
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Sequence, branch or priority macro; eligibility is checked after argument evaluation. Empty content is valid. See ENGINE_SEMANTICS.md section 3."
     },
     "slot": {
       "type": "object",
@@ -2111,7 +2127,8 @@
                   {
                     "type": "null"
                   }
-                ]
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
               },
               "run": {
                 "$ref": "#/$defs/action"
@@ -2121,7 +2138,8 @@
               "when",
               "run"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
           }
         },
         "candidates": {
@@ -2267,7 +2285,8 @@
                       {
                         "type": "null"
                       }
-                    ]
+                    ],
+                    "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
                   }
                 },
                 "required": [],
@@ -2462,7 +2481,8 @@
             "mode",
             "candidates"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
         },
         "start": {
           "type": "object",
@@ -2526,7 +2546,8 @@
         "cooldown_days": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 9007199254740991
+          "maximum": 9007199254740991,
+          "description": "After occurrence, skip this many subsequent eligible dates. Ineligible dates do not consume cooldown; changes to this setting do not rewrite remaining cooldown."
         },
         "count": {
           "type": "object",
@@ -2557,10 +2578,12 @@
             "overlay",
             "interrupt_main",
             "interrupt_lower"
-          ]
+          ],
+          "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
         },
         "priority": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Execution order is descending; nonnegative events precede the main day, negatives follow. Ties retain declaration order. Interruption targets are defined by execution, not priority alone."
         }
       },
       "required": [

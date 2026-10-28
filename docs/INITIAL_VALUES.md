@@ -16,7 +16,7 @@
 
 專案存檔與環境存檔保留初始值。匯入拒絕型別不合的值並回報位置，環境替換使用新環境的初始值，不改動應用層初始值。
 
-Runtime 匯出包含完整 `environment_variables` 與 `application_variables` 樹；每個葉節點均有 `initial_value`、`value_type`、`read_only`、`display_name` 和 UUID，沒有 icon。所有環境層葉節點都必須有非空 `engine_key`，即使沒有被引用；群組的 key 可省略。環境引用依然透過 `engine_key` 連接，UUID 留作識別與除錯。
+Runtime 匯出包含完整 environment_variables 與 application_variables 樹；每個葉節點均有 initial_value、value_type、read_only、name、display_name 和 UUID，沒有 icon。群組與葉節點的 name 均為必填，依變數命名空間檢查唯一性。環境引用透過 name 連接，UUID 留作內部識別與除錯。
 
 `environment_requirements.variables` 繼續只列出實際使用的依賴及讀寫權限，不因完整環境樹而擴張。Runtime 可以選擇使用或忽略環境層初始值；編輯器總是輸出，不提供另一次匯出開關。
 

@@ -35,6 +35,6 @@
 
 ## 操作入口與參考
 
-使用 `days`、`slots` 或 `taskMacros` 建立內容，查詢內建任務範本及其 engine_key。這是任務執行時建立事件，不以 `events.create` 代替未來的動態呼叫。
+使用 `days`、`slots` 或 `taskMacros` 建立內容，查詢內建任務範本及其持久化 name。這是任務執行時建立事件，不以 `events.create` 代替未來的動態呼叫；日期、到期選取及重試規則見 [Engine 契約](../ENGINE_SEMANTICS.md)。
 
 [預約事件契約與日期公式](../SCHEDULE_EVENT_TASK.md) · [任務巨集](../TASK_MACROS.md) · [模擬邊界](../SIMULATION.md)

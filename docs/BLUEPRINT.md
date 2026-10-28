@@ -1,5 +1,7 @@
 # YAML 藍圖輸入與輸出
 
+本文件說明「如何宣告」，[ENGINE_SEMANTICS.md](ENGINE_SEMANTICS.md) 定義「如何執行」。編寫會執行的藍圖時，須一併閱讀後者，尤其是候選選擇、資格求值、事件排序、逐次變數寫入、中斷／放行及狀態重置；Schema 不代表完整 engine 語意。
+
 藍圖替代人類操作 GUI 建立專案的步驟，保留執行定義與共用引用，匯入時產生全新 UUID、使用預設圖示。不包含 UUID、icon、schema_version、畫面展開狀態或執行中的變數／冷卻／預約佇列。這是宣告式重建，不是專案存檔或完整展開的 Markdown 報告。
 
 第一版只支援整份替換，不合併、不同步刪除、不處理舊格式相容性。環境任務可重建介面，但 engine 的實作仍需外部提供。
@@ -10,7 +12,8 @@
 
 - [blueprint.schema.json](../src/schemas/blueprint.schema.json)：YAML 轉成 JSON 後的欄位契約；`npm run schema:blueprint` 重新產生。
 - [生活與薪資 YAML](./recipes/examples/life-simulation.yaml)：可直接匯入的完整測試案例。
-- [SYSTEM_SEMANTICS.md](./SYSTEM_SEMANTICS.md)：執行語意與限制。
+- [ENGINE_SEMANTICS.md](./ENGINE_SEMANTICS.md)：唯一的 Engine 執行語意契約。
+- [SYSTEM_SEMANTICS.md](./SYSTEM_SEMANTICS.md)：能力總覽、需求對應及文件入口。
 
 Schema 來源為 `src/core/blueprint/schema.js`，不直接引用或改造專案存檔 Schema。欄位結構驗證之後還需要 expression parser、符號解析及核心型別／引用／循環／權限驗證。
 
@@ -35,7 +38,7 @@ Schema 來源為 `src/core/blueprint/schema.js`，不直接引用或改造專案
 
 集合省略代表空集合，不加入預設行程進度範本。各定義 display_name 留白時顯示 mapping key，且仍保存為空白。scope 預設 application，環境定義需明確標 environment；tasks 本身就是環境介面。變數 kind 預設 value、type 預設 number、read_only 預設 false；初始值依型別預設 0／空字串／false。群組使用 kind: group，不可指定數值屬性。列舉 kind 預設 enum。
 
-engine_key 已移除。mapping key 直接保存為 name，匯出不再依顯示名稱產生符號。圖示不在藍圖內，匯入時使用編輯器預設；手動用途只是分類，tags 保留事件計數語意。
+mapping key 直接保存為 name，匯出不依顯示名稱產生符號。圖示不在藍圖內，匯入時使用編輯器預設；手動用途只是分類，tags 保留事件計數語意。
 
 ## 文字運算式
 
@@ -115,7 +118,7 @@ days:
 
 日行程 start／end 是日開始／結束的時段行程符號。slots 長度等於每日時段數，省略時補全空格；hooks 與 releases 若提供，長度也須相同。release 元素 null 表示未加入，`{when: null}` 或 `{}` 表示已加入無條件放行。周私有日可用 `scope: week_private`、`owner: {week: 周符號, weekday: tue}` 保留；不能作為共用事件候選。
 
-周序列 weeks 是有順序的周符號陣列；overrides 為 `[{week: 1, weekday: mon, day: 日符號或null}]`。沒有覆蓋記錄表示繼承，day: null 表示清空。開始與結束星期分別作用於第一與最後一周。
+周序列 weeks 是有順序的周引用陣列，元素可為周符號（一次）或 `{week: 周符號, repeat: 總次數}`；null 次數表示末筆無限重複。overrides 為 `[{week: 1, weekday: mon, day: 日符號或null}]`，week 是模板周位置。沒有覆蓋記錄表示繼承，day: null 表示清空。開始與結束星期作用於整段執行的第一次及最後一次，詳見 [Engine 日期語意](ENGINE_SEMANTICS.md#5-日期主要日行程與周重複)。
 
 事件位於各序列的 events mapping，具有 kind、start、priority（預設 0）、execution（預設 overlay），來源用 day 或 source 二擇一：
 
@@ -162,7 +165,7 @@ project_save({path: "project.json", expectedRevision: 當前版本})
 
 匯入也接受 path: "blueprint.yaml" 或 .yml，與 yaml 文字二擇一。preview 只驗證與回傳數量，不替換專案、不增加 revision；不是對後續匯入的鎖定。正式匯入需要 expectedRevision，未儲存專案需要明確 discardChanges: true。任何錯誤保留目前專案；成功匯入清除原檔案關聯、標為未儲存，需另外 project_save。匯出不是儲存。
 
-Resource：`schedule://schema/blueprint`、`schedule://guide/blueprint`、`schedule://guide/blueprint-example`。連至本機 GUI 的 MCP bridge 使用相同 API，成功匯入會同步至 GUI。
+Resource：先讀 `schedule://guide/system-semantics` 判斷能力，再讀 `schedule://guide/engine-semantics` 確認執行契約；格式及範例由 `schedule://schema/blueprint`、`schedule://guide/blueprint`、`schedule://guide/blueprint-example` 提供。連至本機 GUI 的 MCP bridge 使用相同 API，成功匯入會同步至 GUI。
 
 GUI 起始畫面與系統選單共用「匯入專案」入口，依副檔名分流：.json 載入完整專案，.yaml／.yml 編譯藍圖並以新 UUID 重建。純網頁（含 GitHub Pages）在瀏覽器內編譯；本機同步模式會把完整驗證後的專案提交至共用服務。伺服器「開啟專案」路徑也接受 YAML／YML。藍圖匯入標為未儲存，錯誤或取消取代確認時保留原專案。
 

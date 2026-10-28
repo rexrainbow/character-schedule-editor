@@ -25,6 +25,16 @@ test('MCP creates, previews, imports, edits, exports YAML, rebuilds and saves wi
   await client.connect(transport); t.after(() => client.close());
   const call = async (name, args = {}) => (await client.callTool({ name, arguments: args })).structuredContent;
   assert.ok((await client.listTools()).tools.some((tool) => tool.name === 'project_import_yaml'));
+  assert.match(client.getInstructions(), /schedule:\/\/guide\/engine-semantics/);
+  const resources = (await client.listResources()).resources;
+  assert.ok(resources.some((resource) => resource.uri === 'schedule://guide/engine-semantics'));
+  assert.ok(resources.some((resource) => resource.uri === 'schedule://guide/system-semantics'));
+  const semantics = (await client.readResource({ uri: 'schedule://guide/engine-semantics' })).contents[0].text;
+  assert.equal(semantics, await readFile(new URL('../docs/ENGINE_SEMANTICS.md', import.meta.url), 'utf8'));
+  const overview = (await client.readResource({ uri: 'schedule://guide/system-semantics' })).contents[0].text;
+  assert.equal(overview, await readFile(new URL('../docs/SYSTEM_SEMANTICS.md', import.meta.url), 'utf8'));
+  assert.match(JSON.parse((await client.readResource({ uri: 'schedule://schema/blueprint' })).contents[0].text).description, /engine-semantics/);
+  assert.match((await client.listTools()).tools.find((tool) => tool.name === 'project_import_yaml').description, /engine-semantics/);
   assert.equal(JSON.parse((await client.readResource({ uri: 'schedule://schema/blueprint' })).contents[0].text).title, 'Character Schedule Blueprint');
   assert.match((await client.readResource({ uri: 'schedule://guide/blueprint' })).contents[0].text, /vars\./);
   const yaml = (await client.readResource({ uri: 'schedule://guide/blueprint-example' })).contents[0].text;

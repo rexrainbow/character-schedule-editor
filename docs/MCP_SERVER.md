@@ -1,6 +1,6 @@
 # Node.js 專案服務與 MCP
 
-目前 `name` 是持久化符號，`display_name` 是顯示名稱；engine_key 已移除。命令目標可使用 `name` 或 `id`（UUID／名稱），引用亦可直接填名稱。先讀 YAML 總覽再以同版本 revision 修改即可，不需要 UUID 對照表。詳見 [NAMING.md](./NAMING.md)。下方舊範例的 values.name 若原本表示顯示文字，現應改填 display_name。
+`name` 是持久化符號，`display_name` 是顯示名稱。命令目標可使用 `name` 或 `id`（UUID／名稱），引用亦可直接填名稱。先讀 YAML 總覽再以同版本 revision 修改即可，不需要 UUID 對照表。詳見 [NAMING.md](./NAMING.md)。修改顯示文字使用 values.display_name，修改持久化符號使用 values.name。
 
 目前提供 MCP stdio 入口、Node 專案檔案服務及 Web／Node 共用命令層。服務每個程序持有一份專案，沿用既有 Project API 的驗證、模式限制、引用保護、批次交易與匯出功能。
 
@@ -62,7 +62,7 @@ npm run mcp -- --root C:/mywork/electron-app/character-schedule-editor
 
 Schema resources：`schedule://schema/project`、`schedule://schema/environment`、`schedule://schema/runtime`。
 
-另提供 `schedule://schema/blueprint`、`schedule://guide/blueprint` 與 `schedule://guide/blueprint-example`。`project_import_yaml` 接受 yaml 文字或 .yaml/.yml 路徑，preview: true 只驗證；正式匯入以新 UUID 替換整份專案，需 expectedRevision，未儲存內容需明確 discardChanges。`project_export({format: "yaml"})` 回傳藍圖或寫入 YAML 檔；不標記已儲存。格式與範例見 [BLUEPRINT.md](./BLUEPRINT.md)。
+另提供 `schedule://schema/blueprint`、`schedule://guide/blueprint` 與 `schedule://guide/blueprint-example`。新增 `schedule://guide/system-semantics`（能力總覽）及 `schedule://guide/engine-semantics`（唯一執行契約）；agent 編寫行程前應一併閱讀，不能由結構 Schema 推測求值、優先權、中斷或重置時機。`project_import_yaml` 接受 yaml 文字或 .yaml/.yml 路徑，preview: true 只驗證；正式匯入以新 UUID 替換整份專案，需 expectedRevision，未儲存內容需明確 discardChanges。`project_export({format: "yaml"})` 回傳藍圖或寫入 YAML 檔；不標記已儲存。格式與範例見 [BLUEPRINT.md](./BLUEPRINT.md)。
 
 工具回傳同時包含文字 JSON 與 `structuredContent`。一般結果為 `{ ok, revision, mode, file, dirty, value, errors, warnings }`，檔案服務另附 root。邏輯失敗設定 MCP `isError:true`；錯誤包含 code、path 與可用的引用資訊。修改成功不等於已儲存，必須另外呼叫 `project_save`。
 

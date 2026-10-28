@@ -1,6 +1,6 @@
 # 共用專案操作 API
 
-目前公開命令使用持久化 name 與選填 display_name，可用名稱取代 UUID 作為操作目標與引用；GUI 工作資料以 symbol 儲存符號。engine_key 已移除，完整規則及範例見 [NAMING.md](./NAMING.md)。
+公開命令使用持久化 name 與選填 display_name，可用名稱取代 UUID 作為操作目標與引用；GUI 工作資料以 symbol 儲存符號。完整規則及範例見 [NAMING.md](./NAMING.md)。
 
 檔案位置已依 [原始碼目錄](./SOURCE_LAYOUT.md) 整理，純 JS 核心集中於 `src/core/`，React 整合位於 `src/gui/`。
 
@@ -72,7 +72,7 @@ const result = project.days.update(dayId, { name: '工作日' });
 - `ok`：是否成功；失敗時快照維持原狀。
 - `value`／`id`：新增或受影響的物件資訊。指派操作可能不回傳物件；周序列結構操作及事件 `replace` 回傳周序列。
 - `errors`：包含 `code`、`key`、`path`，必要時附引用資訊。
-- `warnings`：包含重複 `engine_key` 等不阻擋操作的資訊。
+- `warnings`：不阻擋操作的提示；不合法或同作用域重複的 name 屬於驗證錯誤。
 - `draft`／`nodes`／`blocked`：提供現有 GUI 的相容介面；`draft` 是工作階段快照，`nodes` 是變數／計算式集合。
 
 預設 `validation: 'strict'`，每次動作完成後檢查整份專案；`validate()` 可取得目前錯誤及警告。對空巨集、空序列等既有合法資料的規則保持不變。

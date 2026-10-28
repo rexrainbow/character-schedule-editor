@@ -8,9 +8,9 @@
 | `periodic` | `start`、`end`、`interval_days >= 1`、`count_filter` |
 | `probability` | `start`、`end`、`probability_percent`（0–100）、`cooldown_days`（非負安全整數）、`count_filter` |
 
-共同欄位為 UUID `id`、`display_name`、選填 `engine_key`、來源 `day_schedule_id`、整數 `priority`。專案另外儲存事件本身的 `icon`，runtime 不輸出圖示。複製會產生新 UUID、複製圖示及規則，清除 engine_key。
+共同欄位為 UUID id、必填 name、選填 display_name、日行程來源及整數 priority。專案另外儲存事件本身的 icon，runtime 不輸出圖示。複製會產生新 UUID、配置不重複的 name，並複製圖示及規則。
 
-事件管理使用事件類型選單。單次事件隱藏結束日及計數依據。切換類型時暫存各類型草稿，切回可取回尚未儲存的設定；存檔只輸出目前類型的欄位。事件名稱、圖示、engine_key、來源日行程與優先權保留。
+事件管理使用事件類型選單。單次事件隱藏結束日及計數依據。切換類型時暫存各類型草稿，切回可取回尚未儲存的設定；存檔只輸出目前類型的欄位。事件名稱、圖示、name、來源日行程與優先權保留。
 
 ## 日期與冷卻契約
 
@@ -50,7 +50,7 @@ runtime 在每天開始執行任何行程前，先依當時的設定與冷卻狀
 
 可讀取 `probability_percent`、`cooldown_days`、`cooldown_remaining`，皆為數字。這些屬性僅接受機率事件。讀取參數可以使用所在任務巨集的事件參數；計算式巨集沒有參數介面，使用明確引用或目前事件。
 
-內建「調整機率事件」位於流程控制分類，固定四個參數（事件、屬性、操作、數值），可自訂名稱、圖示、engine_key 與參數顯示名稱。屬性可選機率或冷卻設定，操作可選設定或增加；屬性與操作共用選項參數元件，可引用相容的巨集 enum 參數，詳見 [ENUM_PARAMETERS.md](./ENUM_PARAMETERS.md)。數值使用 expression 編輯器。
+內建「調整機率事件」位於流程控制分類，固定四個參數（事件、屬性、操作、數值），可自訂名稱、圖示、name 與參數顯示名稱。屬性可選機率或冷卻設定，操作可選設定或增加；屬性與操作共用選項參數元件，可引用相容的巨集 enum 參數，詳見 [ENUM_PARAMETERS.md](./ENUM_PARAMETERS.md)。數值使用 expression 編輯器。
 
 ```json
 {
@@ -64,7 +64,7 @@ runtime 在每天開始執行任何行程前，先依當時的設定與冷卻狀
 
 機率增加 5 是增加 5 個百分點，結果限制於 0–100。冷卻設定必須得到安全整數，負數限制為 0，小數與非有限值報錯。剩餘冷卻只能讀取，不能由此任務直接寫入。當天之後的運算式可以讀到新設定，但它只影響之後日期的發生判定。
 
-runtime 任務輸出使用 `task_key`、`event_operation: "adjust_probability"` 及相同的 event/property/operation/value；內建任務 engine_key 仍由環境契約提供。
+runtime 任務輸出使用 task_key、`event_operation: "adjust_probability"` 及相同的 event/property/operation/value；task_key 的內容為內建任務的 name。
 
 ## 單日模擬
 

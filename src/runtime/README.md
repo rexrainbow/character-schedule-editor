@@ -1,5 +1,7 @@
 # 可恢復 Runtime
 
+精確的選擇、求值、事件排序、變數寫入、中斷／放行、重置與恢復規則，統一見 [ENGINE_SEMANTICS.md](../../docs/ENGINE_SEMANTICS.md)。本 README 著重 API 與程式組織。
+
 這個資料夾是獨立、可在瀏覽器與 Node.js 使用的執行核心。模擬 GUI 已透過 `src/simulation/` 使用 UUID 版本；右上角既有執行資料匯出格式尚未改接。以 `index.js` 作為公開入口。
 
 ## 組織

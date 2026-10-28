@@ -1,14 +1,18 @@
 # Character Schedule Editor
 
+## Agent 離線文件包
+
+執行 `npm run build:agent-kit`，會先更新 Blueprint Schema，再將 YAML 格式、Engine 語意、命名規則、能力總覽、Recipes 與完整範例輸出至 `agent-kit/`。產物提供閱讀順序與驗證說明，可整包分享給 agent；不包含 MCP server、GUI 或 parser。來源文件仍維護於原位置，產生時改寫相對連結，未收錄文件改為專案路徑說明，並檢查缺檔及失效的本地檔案連結。`agent-kit/` 已加入 `.gitignore`，每次重新產生會替換既有產物。
+
 模擬模式提供 [連續模擬](CONTINUOUS_SIMULATION.md)，可查看多日事件、日終／周末快照、來源與任務副作用，以及由 checkpoint 詳細重跑某一天。
 
 周序列支援每筆周引用的有限／無限重複，包含 runtime 日期解析、快照與藍圖格式，見 [WEEK_REPEAT.md](WEEK_REPEAT.md)。
 
-現行識別規則：必填 name（符號）取代 engine_key，display_name 留白時使用 name。YAML 保留 mapping，API 可直接依名稱定位，詳見 [NAMING.md](./NAMING.md)。舊文件中的 engine_key 規則僅為開發歷程。
+現行識別規則：name 為必填符號，display_name 留白時使用 name。YAML 保留 mapping，API 可直接依名稱定位，詳見 [NAMING.md](./NAMING.md)。
 
 可透過不含 UUID／圖示的 YAML 藍圖重建專案，支援文字運算式 parser、獨立 Schema、預覽與 MCP 匯入／匯出，見 [BLUEPRINT.md](./BLUEPRINT.md)。
 
-需要判斷自然語言需求如何由現有功能組合時，先讀 [系統能力與執行語意](./SYSTEM_SEMANTICS.md)，再由 [需求組合範例索引](./RECIPES.md) 選讀 `recipes/` 的獨立範例；內容包含必要假設、物件關係、執行順序與驗證限制。
+需要判斷自然語言需求如何由現有功能組合時，先讀 [系統能力總覽](./SYSTEM_SEMANTICS.md)，再讀唯一的 [Engine 執行語意契約](./ENGINE_SEMANTICS.md)，並由 [需求組合範例索引](./RECIPES.md) 選讀範例。YAML 寫法與 Engine 效果分開維護，避免僅憑 Schema 猜測執行規則。
 
 Node.js 專案服務支援 MCP 與 GUI 即時同步，包含版本檢查、草稿保留、衝突與斷線處理。GitHub Pages 固定為純網頁模式，啟動見 [GUI_SYNC.md](./GUI_SYNC.md)，MCP 工具見 [MCP_SERVER.md](./MCP_SERVER.md)。
 
@@ -42,7 +46,7 @@ Web 編輯器資料操作已整併至可供 Node.js 共用的 Project API，包�
 
 使用者頁籤依序為日行程、周行程、周序列、時段行程，再接變數與巨集；啟動、新建與匯入後預設開啟日行程。日／周的時段選擇視窗可輸入名稱，按 Enter 或「建立並指定」建立空時段行程並立即指定；完整同名時重用既有行程，同名多筆需手動選擇。名稱忽略前後空白、區分大小寫，取消及輸入法組字不建立資料。
 
-時段行程預設 `branches: []`，可單純以名稱表示活動；任務與分支為進階功能，可新增 ELSE 開始編輯，也可移除唯一 ELSE 恢復空行程。已存在的分支仍需完整條件及任務，非空分支必須有唯一且最後的 ELSE。完整專案與 runtime 均保留空分支及名稱，模擬顯示「正在執行：名稱／沒有動作，完成」，不產生任務呼叫或變數變更。需要固定 engine 契約時仍應使用 `engine_key`。
+時段行程預設 `branches: []`，可單純以名稱表示活動；任務與分支為進階功能，可新增 ELSE 開始編輯，也可移除唯一 ELSE 恢復空行程。已存在的分支仍需完整條件及任務，非空分支必須有唯一且最後的 ELSE。完整專案與 runtime 均保留空分支及名稱，模擬顯示「正在執行：名稱／沒有動作，完成」，不產生任務呼叫或變數變更。需要固定 engine 契約時仍應使用 `name`。
 
 計算式巨集新增分支模式，依序判斷條件並回傳第一個符合的數字／布林結果，最後保留 ELSE。支援保留內容的模式轉換，環境匯出、runtime 匯出與模擬均支援，詳見 [COMPUTED_BRANCHES.md](./COMPUTED_BRANCHES.md)。
 
@@ -94,11 +98,11 @@ npx.cmd playwright test
 - 啟動時顯示「匯入專案／新建專案」起始畫面，不自動開啟設定。新建時可選擇匯入環境，預覽名稱、版本與定義數量，並採用環境的每日時段數；按下建立才提交。未匯入時預設 3，建立含行程進度範本的環境。`src/examples/example.json` 僅供手動匯入與測試，不預載。
 - 專案名稱旁的下拉選單提供專案設定／新專案，以及「使用者編輯／環境編輯／模擬模式」單選項目，目前模式顯示勾選，預設使用者模式。使用者模式提供四種行程、應用層變數空間、計算式巨集與任務巨集；環境模式提供環境層變數空間、計算式巨集與任務定義；模擬模式提供獨立測試情境與執行結果。環境及模擬模式各有頂列標籤，切換保留工作狀態。桌面與手機均使用單列工具列。
 - 新專案的「每日時段數」預設為 3；既有及匯入專案保留原設定。
-- 變數群組／變數、計算式巨集、任務、任務巨集與四種行程可設定 `engine_key`，一般排列為「圖示、名稱、Engine key」。它是選填的 engine 契約名稱，編輯器參照仍使用 UUID。跨類型重複的非空 key 顯示黃色警告，停留可查看衝突來源，不阻擋套用或完整專案匯入／匯出；Runtime 匯出另要求契約名稱唯一。比對忽略前後空白且區分大小寫。複製時清空 key，變數樹則清空所有複製節點的 key。
-- 變數／群組、計算式巨集、任務與任務巨集也可使用同一套離線圖示選擇器。環境定義的圖示與 key 在使用者模式維持唯讀。任務參數及內部步驟不新增 `engine_key`。
+- 變數群組／變數、計算式巨集、任務、任務巨集與四種行程均有必填 name 與選填 display_name，一般排列為「圖示、name、display_name」。name 是類型／作用域內唯一的持久化符號與 engine 契約；編輯器參照仍使用 UUID。display_name 留白時顯示 name。提交與匯入／匯出檢查名稱格式及唯一性；複製會配置新 UUID 與不重複的 name。
+- 變數／群組、計算式巨集、任務與任務巨集也可使用同一套離線圖示選擇器。環境定義在使用者模式維持唯讀。任務參數的 name 在所屬任務／巨集內唯一。
 - 應用層變數頁可唯讀瀏覽環境定義；新增、複製與修改只作用於應用層。兩層的變數均可供運算式及任務引用，「設定變數」依 `read_only` 決定可寫入目標，與定義編輯限制分開。節點以 `scope` 保存層別，未標示的既有節點視為環境層，禁止跨層移動及重複完整路徑。
 - 最左側專案選單提供專案設定／新建、匯入專案（Import project）、匯出專案（Export project）及模式切換。使用者模式頂列另提供「匯出執行資料（Export runtime data）」，輸出供 engine 使用的 JSON；環境模式隱藏此按鈕。
-- Runtime 格式、環境契約與參數順序規則詳見 [RUNTIME.md](./RUNTIME.md)，獨立 Schema 為 [src/schemas/runtime.schema.json](../src/schemas/runtime.schema.json)。輸出保留 `display_name`、移除 icon 與編輯器中介資料；應用變數轉為樹、環境引用改用 engine_key、匿名日行程嵌入周行程。缺少必要環境 key 或 key 重複時只阻擋 runtime 匯出，仍可匯出完整專案。
+- Runtime 格式、環境契約與參數順序規則詳見 [RUNTIME.md](./RUNTIME.md)，獨立 Schema 為 [src/schemas/runtime.schema.json](../src/schemas/runtime.schema.json)。輸出保留 name、display_name，移除 icon 與編輯器中介資料；應用變數轉為樹、環境引用使用 name、匿名日行程嵌入周行程。名稱格式及唯一性依 [NAMING.md](./NAMING.md) 驗證。
 - 環境模式頂列的「環境操作」提供設定、匯入及匯出環境；檔案只包含環境名稱／ID／版本、每日時段數、環境變數、任務及固定模板設定。替換前預覽並檢查引用相容性，全部成功才可套用。完整流程見 [ENVIRONMENT.md](./ENVIRONMENT.md)，獨立 Schema 為 [src/schemas/environment.schema.json](../src/schemas/environment.schema.json)。
 - 編輯區取消最大寬度限制，填滿剩餘視窗空間；一般輸入字體約 15–16px、任務摘要約 13px。四種行程首列統一為圖示、名稱與操作選單，移除重複類型標題與時段行程屬性區塊；正常首列高度約 44px，欄位錯誤仍就地顯示。日／周／周序列的名稱列固定於上方。
 - 整頁固定於視窗高度，不產生頁面垂直捲動；左側清單單獨捲動，日行程只有時段清單捲動。桌面清單寬 184–200px，可由清單標題旁按鈕收合為 44px 窄欄；收合保留搜尋與選取，手機仍顯示橫向清單。
@@ -190,11 +194,11 @@ Schema 使用 `task_macros` 與 `task_macro_id`，開發階段不轉換舊 `task
 
 ### 內建變數操作任務
 
-固定提供「設定變數」、「增加數值」、「切換布林」、「重設初始值」。增加數值支援負增量與數字 expression；切換只接受可寫布林變數；重設使用 runtime 實際採用的初始化值。時段分支及三種任務巨集共用介面。四個範本的名稱、圖示、engine_key 及參數名稱均可在環境模式修改，結構固定。詳細契約與匯出格式見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
+固定提供「設定變數」、「增加數值」、「切換布林」、「重設初始值」。增加數值支援負增量與數字 expression；切換只接受可寫布林變數；重設使用 runtime 實際採用的初始化值。時段分支及三種任務巨集共用介面。四個範本的名稱、圖示、name 及參數名稱均可在環境模式修改，結構固定。詳細契約與匯出格式見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
 
-任務清單固定提供「設定變數」模板，與普通任務共用編輯面板。在環境模式可修改圖示、名稱、engine_key 與兩個參數名稱；參數種類、數量及順序固定，新增、刪除、排序與型別控制停用，不提供複製或刪除模板。自訂名稱會同步到使用者模式，且不隨語系切換被覆蓋；未自訂名稱仍跟隨介面語系。
+任務清單固定提供「設定變數」模板，與普通任務共用編輯面板。在環境模式可修改圖示、名稱、name 與兩個參數名稱；參數種類、數量及順序固定，新增、刪除、排序與型別控制停用，不提供複製或刪除模板。自訂名稱會同步到使用者模式，且不隨語系切換被覆蓋；未自訂名稱仍跟隨介面語系。
 
-設定保存於 `builtin_tasks.set_variable`；Runtime 以所填的 engine_key 作為 `task_key` 連接環境提供的任務，不使用固定操作碼。若實際使用模板卻未設定 key，會指出位置並拒絕 Runtime 匯出，完整專案仍可儲存。時段行程與三種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
+設定保存於 builtin_tasks.set_variable；Runtime 以範本的 name 作為 task_key 連接環境提供的任務。時段行程與三種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
 
 資料為 `{builtin: "set_variable", target_variable_id, value}`，寫入位置與一般讀值引用分開。寫入中的變數不能改成唯讀或刪除，不相容的型別修改也會被拒絕。切換目標遇到不相容數值時先確認清除。engine 應先求值再寫入，編輯器不執行運算。
 

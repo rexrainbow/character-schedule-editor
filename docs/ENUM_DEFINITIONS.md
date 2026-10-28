@@ -6,9 +6,9 @@
 
 ## 編輯與識別
 
-樹節點分為群組 `group` 與列舉 `enum`。支援新增、搜尋、重新命名、修改圖示及 engine_key、同級上下交換、變更父群組、複製及刪除子樹。父群組必須同層，不能移入自己的子樹。
+樹節點分為群組 `group` 與列舉 `enum`。支援新增、搜尋、重新命名、修改圖示及 name、同級上下交換、變更父群組、複製及刪除子樹。父群組必須同層，不能移入自己的子樹。
 
-每個節點以 UUID 作為 dictionary key，包含 display_name、icon、scope、parent_id、order 及選填 engine_key。複製子樹會重建 UUID、父引用、清除每個節點的 engine_key，並複製獨立的選項內容。
+每個節點以 UUID 作為 dictionary key，包含必填 name、display_name、icon、scope、parent_id 及 order。複製子樹會重建 UUID、父引用，配置不重複的 name，並複製獨立的選項內容。
 
 列舉葉節點以共用選項編輯器管理 `{display_name, value}`。值只接受非空、無前後空白的字串，集合不得為空或重複；名稱也不可空白。內容在 runtime 是固定定義，沒有初始值或可寫入的狀態欄位。現有數字型「目前星期」不會自動改型。
 
@@ -33,15 +33,15 @@
 
 專案以 `enum_definitions` dictionary 保存完整樹；draft 對應欄位是 enumNodes。參數只存 enum_id，不嵌入來源的選項。匯入驗證 UUID、節點結構、父層、循環、選項、引用目標及作用域。
 
-環境匯出只包含環境層定義及環境任務。以環境建立專案時載入整棵環境列舉樹；替換環境時保留應用層定義。原有應用巨集的環境 enum_id 會依環境身分及 UUID，或唯一 engine_key 重新連結。來源消失、key 不明確、選項集合縮小而不相容、UUID 與應用層衝突，皆拒絕套用候選資料。
+環境匯出只包含環境層定義及環境任務。以環境建立專案時載入整棵環境列舉樹；替換環境時保留應用層定義。原有應用巨集的環境 enum_id 會依環境身分及 UUID，或唯一 name 重新連結。來源消失、名稱無法對應、選項集合縮小而不相容、UUID 與應用層衝突，皆拒絕套用候選資料。
 
 不直接修改原專案後再嘗試復原；候選資料通過完整編譯後才可套用。
 
 ## Runtime 匯出
 
-runtime 頂層增加 `enum_definitions`，保存兩層列舉葉節點，以 UUID 索引，內容為 display_name、scope、options 及非空 engine_key；不輸出圖示、群組、父層或編輯排序。
+runtime 頂層的 enum_definitions 保存兩層列舉葉節點，以 UUID 索引，內容為 name、display_name、scope 及 options；不輸出圖示、群組、父層或編輯排序。
 
-runtime 參數若為引用模式，保持 `{type: "enum", enum_id: UUID}`；自訂模式仍保存 options。Engine 必須從 catalog 解析 enum_id，再檢查實際字串是否存在。非空列舉 engine_key 也會加入 exports，以 `{kind: "enums", id: UUID}` 尋找定義。
+runtime 參數若為引用模式，保持 `{type: "enum", enum_id: UUID}`；自訂模式仍保存 options。Engine 必須從 catalog 解析 enum_id，再檢查實際字串是否存在。列舉以 `enums.name` 加入 exports，對應 `{kind: "enums", id: UUID}`。
 
 模擬使用當前定義解析參數，可比較字串、轉傳至相容參數，或控制「調整機率事件」的屬性及操作；不將定義寫進變數空間。
 

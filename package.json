@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
+    "build:agent-kit": "node scripts/build-agent-kit.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "mcp": "node src/node/main.js",
     "serve": "node src/node/main.js --web --no-stdio",

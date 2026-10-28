@@ -2,7 +2,7 @@
 
 需要可由 API 直接匯入的測試輸入，參考 [生活與薪資 YAML 藍圖](./recipes/examples/life-simulation.yaml) 與 [格式說明](./BLUEPRINT.md)；以下 recipe 則保留人類可讀的設計說明。
 
-這些 recipe 是現有功能的組合方式，不是新增內建指令，也不是可直接匯入的 JSON。先讀 [系統能力與執行語意](./SYSTEM_SEMANTICS.md)，再選擇相關範例。名稱僅為示意，操作時查詢實際 UUID；API 格式見 [PROJECT_API.md](./PROJECT_API.md)、[MCP_SERVER.md](./MCP_SERVER.md)。
+這些 recipe 是現有功能的組合方式，不是新增內建指令，也不是可直接匯入的 JSON。先讀 [系統能力總覽](./SYSTEM_SEMANTICS.md) 與 [Engine 執行語意契約](./ENGINE_SEMANTICS.md)，再選擇相關範例。操作可使用規定作用域內的精確 name 或 UUID；API 格式見 [PROJECT_API.md](./PROJECT_API.md)、[MCP_SERVER.md](./MCP_SERVER.md)。
 
 | Recipe | 適用需求 | 主要能力 | 驗證邊界 |
 | --- | --- | --- | --- |
