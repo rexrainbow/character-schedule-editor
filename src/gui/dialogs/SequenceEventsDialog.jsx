@@ -7,8 +7,8 @@ import { slotReleaseErrors } from '../../core/slotRelease.js';
 import { editProject } from '../../core/projectApi.js';
 import IconField from '../components/IconField.jsx';
 import { eventKind, eventUsageErrors } from '../../core/eventReferences.js';
-import { useRef, useState } from 'react';
-import { Plus, Copy, Trash2, CalendarDays } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Plus, Copy, Trash2, CalendarDays, Link } from 'lucide-react';
 import { Dialog, Issues } from '../components/ui.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
 import SequenceDatePicker from './SequenceDatePicker.jsx';
@@ -22,7 +22,7 @@ import { eventGroupName, duplicateEventGroup } from '../../core/sequenceEvents.j
 import { availableDayTags } from '../../core/dayTags.js';
 import { normalizeSymbols, symbolErrors } from '../../core/symbols.js';
 
-export default function SequenceEventsDialog({ draft, sequence, request, onApply, onClose, t }) {
+export default function SequenceEventsDialog({ draft, sequence, request, onApply, onClose, onSelect, onCopyLink, t }) {
   const [groups, setGroups] = useState(() => [...structuredClone(sequence.eventGroups ?? []), ...(request.createAt === undefined ? [] : [editProject(draft, t).sequences.events(sequence.id).newDraft(request.createAt)])]);
   const [selectedId, setSelectedId] = useState(request.createAt === undefined ? request.id : null);
   const [dateView, setDateView] = useState(null);
@@ -38,6 +38,7 @@ export default function SequenceEventsDialog({ draft, sequence, request, onApply
   const originalOrder = new Map(groups.map((group, index) => [group.id, index]));
   const ordered = [...shown].sort((a, b) => (Number.isFinite(b.priority) ? b.priority : 0) - (Number.isFinite(a.priority) ? a.priority : 0) || originalOrder.get(a.id) - originalOrder.get(b.id));
   const selected = shown.find((group) => group.id === selectedId) ?? (request.createAt !== undefined && !selectedId ? shown.at(-1) : shown[0]);
+  useEffect(() => { onSelect?.(selected?.id ?? null); }, [selected?.id]);
   const candidateDraft = { ...draft, sequences: draft.sequences.map((item) => item.id === sequence.id ? candidate : item) };
   const errors = [...eventGroupErrors(sequence, days, groups), ...symbolErrors(normalizeSymbols(candidateDraft)).filter((error) => error.path.startsWith('/events/')), ...eventUsageErrors(candidateDraft), ...slotReleaseErrors(candidateDraft)];
   const stats = selected ? eventCounts(sequence, selected, draft) : null;
@@ -53,9 +54,9 @@ export default function SequenceEventsDialog({ draft, sequence, request, onApply
   function remove() { const refs = editProject(draft, t).sequences.events(sequence.id).references(selected.id); if (refs.length) { window.alert(t('eventInUse', { count: refs.length })); return; } if (window.confirm(t(eventKind(selected) === 'probability' ? 'probabilityDeleteConfirm' : 'eventDeleteConfirm', { count: stats.total }))) { setGroups(groups.filter((group) => group.id !== selected.id)); setSelectedId(null); } }
   const title = dateView ? t(dateView === 'start' ? 'eventPickStart' : 'eventPickEnd') : t('eventManager');
   const keyEntries = engineKeyEntries({ ...draft, sequences: draft.sequences.map((item) => item.id === sequence.id ? candidate : item) });
-  return <EngineKeysContext.Provider value={keyEntries}><Dialog title={title} subtitle={sequence.name} wide className="event-manager-dialog" onClose={() => dateView ? setDateView(null) : onClose()} t={t} footer={dateView ? <button className="button secondary" onClick={() => setDateView(null)}>{t('back')}</button> : <><button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" disabled={errors.length > 0} onClick={() => { onApply(editProject(draft, t).sequences.events(sequence.id).normalized(groups)); onClose(); }}>{t('apply')}</button></>}>
+  return <EngineKeysContext.Provider value={keyEntries}><Dialog navigationDirty={JSON.stringify(groups) !== JSON.stringify(sequence.eventGroups ?? [])} title={title} subtitle={sequence.name} wide className="event-manager-dialog" onClose={() => dateView ? setDateView(null) : onClose()} t={t} footer={dateView ? <button className="button secondary" onClick={() => setDateView(null)}>{t('back')}</button> : <><button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" disabled={errors.length > 0} onClick={() => { onApply(editProject(draft, t).sequences.events(sequence.id).normalized(groups)); onClose(); }}>{t('apply')}</button></>}>
     {dateView && selected ? <SequenceDatePicker key={dateView} draft={draft} sequence={sequence} group={selected} field={dateView} t={t} onPick={(date) => { patch(dateView === 'start' ? editProject(draft, t).sequences.events(sequence.id).moveStartDraft(selected, date) : { end: date }); setDateView(null); }} /> : <div className="event-manager-content">
-      <div className="event-manager-tools"><button className="button secondary" disabled={!sequence.rows.length || !days.length} onClick={add}><Plus size={15} />{t('addEventGroup')}</button>{request.position !== undefined && <label>{t('eventListFilter')}<select aria-label={t('eventListFilter')} value={todayOnly ? 'date' : 'all'} onChange={(e) => setTodayOnly(e.target.value === 'date')}><option value="all">{t('eventAllGroups')}</option><option value="date">{t('eventThisDate')}</option></select></label>}</div>
+      <div className="event-manager-tools"><button className="button secondary" disabled={!sequence.rows.length || !days.length} onClick={add}><Plus size={15} />{t('addEventGroup')}</button><button type="button" className="icon-button" title={t('copyEditorLink')} aria-label={t('copyEditorLink')} disabled={!sequence.eventGroups?.some((group) => group.id === selected?.id)} onClick={() => onCopyLink?.(selected.id)}><Link size={16} /></button>{request.position !== undefined && <label>{t('eventListFilter')}<select aria-label={t('eventListFilter')} value={todayOnly ? 'date' : 'all'} onChange={(e) => setTodayOnly(e.target.value === 'date')}><option value="all">{t('eventAllGroups')}</option><option value="date">{t('eventThisDate')}</option></select></label>}</div>
       {!sequence.rows.length && <p className="field-hint">{t('eventNoWeeks')}</p>}{!days.length && <p className="field-hint">{t('eventNoDays')}</p>}
       <div className="event-manager-layout"><div className="event-group-list" role="listbox" aria-label={t('eventGroups')}>
         {ordered.map((group) => { const day = lookup.get(eventFirstDayId(group)); return <button key={group.id} role="option" aria-selected={selected?.id === group.id} className={`event-group-item ${selected?.id === group.id ? 'selected' : ''}`} onClick={() => setSelectedId(group.id)}><span className="entity-name"><SlotIcon name={group.icon ?? day?.icon} /><strong>{eventGroupName(group, days) || t('eventChooseDay')}</strong></span></button>; })}

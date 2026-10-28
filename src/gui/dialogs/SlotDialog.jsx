@@ -37,7 +37,7 @@ export default function SlotDialog({ draft, day, index, onCommit, onClose, t, on
     onClose();
   }
   const title = edit ? t(edit.mode === 'create' ? 'newSlotDialog' : edit.mode === 'duplicate' ? 'duplicateSlotDialog' : 'editSlotDialog') : t('selector');
-  return <Dialog title={title} subtitle={contextSubtitle ?? `${day.name} / ${assignmentLabel(index, t)}`} t={t} wide onClose={onClose}
+  return <Dialog navigationDirty={(edit ? edit.mode !== 'edit' || JSON.stringify(edit.slot) !== JSON.stringify(draft.slots.find((slot) => slot.id === edit.slot.id)) : false) || selectedId !== dayAssignment(day, index)} title={title} subtitle={contextSubtitle ?? `${day.name} / ${assignmentLabel(index, t)}`} t={t} wide onClose={onClose}
     footer={<>{!edit && <button className="button clear-button" onClick={clear}>{t('clearAssignment')}</button>}<div className="modal-footer-right">{edit && <button className="button secondary" onClick={() => setEdit(null)}>{t('back')}</button>}<button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" onClick={apply} disabled={invalid}>{t('apply')}</button></div></>}>
     {edit ? <>
       {edit.mode === 'edit' && <p className="shared-warning">{weekContext ? t('weekSharedWarning') : t('sharedWarning', { count: referenceCount(draft, edit.slot.id) })}</p>}

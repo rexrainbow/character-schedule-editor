@@ -8,7 +8,7 @@ import { createRelease } from '../../core/builtinTaskModel.js';
 export default function SlotReleaseDialog({ value, index, nodes, onApply, onRemove, onClose, t }) {
   const [release, setRelease] = useState(() => structuredClone(value ?? createRelease()));
   const errors = release.condition == null ? [] : conditionErrors(release.condition, nodes);
-  return <Dialog title={t('releaseSlotFor', { count: index + 1 })} t={t} wide onClose={onClose} footer={<>
+  return <Dialog navigationDirty={JSON.stringify(release) !== JSON.stringify(value ?? createRelease())} title={t('releaseSlotFor', { count: index + 1 })} t={t} wide onClose={onClose} footer={<>
     {value && <button className="button secondary danger" onClick={() => { onRemove(); onClose(); }}>{t('removeSlotRelease')}</button>}
     <button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" disabled={!!errors.length} onClick={() => { onApply(release); onClose(); }}>{t('apply')}</button>
   </>}>

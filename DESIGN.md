@@ -72,6 +72,8 @@ Reuse `.button.primary`, `.button.secondary`, lucide icons and shared UI primiti
 
 ### Navigation and data display
 
+Editor locations use a shared hash router (`src/gui/navigation/editorLocation.js`, `useEditorLocation.js`). The route stores mode, page, persistent name and optional sequence event name; UUIDs remain live selection identities. Selection changes add history; renames replace the current entry. Search/filter and disclosure state remain transient, outside share links. Pending startup links survive until a project is loaded. Browser navigation through unapplied dialog drafts uses the shared Dialog confirmation with localized labels; missing targets keep navigation usable and show a persistent inline explanation. Shared copy-link actions reuse lucide Link, icon-button and AppNotice.
+
 Continuous simulation's desktop input panel may collapse to a 36px rail using the established panel-toggle icons. Result charts resize within their existing scroller. Narrow screens keep the input/result tab layout and ignore the desktop collapsed geometry; no additional mobile panel state is introduced.
 
 Continuous simulation reuses the mode's small tabs, input/result panels and narrow-screen panel tabs. Daily/weekly results are paged tables; shared dialogs reveal snapshots and the same detailed execution trace. Numeric values carry a secondary delta; event icons identify actual daily sources. Preserve the established dark calendar/editor identity without adding a second dashboard theme.

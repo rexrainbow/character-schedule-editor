@@ -7,6 +7,7 @@ import SlotIcon from './SlotIcon.jsx';
 import { taskSummary } from '../../core/model.js';
 import { IconDialogContext } from '../contexts/iconDialogContext.js';
 import { ProjectConnectionContext } from '../contexts/ProjectConnectionContext.js';
+import { NavigationContext } from '../navigation/NavigationContext.js';
 
 export function IconButton({ icon: Icon, label, onClick, disabled = false, danger = false }) {
   return <button type="button" className={`icon-button ${danger ? 'danger' : ''}`} title={label} aria-label={label} disabled={disabled} onClick={onClick}><Icon size={16} /></button>;
@@ -32,10 +33,12 @@ export function SlotCellContent({ slot, t }) {
   return <div className="cell-content">{slot ? <SlotInfo slot={slot} t={t} /> : <><Plus size={19} /><span>{t('selectCell')}</span></>}</div>;
 }
 
-export function Dialog({ title, subtitle, children, footer, onClose, t, wide = false, className = '' }) {
+export function Dialog({ title, subtitle, children, footer, onClose, t, wide = false, className = '', navigationDirty = false }) {
   const connection = useContext(ProjectConnectionContext);
+  const navigation = useContext(NavigationContext);
   const ref = useRef(null);
   const headingId = useId();
+  useEffect(() => navigation?.register(headingId, { dirty: navigationDirty }), [navigation, headingId, navigationDirty]);
   const [view, setView] = useState(null);
   useEffect(() => {
     const element = ref.current;

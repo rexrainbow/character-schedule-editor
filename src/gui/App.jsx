@@ -6,6 +6,9 @@ import { dayUses, DAY_USES, matchesDayUse } from '../core/dayUses.js';
 import DayListOptions from './components/DayListOptions.jsx';
 import { DayUseChips } from './components/DayUses.jsx';
 import useProject from './hooks/useProject.js';
+import useEditorLocation from './hooks/useEditorLocation.js';
+import { MODE_PAGES, editorLocationHash, defaultLocationItem, locationItems } from './navigation/editorLocation.js';
+import { NavigationContext } from './navigation/NavigationContext.js';
 import ConnectionStatus from './components/ConnectionStatus.jsx';
 import ServerFileDialog from './dialogs/ServerFileDialog.jsx';
 import { ProjectConnectionContext } from './contexts/ProjectConnectionContext.js';
@@ -30,11 +33,11 @@ import { TaskContext, TaskMacrosContext, BuiltinTasksContext, EventCatalogContex
 import OperandsEditor from './editors/OperandsEditor.jsx';
 import SlotIcon from './components/SlotIcon.jsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Download, FolderPlus, GitBranch, Globe2, Layers3, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download, FolderPlus, GitBranch, Globe2, Layers3, Link, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload } from 'lucide-react';
 import ActionMenu from './components/ActionMenu.jsx';
 import { referenceCount, validateDocument } from '../core/model.js';
 import { resolveLocale, translator } from '../i18n/index.js';
-import { Issues, SlotInfo } from './components/ui.jsx';
+import { Dialog, Issues, SlotInfo } from './components/ui.jsx';
 import SlotEditor from './editors/SlotEditor.jsx';
 import DayEditor from './editors/DayEditor.jsx';
 import { DayTagChips } from './components/DayTags.jsx';
@@ -47,8 +50,6 @@ import DaySelector from './dialogs/DaySelector.jsx';
 import SequenceEditor from './editors/SequenceEditor.jsx';
 import { dayOverrideReferenceCount, weekSequenceReferenceCount } from '../core/sequenceModel.js';
 import { dayReferenceCount, sharedDays } from '../core/weekModel.js';
-
-const MODE_PAGES = { user: ['days', 'weeks', 'sequences', 'slots', 'operands', 'enums', 'expressions', 'taskMacros'], environment: ['operands', 'enums', 'expressions', 'tasks'], simulation: ['simulation', 'continuousSimulation'] };
 
 export default function App() {
   const [project, draft, connection] = useProject();
@@ -64,16 +65,19 @@ export default function App() {
   useEffect(() => { setContinuousSimulation((previous) => ({ ...previous, result: null })); }, [draft]);
   const tab = modeTabs[mode];
   project.setMode(mode);
-  const setTab = (page) => setModeTabs((previous) => ({ ...previous, [mode]: page }));
+  const setTab = (page) => { navigation.refresh(); setModeTabs((previous) => ({ ...previous, [mode]: page })); };
   const EDITOR_PAGES = MODE_PAGES[mode];
   const SimulationView = tab === 'continuousSimulation' ? ContinuousSimulationEditor : SimulationEditor;
   const pageLabel = (page) => t(page === 'operands' ? (mode === 'environment' ? 'environmentVariables' : 'applicationVariables') : page === 'tasks' ? 'taskDefinitions' : page === 'expressions' && mode === 'environment' ? 'environmentExpressions' : page);
   const [editorViews, setEditorViews] = useState({});
+  const [sequenceEvent, setSequenceEvent] = useState(null);
+  const [routeEpoch, setRouteEpoch] = useState(0);
+  const [routeError, setRouteError] = useState(null);
   function editorView(page) {
     const key = `${mode}:${page}`;
-    return { view: editorViews[key], onViewChange: (update) => setEditorViews((previous) => ({ ...previous, [key]: update(previous[key] ?? {}) })) };
+    return { view: editorViews[key], onViewChange: (update) => { navigation.refresh(); setEditorViews((previous) => ({ ...previous, [key]: update(previous[key] ?? {}) })); } };
   }
-  function resetNavigation() { setDayTagFilter(''); setDayUseFilter(''); setCollapsedDayUses([]); setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setContinuousSimulation({}); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); setCandidateView(null); }
+  function resetNavigation() { setDayTagFilter(''); setDayUseFilter(''); setCollapsedDayUses([]); setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setContinuousSimulation({}); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); setCandidateView(null); setSequenceEvent(null); }
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -109,6 +113,32 @@ export default function App() {
   const activeDay = publicDays.find((day) => day.id === selectedDay) ?? publicDays[0];
   const activeWeek = draft.weeks.find((week) => week.id === selectedWeek) ?? draft.weeks[0];
   const activeSequence = draft.sequences.find((sequence) => sequence.id === selectedSequence) ?? draft.sequences[0];
+  const locationSelection = ['slots', 'days', 'weeks', 'sequences'].includes(tab)
+    ? ({ slots: activeSlot, days: activeDay, weeks: activeWeek, sequences: activeSequence })[tab]?.id
+    : mode === 'simulation' ? null : editorViews[`${mode}:${tab}`]?.selected ?? defaultLocationItem(draft, mode, tab)?.id;
+  const currentLocation = { mode, page: tab, id: locationSelection ?? null, ...(tab === 'sequences' && sequenceEvent?.sequenceId === activeSequence?.id ? { eventId: sequenceEvent.id } : {}) };
+  const locationDefinition = locationItems(draft, mode, tab).find((item) => item.id === locationSelection);
+  const locationObject = currentLocation.eventId ? locationDefinition?.eventGroups?.find((group) => group.id === currentLocation.eventId) : locationDefinition;
+  const locationName = (locationObject?.display_name ?? locationObject?.name) || locationObject?.symbol;
+  function applyLocation(location) {
+    setMode(location.mode); setModeTabs((previous) => ({ ...previous, [location.mode]: location.page }));
+    const select = { slots: setSelectedSlot, days: setSelectedDay, weeks: setSelectedWeek, sequences: setSelectedSequence }[location.page];
+    if (select) select(location.id);
+    else setEditorViews((previous) => ({ ...previous, [`${location.mode}:${location.page}`]: { ...previous[`${location.mode}:${location.page}`], selected: location.id, search: '' } }));
+    setSearches((previous) => ({ ...previous, [location.page]: '' }));
+    setDayTagFilter(''); setDayUseFilter(''); setCollapsedDayUses([]);
+    setSequenceEvent(location.eventId ? { sequenceId: location.id, id: location.eventId } : null);
+    setDayReturn(null); setDayRestore(null); setCandidateView(null); setWeekHighlight(null);
+    setSettings(null); setCellDialog(null); setWeekCellDialog(null); setDaySelector(null); setReportDialog(false); setEnvironmentSettings(false); setEnvironmentPreview(null); setServerFileDialog(null);
+    setRouteEpoch((value) => value + 1);
+  }
+  const navigation = useEditorLocation({ ready: initialized, draft, current: currentLocation, apply: applyLocation, onError: setRouteError });
+  async function copyEditorLink(eventId) {
+    const url = new URL(window.location.href);
+    url.hash = editorLocationHash(draft, { ...currentLocation, ...(typeof eventId === 'string' ? { eventId } : {}) });
+    try { await navigator.clipboard.writeText(url.href); setNotice({ key: 'editorLinkCopied' }); }
+    catch { setNotice({ key: 'editorLinkCopyFailed', error: true }); }
+  }
   const search = searches[tab] ?? '';
   const allItems = tab === 'slots' ? draft.slots : tab === 'days' ? publicDays : tab === 'weeks' ? draft.weeks : draft.sequences;
   const items = allItems.filter((item) => item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (tab !== 'days' || matchesDayTag(item, dayTagFilter) && matchesDayUse(uses[item.id], dayUseFilter)));
@@ -120,12 +150,13 @@ export default function App() {
 
   function filterDayUse(role) { setDayUseFilter(role); setCollapsedDayUses((previous) => previous.filter((key) => key !== role)); }
   function revealDayUses(id) { setDayUseFilter(''); const roles = uses[id]?.roles ?? ['main']; setCollapsedDayUses((previous) => previous.filter((role) => !roles.includes(role))); }
-  function renderItem(item) { return <div key={item.id} className="schedule-list-entry"><button className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => tab === 'slots' ? setSelectedSlot(item.id) : tab === 'days' ? setSelectedDay(item.id) : tab === 'weeks' ? setSelectedWeek(item.id) : setSelectedSequence(item.id)}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.symbol} t={t} /></div></>}<ChevronRight size={16} /></button>{tab === 'days' && <><DayUseChips use={uses[item.id]} hideSingle={dayListView === 'grouped'} onFilter={filterDayUse} t={t} /><DayTagChips day={item} onFilter={setDayTagFilter} t={t} /></>}</div>; }
+  function renderItem(item) { return <div key={item.id} className="schedule-list-entry"><button className={`slot-item ${item.id === activeItem?.id ? 'selected' : ''}`} title={item.name} aria-pressed={item.id === activeItem?.id} onClick={() => { navigation.refresh(); ({ slots: setSelectedSlot, days: setSelectedDay, weeks: setSelectedWeek, sequences: setSelectedSequence })[tab](item.id); }}>{tab === 'slots' ? <SlotInfo slot={item} t={t} /> : <><SlotIcon name={item.icon} /><div className="slot-info-text"><strong>{item.name || '—'}</strong><EngineKeyWarning kind={tab} id={item.id} value={item.symbol} t={t} /></div></>}<ChevronRight size={16} /></button>{tab === 'days' && <><DayUseChips use={uses[item.id]} hideSingle={dayListView === 'grouped'} onFilter={filterDayUse} t={t} /><DayTagChips day={item} onFilter={setDayTagFilter} t={t} /></>}</div>; }
 
   useEffect(() => {
     document.documentElement.lang = locale; document.title = t('title');
     try { localStorage.setItem('schedule-editor-language', preference); } catch { /* Optional preference storage. */ }
   }, [locale, preference, t]);
+  useEffect(() => { if (initialized) document.title = [locationName, pageLabel(tab), draft.project.name].filter(Boolean).join(' · '); }, [initialized, locationName, tab, mode, draft.project.name, t]);
   useEffect(() => {
     const update = () => setLanguages(navigator.languages ?? [navigator.language]);
     window.addEventListener('languagechange', update); return () => window.removeEventListener('languagechange', update);
@@ -326,16 +357,17 @@ export default function App() {
 
   if (connection && !connection.ready) return <div className="remote-loading"><h1>{t('title')}</h1><p role="status">{t(connection.error ? 'remoteDisconnected' : 'remoteLoading')}</p><button className="button secondary" onClick={reloadServer}>{t('remoteRetry')}</button></div>;
 
-  return <ProjectConnectionContext.Provider value={connection}><ScheduleDraftContext.Provider value={draft}><EnumDefinitionsContext.Provider value={draft.enumNodes ?? {}}><EventCatalogContext.Provider value={eventCatalog(draft)}><BuiltinTasksContext.Provider value={draft.builtinTasks}><EngineKeysContext.Provider value={engineKeys}><TaskMacrosContext.Provider value={draft.taskMacros}><TaskContext.Provider value={draft.tasks}><div className="app-shell" data-mode={mode} key={connection?.resetEpoch ?? 0} data-connection={connection ? "remote" : "local"}>
+  return <NavigationContext.Provider value={navigation.registry}><ProjectConnectionContext.Provider value={connection}><ScheduleDraftContext.Provider value={draft}><EnumDefinitionsContext.Provider value={draft.enumNodes ?? {}}><EventCatalogContext.Provider value={eventCatalog(draft)}><BuiltinTasksContext.Provider value={draft.builtinTasks}><EngineKeysContext.Provider value={engineKeys}><TaskMacrosContext.Provider value={draft.taskMacros}><TaskContext.Provider value={draft.tasks}><div className="app-shell" data-mode={mode} key={`${connection?.resetEpoch ?? 0}:${routeEpoch}`} data-connection={connection ? "remote" : "local"}>
     <header className="app-header"><div className="project-identity"><GitBranch size={21} /><h1 title={initialized ? draft.project.name : t('title')}>{initialized ? draft.project.name : t('title')}</h1>{initialized && mode === 'environment' && <span className="environment-badge" title={t('environmentMode')}>{t('environmentBadge')}</span>}{initialized && mode === 'simulation' && <span className="environment-badge simulation-badge" title={t('simulationMode')}>{t('simulationBadge')}</span>}<ActionMenu label={t('projectMenu')} icon={ChevronDown} items={[{ label: t('settings'), icon: Settings2, disabled: !initialized, onClick: () => setSettings('existing') }, { label: t('newProject'), icon: FolderPlus, onClick: newProject }, ...(connection ? [{ label: t('remoteOpen'), icon: Upload, onClick: () => setServerFileDialog('open') }, { label: t('remoteSave'), icon: Download, onClick: () => setServerFileDialog('save') }] : []), { separator: true }, { label: t('import'), icon: Upload, onClick: () => fileInput.current.click() }, { label: t('export'), icon: Download, disabled: !initialized, onClick: exportFile }, ...(initialized ? [{ separator: true }, { label: t('userMode'), checked: mode === 'user', onClick: () => setMode('user') }, { label: t('environmentMode'), checked: mode === 'environment', onClick: () => setMode('environment') }, { label: t('simulationMode'), checked: mode === 'simulation', onClick: () => setMode('simulation') }] : [])]} /></div>
       {initialized && <><nav className="header-tabs" aria-label={t('editorPage')}><div role="tablist">{EDITOR_PAGES.map((page) => <button key={page} role="tab" aria-selected={tab === page} onClick={() => setTab(page)}>{pageLabel(page)}</button>)}</div></nav><select className="mobile-page-picker" aria-label={t('editorPage')} value={tab} onChange={(event) => setTab(event.target.value)}>{EDITOR_PAGES.map((page) => <option key={page} value={page}>{pageLabel(page)}</option>)}</select></>}
-      <div className="header-actions"><label className="language-picker"><Globe2 size={16} /><select aria-label={t('language')} value={preference} onChange={(e) => setPreference(e.target.value)}><option value="system">{t('system')}</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></label>
+      <div className="header-actions">{initialized && <button type="button" className="icon-button" aria-label={t('copyEditorLink')} title={t('copyEditorLink')} onClick={() => copyEditorLink()}><Link size={17} /></button>}<label className="language-picker"><Globe2 size={16} /><select aria-label={t('language')} value={preference} onChange={(e) => setPreference(e.target.value)}><option value="system">{t('system')}</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></label>
         {initialized && mode === 'environment' && <ActionMenu label={t('environmentActions')} icon={Settings2} items={[{ label: t('environmentSettings'), icon: Settings2, onClick: () => setEnvironmentSettings(true) }, { label: t('importEnvironment'), icon: Upload, onClick: () => environmentInput.current.click() }, { label: t('exportEnvironment'), icon: Download, onClick: exportEnvironmentFile }]} />}
         {initialized && mode === 'user' && <ActionMenu label={t('exportMenu')} triggerClassName="button primary export-button" items={[{ label: t('exportRuntimeOption'), icon: Download, onClick: exportRuntime }, { label: t('exportBlueprintOption'), icon: Download, onClick: exportBlueprintFile }, { label: t('exportReportOption'), icon: Download, onClick: () => setReportDialog(true) }, { label: t('exportProjectOption'), icon: Download, onClick: exportFile }]}><Download size={17} /><span>{t('exportMenu')}</span><ChevronDown size={14} /></ActionMenu>}
         <input className="sr-only" ref={fileInput} type="file" accept=".json,.yaml,.yml,application/json,application/yaml,text/yaml" aria-label={t('import')} onChange={importFile} />
         {initialized && <input className="sr-only" ref={environmentInput} type="file" accept=".json,application/json" aria-label={t('importEnvironment')} onChange={importEnvironmentFile} />}
       </div>
     </header>
+    {routeError && <div className="route-error" role="alert"><span>{t(routeError.error === 'invalid' ? 'editorLinkInvalid' : 'editorLinkMissing', { name: routeError.name ?? '' })}</span><button type="button" className="button secondary" onClick={() => setRouteError(null)}>{t('close')}</button></div>}
     <AppNotice notice={notice} t={t} onDismiss={(target) => { setNotice((current) => current === target ? null : current); if (target.error && target === notice) setOperationIssues([]); }} />
     {operationIssues.length > 0 && <details className="import-issues" open><summary>{t(notice?.issueTitle ?? 'errorsForExport')}</summary><Issues errors={operationIssues} t={t} /></details>}
     {initialized && mode === 'simulation' ? <SimulationView onOpenDay={openReferencedDay} onOpenSequence={openReferencedSequence} draft={draft} session={tab === 'continuousSimulation' ? continuousSimulation : simulation} onSessionChange={(update) => (tab === 'continuousSimulation' ? setContinuousSimulation : setSimulation)((previous) => ({ ...previous, ...update }))} onOpenSlot={openReferencedSlot} t={t} /> : initialized && tab === 'enums' ? <EnumDefinitionsEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('enums')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'expressions' ? <ExpressionMacrosEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('expressions')} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized && tab === 'taskMacros' ? <TaskMacrosEditor {...editorView('taskMacros')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'tasks' ? <TasksEditor {...editorView('tasks')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'operands' ? <OperandsEditor {...editorView('operands')} scope={mode === 'environment' ? 'environment' : 'application'} key={mode} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized ? <div className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}><aside className="sidebar compact-sidebar"><div className="sidebar-heading"><h2><Layers3 size={17} /><span title={t(tab)}>{t(tab)}</span></h2><span className="count">{tab === 'days' ? `${items.length}/${allItems.length}` : allItems.length}</span>{tab === 'days' && <><DayListOptions search={search} onSearchChange={(value) => setSearches({ ...searches, days: value })} onClear={() => { setSearches({ ...searches, days: '' }); setDayTagFilter(''); setDayUseFilter(''); }} days={publicDays} uses={uses} role={dayUseFilter} onRoleChange={filterDayUse} view={dayListView} onViewChange={setDayListView} tag={dayTagFilter} onTagChange={setDayTagFilter} t={t} /></>}<button type="button" className="icon-button" aria-label={t(view.add)} title={t(view.add)} onClick={addItem}><Plus size={17} /></button><button type="button" className="icon-button sidebar-toggle" aria-label={t(sidebarCollapsed ? 'expandList' : 'collapseList')} title={t(sidebarCollapsed ? 'expandList' : 'collapseList')} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button></div>
@@ -350,12 +382,13 @@ export default function App() {
         {tab === 'slots' && activeSlot ? <SlotEditor onOpenMacro={(id) => { setMode('user'); setModeTabs((previous) => ({ ...previous, user: 'taskMacros' })); setEditorViews((previous) => ({ ...previous, 'user:taskMacros': { ...previous['user:taskMacros'], selected: id, search: '' } })); }} onReturnDay={returnDay ? returnToDay : undefined} returnDayName={returnDay?.name} tasks={draft.tasks} operandNodes={draft.operandNodes} slot={activeSlot} t={t} onChange={(slot) => commitResult(editProject(draft, t).slots.replace(slot.id, slot))} onDuplicate={copySlot} onDelete={deleteSlot} />
           : tab === 'days' && activeDay ? <DayEditor nodes={draft.operandNodes} days={publicDays} onOpenSlot={openReferencedSlot} restorePosition={dayRestore} day={activeDay} slots={draft.slots} t={t} onChange={(day) => commitResult(editProject(draft, t).days.update(day.id, day))} onDuplicate={copyDay} onDelete={deleteDay} onCell={(index) => setCellDialog({ dayId: activeDay.id, index })} />
             : tab === 'weeks' && activeWeek ? <WeekEditor onOpenDay={openReferencedDay} highlight={weekHighlight} key={activeWeek.id} week={activeWeek} draft={draft} t={t} onChange={(week) => commitResult(editProject(draft, t).weeks.update(week.id, week))} onDuplicate={copyWeek} onDelete={removeWeek} onDay={(weekday) => setDaySelector({ weekId: activeWeek.id, weekday })} onCell={(weekday, index) => setWeekCellDialog({ weekId: activeWeek.id, weekday, index })} />
-              : tab === 'sequences' && activeSequence ? <SequenceEditor onSimulateSequence={openContinuousSimulation} candidateView={candidateView} onCandidateViewChange={setCandidateView} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setModeTabs((previous) => ({ ...previous, simulation: 'simulation' })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
+              : tab === 'sequences' && activeSequence ? <SequenceEditor eventView={sequenceEvent?.sequenceId === activeSequence.id ? sequenceEvent : null} onEventViewChange={(value) => setSequenceEvent(value ? { ...value, sequenceId: activeSequence.id } : null)} onCopyLink={copyEditorLink} onSimulateSequence={openContinuousSimulation} candidateView={candidateView} onCandidateViewChange={setCandidateView} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setModeTabs((previous) => ({ ...previous, simulation: 'simulation' })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
               : <div className="empty-state"><Layers3 size={40} /><h2>{t(view.empty)}</h2><p>{t(view.hint)}</p><button className="button primary" onClick={addItem}><Plus size={16} />{t(view.add)}</button></div>}
       </div></main></div> : <main className="welcome"><div className="empty-state"><FolderPlus size={40} /><h2>{t('welcome')}</h2><p>{t('welcomeHint')}</p><div className="welcome-actions"><button className="button primary" onClick={() => setSettings('new')}>{t('newProject')}</button><button className="button secondary" onClick={() => fileInput.current.click()}>{t('import')}</button></div></div></main>}
     {connection && <ConnectionStatus connection={connection} onReload={reloadServer} onExport={exportFile} t={t} />}
     <footer className="app-footer" title={connection?.file ?? t('unsaved')}><span>{connection ? [t(projectDirty ? 'remoteUnsaved' : 'remoteSaved'), connection.file?.split(/[\\/]/).at(-1) ?? t('remoteNoFile')].join(' · ') : t('unsaved')}</span></footer>
     {serverFileDialog && <ServerFileDialog kind={serverFileDialog} project={project} connection={connection} onOpened={() => { resetNavigation(); setOperationIssues([]); setNotice(null); }} onClose={() => setServerFileDialog(null)} t={t} />}
+    {navigation.confirmation && <Dialog title={t('editorLeaveTitle')} t={t} onClose={navigation.cancel} footer={<><button autoFocus className="button secondary" onClick={navigation.cancel}>{t('editorStay')}</button><button className="button primary" onClick={navigation.discard}>{t('editorDiscard')}</button></>}><p>{t('editorLeaveHint')}</p></Dialog>}
     {reportDialog && <ReportExportDialog t={t} onExport={exportReport} onClose={() => setReportDialog(false)} />}
     {settings === 'existing' && <ProjectSettings draft={draft} t={t} onSave={saveSettings} onClose={() => setSettings(null)} />}
     {settings === 'new' && <NewProjectDialog t={t} onCreate={createNewProject} onClose={() => setSettings(null)} />}
@@ -364,5 +397,5 @@ export default function App() {
     {cellDialog && <SlotDialog draft={draft} day={draft.days.find((day) => day.id === cellDialog.dayId)} index={cellDialog.index} t={t} onCommit={commit} onClose={() => setCellDialog(null)} />}
     {weekCellDialog && <WeekSlotDialog draft={draft} {...weekCellDialog} t={t} onCommit={commit} onClose={() => setWeekCellDialog(null)} />}
     {daySelector && <DaySelector draft={draft} week={draft.weeks.find((week) => week.id === daySelector.weekId)} weekday={daySelector.weekday} t={t} onCommit={commit} onClose={() => setDaySelector(null)} />}
-  </div></TaskContext.Provider></TaskMacrosContext.Provider></EngineKeysContext.Provider></BuiltinTasksContext.Provider></EventCatalogContext.Provider></EnumDefinitionsContext.Provider></ScheduleDraftContext.Provider></ProjectConnectionContext.Provider>;
+  </div></TaskContext.Provider></TaskMacrosContext.Provider></EngineKeysContext.Provider></BuiltinTasksContext.Provider></EventCatalogContext.Provider></EnumDefinitionsContext.Provider></ScheduleDraftContext.Provider></ProjectConnectionContext.Provider></NavigationContext.Provider>;
 }

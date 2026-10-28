@@ -25,7 +25,7 @@ export default function DaySelector({ draft, week, weekday, onCommit, onClose, t
     onCommit(editProject(draft, t).weeks.assignDay(week.id, weekday, selected).draft); onClose();
   }
   const option = (id, label, day) => <button key={id ?? 'empty'} role="radio" aria-label={label} aria-checked={selected === id} className={`selector-item ${selected === id ? 'selected' : ''}`} onClick={() => choose(id)}><span className="radio-dot" />{day && <SlotIcon name={day.icon} />}<span className="selector-day-label"><span>{label}</span>{day && <DayTagChips day={day} t={t} />}</span></button>;
-  return <Dialog title={t('daySelector')} subtitle={t('weekDaySource', { name: week.name, weekday: t(weekday) })} t={t} onClose={onClose} footer={<><button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" onClick={apply}>{t(confirm ? 'confirmReplace' : 'apply')}</button></>}>
+  return <Dialog navigationDirty={selected !== (isPrivateDay(current) ? 'keep' : current?.id ?? null)} title={t('daySelector')} subtitle={t('weekDaySource', { name: week.name, weekday: t(weekday) })} t={t} onClose={onClose} footer={<><button className="button secondary" onClick={onClose}>{t('cancel')}</button><button className="button primary" onClick={apply}>{t(confirm ? 'confirmReplace' : 'apply')}</button></>}>
     <label className="search-field"><Search size={16} /><input autoFocus aria-label={t('searchDays')} placeholder={t('searchDays')} value={search} onChange={(e) => setSearch(e.target.value)} /></label>
     <DayTagFilter days={days} value={tagFilter} onChange={setTagFilter} t={t} />
     <DayPurposeFilter value={purpose} onChange={setPurpose} t={t} />

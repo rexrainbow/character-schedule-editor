@@ -1,0 +1,2718 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Character Schedule Blueprint",
+  "description": "Declarative rebuild input/output without UUIDs or icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
+  "$comment": "This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "slots_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "variables": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/variable"
+      }
+    },
+    "expressions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/computed"
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Optional human label. Blank displays the catalog key (persistent name)."
+          },
+          "parameters": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/parameter"
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    "task_macros": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/macro"
+      }
+    },
+    "slots": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/slot"
+      }
+    },
+    "days": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/day"
+      }
+    },
+    "weeks": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/week"
+      }
+    },
+    "sequences": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/sequence"
+      }
+    },
+    "enums": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/enum"
+      }
+    },
+    "builtins": {
+      "type": "object",
+      "properties": {
+        "set_variable": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "increment_variable": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "toggle_variable": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "reset_variable": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "release_slot": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "adjust_probability_event": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "schedule_event": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "parameter_names": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_descriptions": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "parameter_symbols": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [],
+  "additionalProperties": false,
+  "$defs": {
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16000,
+      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+    },
+    "action": {
+      "oneOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "task": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "task"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "macro": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "macro"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "set_variable",
+                    "increment_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "random_amplitude": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "toggle_variable",
+                    "reset_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                }
+              },
+              "required": [
+                "builtin",
+                "target"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "adjust_probability_event"
+                },
+                "event": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "current_event": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "current_event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "property": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "operation": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "event",
+                "property",
+                "operation",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "schedule_event"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "days",
+                        "weeks_weekday"
+                      ]
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 16000,
+                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    },
+                    "weekday": {
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "offset"
+                  ],
+                  "additionalProperties": false
+                },
+                "day": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "random",
+                        "sequential"
+                      ]
+                    },
+                    "candidates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          },
+                          "weight": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": [
+                          "day"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "candidates"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                },
+                "execution": {
+                  "enum": [
+                    "overlay",
+                    "interrupt_main",
+                    "interrupt_lower"
+                  ],
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                },
+                "priority": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "builtin",
+                "date"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "invocation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "task": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "arguments": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variable": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "variable"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "current_event": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "current_event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "parameter"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "task"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "macro": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "arguments": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variable": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "variable"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "current_event": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "current_event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "parameter"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "macro"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "step": {
+      "oneOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "task": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "task"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "macro": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "macro"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "set_variable",
+                    "increment_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "random_amplitude": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "toggle_variable",
+                    "reset_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "builtin",
+                "target"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "adjust_probability_event"
+                },
+                "event": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "current_event": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "current_event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "property": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "operation": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "builtin",
+                "event",
+                "property",
+                "operation",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "schedule_event"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "days",
+                        "weeks_weekday"
+                      ]
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 16000,
+                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    },
+                    "weekday": {
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "offset"
+                  ],
+                  "additionalProperties": false
+                },
+                "day": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "random",
+                        "sequential"
+                      ]
+                    },
+                    "candidates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          },
+                          "weight": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": [
+                          "day"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "candidates"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                },
+                "execution": {
+                  "enum": [
+                    "overlay",
+                    "interrupt_main",
+                    "interrupt_lower"
+                  ],
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                },
+                "priority": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "builtin",
+                "date"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "candidate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "task": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "arguments": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variable": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "variable"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "current_event": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "current_event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "parameter"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "task"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "macro": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "arguments": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variable": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "variable"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "current_event": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "current_event"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      }
+                    },
+                    "required": [
+                      "parameter"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "macro"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated."
+    },
+    "parameter": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "variable_reference",
+            "event_reference",
+            "enum"
+          ]
+        },
+        "value_type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "access": {
+          "enum": [
+            "read",
+            "write",
+            "read_write"
+          ]
+        },
+        "event_kind": {
+          "enum": [
+            "any",
+            "probability"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "enum": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "variable": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "scope": {
+          "enum": [
+            "application",
+            "environment"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "group",
+            "value"
+          ]
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean"
+          ]
+        },
+        "initial": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ],
+          "description": "Constant validated before runtime creation. Default reset baseline comes from Program initial values; simulation input overrides do not redefine it."
+        },
+        "min": {
+          "type": "number",
+          "description": "Optional inclusive lower bound applied on every successful write, not once at macro/day end."
+        },
+        "max": {
+          "type": "number",
+          "description": "Optional inclusive upper bound applied on every successful write, after integer truncation."
+        },
+        "integer": {
+          "type": "boolean",
+          "description": "Writes truncate toward zero, then clamp to optional min/max. Intermediate arithmetic is not truncated. Initial values must already satisfy integer constraints."
+        },
+        "read_only": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "enum": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "scope": {
+          "enum": [
+            "application",
+            "environment"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "group",
+            "enum"
+          ]
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "computed": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "scope": {
+          "enum": [
+            "application",
+            "environment"
+          ]
+        },
+        "type": {
+          "enum": [
+            "number",
+            "boolean"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "when": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 16000,
+                "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+              }
+            },
+            "required": [
+              "when",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "description": "Evaluated against current state on every reference. Branches return only the first matching result; no state storage or implicit accumulation."
+    },
+    "macro": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "mode": {
+          "enum": [
+            "sequence",
+            "branch",
+            "priority"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/parameter"
+          }
+        },
+        "eligibility": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 16000,
+              "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "when": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+              },
+              "run": {
+                "$ref": "#/$defs/action"
+              }
+            },
+            "required": [
+              "when",
+              "run"
+            ],
+            "additionalProperties": false,
+            "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "description": "Sequence, branch or priority macro; eligibility is checked after argument evaluation. Empty content is valid. See ENGINE_SEMANTICS.md section 3."
+    },
+    "slot": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "mode": {
+          "enum": [
+            "branch",
+            "priority"
+          ]
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "when": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16000,
+                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+              },
+              "run": {
+                "$ref": "#/$defs/action"
+              }
+            },
+            "required": [
+              "when",
+              "run"
+            ],
+            "additionalProperties": false,
+            "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "day": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "scope": {
+          "enum": [
+            "shared",
+            "week_private"
+          ]
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "week": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "week",
+            "weekday"
+          ],
+          "additionalProperties": false
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "end": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "releases": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "when": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "purposes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "main",
+              "overlay",
+              "interrupt"
+            ]
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "week": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "days": {
+          "type": "object",
+          "properties": {
+            "mon": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tue": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "wed": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "thu": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "fri": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sat": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sun": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "kind": {
+          "enum": [
+            "once",
+            "periodic",
+            "probability"
+          ]
+        },
+        "day": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "enum": [
+                "random",
+                "sequential"
+              ]
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "day": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "weight": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "day"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false,
+          "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+        },
+        "start": {
+          "type": "object",
+          "properties": {
+            "week": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "week",
+            "weekday"
+          ],
+          "additionalProperties": false
+        },
+        "end": {
+          "type": "object",
+          "properties": {
+            "week": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "week",
+            "weekday"
+          ],
+          "additionalProperties": false
+        },
+        "every": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "cooldown_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "After occurrence, skip this many subsequent eligible dates. Ineligible dates do not consume cooldown; changes to this setting do not rewrite remaining cooldown."
+        },
+        "count": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "all",
+                "day",
+                "tag"
+              ]
+            },
+            "day": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        "execution": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
+          ],
+          "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Execution order is descending; nonnegative events precede the main day, negatives follow. Ties retain declaration order. Interruption targets are defined by execution, not priority alone."
+        }
+      },
+      "required": [
+        "kind",
+        "start"
+      ],
+      "additionalProperties": false
+    },
+    "sequence": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "weeks": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "week": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "repeat": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "week",
+                  "repeat"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "week": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "weekday": {
+                "enum": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri",
+                  "sat",
+                  "sun"
+                ]
+              },
+              "day": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "week",
+              "weekday",
+              "day"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "start_weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "end_weekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "events": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/event"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

@@ -23,12 +23,13 @@ import SequenceEventsDialog from '../dialogs/SequenceEventsDialog.jsx';
 import { eventsOnDate } from '../../core/sequenceEvents.js';
 
 const rowHeight = 184;
-export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onSimulateSequence, candidateView, onCandidateViewChange, t }) {
+export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onSimulateSequence, candidateView, onCandidateViewChange, eventView, onEventViewChange, onCopyLink, t }) {
   const [expandEvents, setExpandEvents] = useState(false);
   const [weekPicker, setWeekPicker] = useState(null);
   const [override, setOverride] = useState(null);
   const [rangeNotice, setRangeNotice] = useState(null);
-  const [eventManager, setEventManager] = useState(null);
+  const eventManager = eventView ?? null;
+  const setEventManager = onEventViewChange;
   const [actionErrors, setActionErrors] = useState([]);
   function value(result) { setActionErrors(result.errors); return result.ok ? result.value : null; }
   function update(next) {
@@ -100,6 +101,6 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
     {weekPicker && <WeekPicker weeks={draft.weeks} selectedId={weekPicker.weekId} t={t} onClose={() => setWeekPicker(null)} onApply={(weekId) => { update(weekPicker.rowUid ? value(editProject(draft, t).sequences.replaceWeek(sequence.id, weekPicker.rowUid, weekId)) : value(editProject(draft, t).sequences.appendWeek(sequence.id, weekId))); setWeekPicker(null); }} />}
     {override && <SequenceOverrideDialog draft={draft} sequence={sequence} {...override} t={t} onChange={onChange} onClose={() => setOverride(null)} />}
     {candidateGroup && <EventCandidatesDialog draft={draft} group={candidateGroup} view={candidateView} onViewChange={onCandidateViewChange} onOpenDay={onOpenDay} onOpenSlot={onOpenSlot} onClose={() => onCandidateViewChange(null)} t={t} />}
-    {eventManager && <SequenceEventsDialog key={sequence.id} draft={draft} sequence={sequence} request={eventManager} t={t} onApply={(eventGroups) => onChange(editProject(draft, t).sequences.events(sequence.id).replace(eventGroups).value)} onClose={() => setEventManager(null)} />}
+    {eventManager && <SequenceEventsDialog key={sequence.id} draft={draft} sequence={sequence} request={eventManager} onSelect={(id) => { if (id !== eventManager.id) setEventManager({ ...eventManager, id }); }} onCopyLink={onCopyLink} t={t} onApply={(eventGroups) => onChange(editProject(draft, t).sequences.events(sequence.id).replace(eventGroups).value)} onClose={() => setEventManager(null)} />}
   </div>;
 }

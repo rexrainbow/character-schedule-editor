@@ -1,5 +1,8 @@
 export const messages = {
   en: {
+    copyEditorLink: 'Copy link to this editor', editorLinkCopied: 'Editor link copied. Open the same project to use it.', editorLinkCopyFailed: 'Unable to copy. Copy the address from your browser.',
+    editorLinkInvalid: 'This editor link is invalid. Choose a page from the tabs.', editorLinkMissing: 'The current project has no object named “{name}” at this location. Choose an item from the list.',
+    editorLeaveTitle: 'Leave this draft?', editorLeaveHint: 'This panel has changes that have not been applied. Discard them and open the linked editor?', editorStay: 'Keep editing', editorDiscard: 'Discard and open',
     simulationRunning: 'Running simulation…', simulationCancelled: 'Simulation cancelled. Inputs are unchanged.',
     exportReportOption: 'Schedule report (Markdown)', exportProjectOption: 'Project file (JSON)',
     exportMenu: 'Export', exportRuntimeOption: 'Runtime data (JSON)', exportBlueprintOption: 'Blueprint (YAML)', blueprintExported: 'Blueprint exported. Save the project separately to preserve UUIDs and icons.', blueprintExportInvalid: 'Unable to export blueprint. Fix project errors first.',
@@ -137,6 +140,9 @@ export const messages = {
     branchLabel: 'Branch {count}', errorsForImport: 'Import issues', close: 'Close',
   },
   'zh-TW': {
+    copyEditorLink: '複製此編輯位置連結', editorLinkCopied: '編輯位置連結已複製，開啟同一份專案即可定位。', editorLinkCopyFailed: '無法複製，請從瀏覽器網址列複製連結。',
+    editorLinkInvalid: '此編輯位置連結無效，請從分頁選擇頁面。', editorLinkMissing: '目前專案在此位置找不到名為「{name}」的物件，請從清單選擇。',
+    editorLeaveTitle: '離開目前草稿？', editorLeaveHint: '此面板有尚未套用的修改。是否丟棄修改，開啟連結指定的編輯位置？', editorStay: '繼續編輯', editorDiscard: '丟棄並開啟',
     simulationRunning: '正在執行模擬…', simulationCancelled: '已取消模擬，輸入數值未變更。',
     exportReportOption: '行程報告（Markdown）', exportProjectOption: '專案存檔（JSON）',
     exportMenu: '匯出', exportRuntimeOption: '執行資料（JSON）', exportBlueprintOption: '藍圖（YAML）', blueprintExported: '已匯出藍圖；請另外匯出專案以保留 UUID 與圖示。', blueprintExportInvalid: '無法匯出藍圖，請先修正專案錯誤。',

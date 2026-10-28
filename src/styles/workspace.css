@@ -719,3 +719,5 @@ body { min-width: 360px; font-size: 15px; }
 .event-identity-row > label { order: 2; }
 .event-identity-row > .event-engine-field { order: 1; }
 @media (max-width: 720px) { .app-header .export-button > svg:last-child { display: none; } }
+.route-error { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--border); }
+.route-error span { flex: 1; overflow-wrap: anywhere; }

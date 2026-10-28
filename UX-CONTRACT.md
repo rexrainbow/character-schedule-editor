@@ -11,7 +11,16 @@
 | Toast | AppNotice and inline role=status/Issues | src/gui/components/AppNotice.jsx and shared ui.jsx | Ordinary notices use a one-second lower-left toast; actionable errors remain dismissible inline | tests/browser/toast.spec.js |
 | CRUD | Project API and existing editor navigation | docs/PROJECT_API.md | Simulation is isolated, not a project mutation | Project-equality assertions in browser tests |
 
-## Application notifications
+## Shareable editor locations
+
+- The canonical owner is `src/gui/navigation/editorLocation.js` with `useEditorLocation.js`; App selections remain UUID-based. Hash routes contain mode, page and persistent name, with optional sequence event name. GitHub Pages requires no server fallback configuration.
+- Initial links wait for project import/load. Missing objects and malformed routes show localized persistent inline feedback and leave list navigation available.
+- Selecting a different editor/object pushes browser history; editing the name of the same UUID replaces its entry. Transient searches, filters, expansions, test values and unapplied drafts are excluded from shared URLs.
+- Browser Back/Forward and external hash changes use the shared Dialog to protect unapplied dialog drafts. Keep editing preserves the draft and URL; discard opens the target. Ordinary editor fields continue their existing immediate-commit behavior.
+- Copy-link actions use the same icon-button, localized labels and AppNotice feedback on all modes; events provide a copy action inside their modal.
+- Verification: `tests/editorLocation.test.js` and `tests/browser/editorLocation.spec.js`.
+
+## Application notification behavior
 
 - Ordinary import/export and informational notices appear at the viewport's lower left for 1000 ms, as explicitly requested. They do not move editor content, take focus or intercept pointer input.
 - A new notice replaces the previous one and restarts its timer. Cleanup plus notice-identity checking prevents an old timer from hiding a new message. Announcements use the existing localized polite status semantics.
