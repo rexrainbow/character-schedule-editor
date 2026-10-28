@@ -1,0 +1,16 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["src/gui"],
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Select/Listbox", "Date", "Form", "Scrollbar", "Toast", "CRUD"],
+  "ownership": { "Select/Listbox": "native", "Date": "authored" },
+  "requiredCommands": ["unit", "e2e"],
+  "commands": {
+    "unit": "npm.cmd test",
+    "e2e": "npx.cmd playwright test tests/browser/simulation.spec.js tests/browser/daySimulation.spec.js tests/browser/runtimeEngine.spec.js tests/browser/simulationRuntime.spec.js --workers=1"
+  },
+  "evidence": {
+    "failurePaths": "tests/browser/simulation.spec.js",
+    "crudFullFlow": "tests/browser/simulation.spec.js"
+  }
+}

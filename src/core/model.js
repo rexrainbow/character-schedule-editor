@@ -1,3 +1,4 @@
+import { sequenceRepeatErrors } from './sequenceExecution.js';
 import { normalizeSymbols, symbolErrors, namedData, workingData, newSymbol } from './symbols.js';
 import { scheduledEventErrors } from './scheduledEvents.js';
 import { slotReleaseErrors } from './slotRelease.js';
@@ -130,13 +131,18 @@ export function validateDocument(data, checkEventRefs = true) {
   if (sequences && typeof sequences === 'object' && !Array.isArray(sequences)) {
     for (const [id, sequence] of Object.entries(sequences)) {
       const weekIds = sequence?.week_schedule_ids;
+      if (Array.isArray(weekIds)) {
+        const counts = sequence.week_repeat_counts;
+        if (counts !== undefined && (!Array.isArray(counts) || counts.length !== weekIds.length)) errors.push({ path: `/week_sequences/${id}/week_repeat_counts`, key: 'invalidWeekRepeat' });
+        errors.push(...sequenceRepeatErrors({ rows: weekIds.map((weekId, i) => ({ repeatCount: Array.isArray(counts) ? counts[i] : 1 })) }).map((error) => ({ ...error, path: `/week_sequences/${id}${error.path}` })));
+      }
       if (Array.isArray(sequence?.event_groups) && Array.isArray(weekIds)) {
         const groups = eventGroupsFromData(sequence.event_groups);
         groups.forEach((group, index) => { if (eventGroupIds.has(group.id)) errors.push({ path: `/week_sequences/${id}/event_groups/${index}/id`, key: 'duplicateId' }); eventGroupIds.add(group.id); });
         const eventDays = Object.entries(days ?? {}).map(([id, day]) => ({ id, scope: day?.scope }));
         errors.push(...eventGroupErrors({ rows: weekIds, eventGroups: groups }, eventDays).map((error) => ({ ...error, path: `/week_sequences/${id}${error.path}` })));
       }
-      if (Array.isArray(weekIds) && weekIds.length === 1 && WEEKDAYS.indexOf(sequence.start_weekday ?? 'mon') > WEEKDAYS.indexOf(sequence.end_weekday ?? 'sun')) errors.push({ path: `/week_sequences/${id}/end_weekday`, key: 'invalidSequenceRange' });
+      if (Array.isArray(weekIds) && weekIds.length === 1 && (sequence.week_repeat_counts?.[0] ?? 1) === 1 && sequence.week_repeat_counts?.[0] !== null && WEEKDAYS.indexOf(sequence.start_weekday ?? 'mon') > WEEKDAYS.indexOf(sequence.end_weekday ?? 'sun')) errors.push({ path: `/week_sequences/${id}/end_weekday`, key: 'invalidSequenceRange' });
       if (Array.isArray(weekIds)) weekIds.forEach((weekId, index) => {
         if (!weeks || !Object.hasOwn(weeks, weekId)) errors.push({ path: `/week_sequences/${id}/week_schedule_ids/${index}`, key: 'missingWeek' });
       });
@@ -207,7 +213,7 @@ export function projectToDraft(data) {
     sequences: Object.entries(data.week_sequences ?? {}).map(([id, sequence]) => ({ id, name: sequence.display_name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats',
       ...(sequence.start_weekday === undefined ? {} : { startWeekday: sequence.start_weekday }), ...(sequence.end_weekday === undefined ? {} : { endWeekday: sequence.end_weekday }),
       ...(sequence.event_groups === undefined ? {} : { eventGroups: eventGroupsFromData(sequence.event_groups) }),
-      rows: sequence.week_schedule_ids.map((weekId, index) => ({ uid: uid(), weekId,
+      rows: sequence.week_schedule_ids.map((weekId, index) => ({ uid: uid(), weekId, ...(sequence.week_repeat_counts === undefined ? {} : { repeatCount: sequence.week_repeat_counts[index] }),
         overrides: Object.fromEntries(sequence.day_overrides.filter((item) => item.week_number === index + 1).map((item) => [item.weekday, item.day_schedule_id])) })) })) };
   return normalizeSymbols(draft);
 }
@@ -228,7 +234,7 @@ export function compileProject(draft) {
       ...(day.scope === undefined ? {} : { scope: day.scope }), ...(day.owner === undefined ? {} : { owner: clone(day.owner) }) }])),
     week_schedules: Object.fromEntries((draft.weeks ?? []).map((week) => [week.id, { display_name: week.name, ...engineMetadata(week), icon: week.icon ?? 'tabler:calendar-week', days: clone(week.days) }])),
     week_sequences: Object.fromEntries((draft.sequences ?? []).map((sequence) => [sequence.id, {
-      display_name: sequence.name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats', week_schedule_ids: sequence.rows.map((row) => row.weekId),
+      display_name: sequence.name, ...engineMetadata(sequence), icon: sequence.icon ?? 'tabler:calendar-stats', week_schedule_ids: sequence.rows.map((row) => row.weekId), ...(sequence.rows.some((row) => row.repeatCount !== undefined) ? { week_repeat_counts: sequence.rows.map((row) => row.repeatCount === undefined ? 1 : row.repeatCount) } : {}),
       ...(sequence.startWeekday === undefined ? {} : { start_weekday: sequence.startWeekday }), ...(sequence.endWeekday === undefined ? {} : { end_weekday: sequence.endWeekday }),
       ...(sequence.eventGroups === undefined ? {} : { event_groups: eventGroupsToData(sequence.eventGroups, draft.days) }),
       day_overrides: sequence.rows.flatMap((row, index) => WEEKDAYS.filter((weekday) => Object.hasOwn(row.overrides, weekday)).map((weekday) => ({ week_number: index + 1, weekday, day_schedule_id: row.overrides[weekday] }))),

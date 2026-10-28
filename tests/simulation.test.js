@@ -1,7 +1,7 @@
 import { createActionSlot as createSlot } from './slotFixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { simulateSlot, simulationInitialValues, evaluateSimulationExpressions } from '../src/core/simulationModel.js';
+import { simulateSlot, simulationInitialValues, evaluateSimulationExpressions } from './reference/simulationModel.js';
 import { createProject } from '../src/core/model.js';
 import { createTaskMacro } from '../src/core/taskMacroModel.js';
 import { addComputedNode } from '../src/core/operandModel.js';

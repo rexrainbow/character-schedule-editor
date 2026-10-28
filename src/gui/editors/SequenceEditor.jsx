@@ -1,3 +1,6 @@
+import WeekRepeatField from '../components/WeekRepeatField.jsx';
+import { weekRepeatCount } from '../../core/sequenceExecution.js';
+import SequenceEventOverflow from '../components/SequenceEventOverflow.jsx';
 import DescriptionField from '../components/DescriptionField.jsx';
 import EventCandidatesDialog from '../dialogs/EventCandidatesDialog.jsx';
 import { eventFirstDayId } from '../../core/eventDaySource.js';
@@ -6,7 +9,7 @@ import EngineKeyField from '../components/EngineKeyField.jsx';
 import DayReferencePreview from '../components/DayReferencePreview.jsx';
 import IconField from '../components/IconField.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2, Flag, FlagTriangleRight, CalendarDays, Play } from 'lucide-react';
 import { FieldError, IconButton, Issues } from '../components/ui.jsx';
 import ActionMenu from '../components/ActionMenu.jsx';
@@ -20,7 +23,8 @@ import SequenceEventsDialog from '../dialogs/SequenceEventsDialog.jsx';
 import { eventsOnDate } from '../../core/sequenceEvents.js';
 
 const rowHeight = 184;
-export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, candidateView, onCandidateViewChange, t }) {
+export default function SequenceEditor({ draft, sequence, onChange, onDuplicate, onDelete, onOpenDay, onOpenSlot, onSimulateDay, onSimulateSequence, candidateView, onCandidateViewChange, t }) {
+  const [expandEvents, setExpandEvents] = useState(false);
   const [weekPicker, setWeekPicker] = useState(null);
   const [override, setOverride] = useState(null);
   const [rangeNotice, setRangeNotice] = useState(null);
@@ -35,7 +39,13 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
     setRangeNotice(previous.startWeekday !== range.startWeekday && previous.endWeekday !== range.endWeekday || previous.endWeekday !== range.endWeekday && sequence.rows.length !== next.rows.length ? sequence.id : null);
     onChange(next);
   }
-  const { ref, first, end, onScroll } = useVisibleRows(sequence.rows.length, rowHeight, 60, sequence.id);
+  const calendarEvents = useMemo(() => sequence.rows.map((row, index) => WEEKDAYS.map((weekday, dayIndex) => eventsOnDate(sequence, index * 7 + dayIndex, draft))), [sequence, draft]);
+  const rowHeights = useMemo(() => calendarEvents.map((days) => {
+    const count = Math.max(0, ...days.map((events) => events.length));
+    const lines = Math.max(1, Math.ceil((expandEvents ? count : Math.min(count, 12)) / 4));
+    return rowHeight + (lines - 1) * 30;
+  }), [calendarEvents, expandEvents]);
+  const { ref, first, end, offsets, totalHeight, onScroll } = useVisibleRows(sequence.rows.length, rowHeights, 60, sequence.id);
   useEffect(() => {
     if (candidateView?.sequenceId === sequence.id && candidateView.open && ref.current) {
       ref.current.scrollTop = candidateView.sequenceScrollTop ?? 0;
@@ -46,17 +56,18 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
   const candidateGroup = candidateView?.sequenceId === sequence.id && candidateView.open ? sequence.eventGroups?.find((group) => group.id === candidateView.groupId) : null;
   const weeks = new Map(draft.weeks.map((week) => [week.id, week]));
   return <div className="sequence-editor">
-    <section className="schedule-titlebar"><div className="schedule-name"><label className="sr-only" htmlFor="sequence-name">{t('sequenceName')}</label><div className="name-with-icon"><IconField value={sequence.icon} onChange={(icon) => onChange({ ...sequence, icon })} t={t} /><input id="sequence-name" aria-label={t('sequenceName')} value={sequence._fallbackValue !== undefined ? '' : sequence.name} placeholder={sequence.symbol} onChange={(event) => onChange({ ...sequence, name: event.target.value })} /><EngineKeyField kind="sequences" item={sequence} onChange={(symbol) => onChange({ ...sequence, symbol })} t={t} /></div></div><button className="button secondary sequence-event-manager" title={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} aria-label={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} onClick={() => setEventManager({})}><CalendarDays size={16} /><span>{t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })}</span></button><ActionMenu label={t('sequenceActions')} items={[{ label: t('duplicateSequence'), icon: Copy, onClick: onDuplicate }, { label: t('deleteSequence'), icon: Trash2, danger: true, onClick: onDelete }]}  /></section><DescriptionField value={sequence.description} onChange={(description) => onChange({ ...sequence, description })} t={t} />
+    <section className="schedule-titlebar"><div className="schedule-name"><label className="sr-only" htmlFor="sequence-name">{t('sequenceName')}</label><div className="name-with-icon"><IconField value={sequence.icon} onChange={(icon) => onChange({ ...sequence, icon })} t={t} /><input id="sequence-name" aria-label={t('sequenceName')} value={sequence._fallbackValue !== undefined ? '' : sequence.name} placeholder={sequence.symbol} onChange={(event) => onChange({ ...sequence, name: event.target.value })} /><EngineKeyField kind="sequences" item={sequence} onChange={(symbol) => onChange({ ...sequence, symbol })} t={t} /></div></div><button className="button secondary sequence-event-manager" title={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} aria-label={t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })} onClick={() => setEventManager({})}><CalendarDays size={16} /><span>{t('manageEventGroups', { count: sequence.eventGroups?.length ?? 0 })}</span></button><button className="button secondary sequence-continuous-simulation" title={t('continuousSimulation')} aria-label={t('continuousSimulation')} onClick={() => onSimulateSequence(sequence.id)}><Play size={16} /><span>{t('continuousSimulation')}</span></button><ActionMenu label={t('sequenceActions')} items={[{ label: t('duplicateSequence'), icon: Copy, onClick: onDuplicate }, { label: t('deleteSequence'), icon: Trash2, danger: true, onClick: onDelete }]}  /></section><DescriptionField value={sequence.description} onChange={(description) => onChange({ ...sequence, description })} t={t} />
+    <div className="sequence-display-options"><label><input type="checkbox" checked={expandEvents} onChange={(event) => setExpandEvents(event.target.checked)} />{t('expandAllEvents')}</label></div>
     {!!actionErrors.length && <Issues errors={actionErrors} t={t} />}
     <div className="sequence-matrix" ref={ref} onScroll={onScroll}>
       <div className="sequence-grid sequence-grid-header"><div className="sequence-corner" />{WEEKDAYS.map((weekday) => <div key={weekday} className={`sequence-weekday ${weekday === 'sat' || weekday === 'sun' ? 'weekend' : 'weekdays'}`}>{t(weekday)}</div>)}</div>
       {!sequence.rows.length && <p className="empty-sequence-message">{t('emptySequence')}</p>}
-      <div className="sequence-grid-body" style={{ height: sequence.rows.length * rowHeight }}>
+      <div className="sequence-grid-body" style={{ height: totalHeight }}>
         {sequence.rows.slice(first, end).map((row, offset) => {
           const index = first + offset; const week = weeks.get(row.weekId);
-          return <div className="sequence-grid sequence-row" role="group" aria-label={t('weekNumber', { count: index + 1 })} key={row.uid} style={{ top: index * rowHeight, height: rowHeight }}>
+          return <div className="sequence-grid sequence-row" role="group" aria-label={t('weekNumber', { count: index + 1 })} key={row.uid} style={{ top: offsets[index], height: rowHeights[index] }}>
             <div className="sequence-row-controls"><strong>{t('weekNumber', { count: index + 1 })}</strong><button className="sequence-week-picker" aria-label={t('rowWeekSelector', { count: index + 1 })} title={week?.name} onClick={() => setWeekPicker({ rowUid: row.uid, weekId: row.weekId })}>{week && <SlotIcon name={week.icon} />}<span>{week?.name || '—'}</span><ChevronDown size={15} /></button>
-              <div className="row-actions"><IconButton icon={ArrowUp} label={t('up')} disabled={index === 0} onClick={() => update(value(editProject(draft, t).sequences.moveWeek(sequence.id, row.uid, -1)))} /><IconButton icon={ArrowDown} label={t('down')} disabled={index === sequence.rows.length - 1} onClick={() => update(value(editProject(draft, t).sequences.moveWeek(sequence.id, row.uid, 1)))} /><IconButton icon={Copy} label={t('duplicateWeekRow')} onClick={() => update(value(editProject(draft, t).sequences.duplicateWeek(sequence.id, row.uid)))} /><IconButton icon={Trash2} label={t('deleteWeekRow')} danger onClick={() => update(value(editProject(draft, t).sequences.removeWeek(sequence.id, row.uid)))} /></div>
+              <WeekRepeatField row={row} last={index === sequence.rows.length - 1} t={t} onChange={(count) => update(value(editProject(draft, t).sequences.setRepeat(sequence.id, row.uid, count)))} /><div className="row-actions"><IconButton icon={ArrowUp} label={t('up')} disabled={index === 0 || weekRepeatCount(row) === null} onClick={() => update(value(editProject(draft, t).sequences.moveWeek(sequence.id, row.uid, -1)))} /><IconButton icon={ArrowDown} label={t('down')} disabled={index === sequence.rows.length - 1 || weekRepeatCount(sequence.rows[index + 1]) === null} onClick={() => update(value(editProject(draft, t).sequences.moveWeek(sequence.id, row.uid, 1)))} /><IconButton icon={Copy} label={t('duplicateWeekRow')} disabled={weekRepeatCount(row) === null} onClick={() => update(value(editProject(draft, t).sequences.duplicateWeek(sequence.id, row.uid)))} /><IconButton icon={Trash2} label={t('deleteWeekRow')} danger onClick={() => update(value(editProject(draft, t).sequences.removeWeek(sequence.id, row.uid)))} /></div>
             </div>
             {WEEKDAYS.map((weekday) => {
               const { day, overridden } = resolveSequenceDay(draft, row, weekday);
@@ -64,16 +75,20 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
               const label = privateInherited ? t('privateDay') : day?.name || t('unassigned');
               const state = overridden ? day ? 'overridden' : 'emptyOverride' : privateInherited ? 'inheritedPrivate' : 'inherited';
               const date = sequenceDate(sequence, index, weekday);
-              const position = index * 7 + WEEKDAYS.indexOf(weekday), events = eventsOnDate(sequence, position, draft);
+              const position = index * 7 + WEEKDAYS.indexOf(weekday), events = calendarEvents[index][WEEKDAYS.indexOf(weekday)];
+              const renderEvent = (group, eventIndex, close = () => {}) => {
+                const eventDay = draft.days.find((item) => item.id === eventFirstDayId(group));
+                return <DayReferencePreview key={group.id} day={eventDay} draft={draft} week={week} weekday={weekday} eventGroup={group} eventClassName={group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''} onOpen={(...args) => { close(); onOpenDay(...args); }} onOpenSlot={(...args) => { close(); onOpenSlot(...args); }} onViewCandidates={() => { close(); onCandidateViewChange({ sequenceId: sequence.id, groupId: group.id, selectedId: eventFirstDayId(group), open: true, showAll: false, search: '', scrollTop: 0, listScrollTop: 0, sequenceScrollTop: ref.current.scrollTop, sequenceScrollLeft: ref.current.scrollLeft }); }} onEditEvent={() => { close(); setEventManager({ id: group.id, position }); }} t={t} />;
+              };
               return <div key={weekday} className={`sequence-day ${overridden ? 'has-override' : ''} ${date.active ? '' : 'outside-range'}`} data-active={date.active}>
-                <div className="sequence-date-heading"><span className="sequence-day-number">{date.active ? t('sequenceDayNumber', { count: date.dayNumber }) : t(date.before ? 'sequenceBeforeStart' : 'sequenceAfterEnd')}</span><div className="sequence-boundary-controls">
+                <div className="sequence-date-heading"><span className="sequence-day-number">{date.active ? t('sequenceDayNumber', { count: date.dayNumber }) : t(date.before ? 'sequenceBeforeStart' : 'sequenceAfterEnd')}</span><div className="sequence-boundary-controls"><button className="icon-button sequence-event-add" disabled={!draft.days.some((item) => !item.scope || item.scope === 'shared')} title={t('addEventGroup')} aria-label={t('addEventOnDate', { week: index + 1, weekday: t(weekday) })} onClick={() => setEventManager({ createAt: position, position })}><Plus size={13} /></button>
                   {index === 0 && <button className="icon-button sequence-start-flag" aria-label={t('setSequenceStart', { weekday: t(weekday) })} title={t('setSequenceStart', { weekday: t(weekday) })} aria-pressed={date.isStart} onClick={() => { if (!date.isStart) update(value(editProject(draft, t).sequences.setBoundary(sequence.id, 'start', weekday))); }}><Flag size={14} /></button>}
-                  {index === sequence.rows.length - 1 && <button className="icon-button sequence-end-flag" aria-label={t('setSequenceEnd', { weekday: t(weekday) })} title={t('setSequenceEnd', { weekday: t(weekday) })} aria-pressed={date.isEnd} onClick={() => { if (!date.isEnd) update(value(editProject(draft, t).sequences.setBoundary(sequence.id, 'end', weekday))); }}><FlagTriangleRight size={14} /></button>}
+                  {index === sequence.rows.length - 1 && weekRepeatCount(row) !== null && <button className="icon-button sequence-end-flag" aria-label={t('setSequenceEnd', { weekday: t(weekday) })} title={t('setSequenceEnd', { weekday: t(weekday) })} aria-pressed={date.isEnd} onClick={() => { if (!date.isEnd) update(value(editProject(draft, t).sequences.setBoundary(sequence.id, 'end', weekday))); }}><FlagTriangleRight size={14} /></button>}
                 </div></div>
-                <div className="sequence-overlay-icons" aria-label={t('eventGroups')}>
-                  {events.slice(0, 2).map((group, eventIndex) => { const eventDay = draft.days.find((item) => item.id === eventFirstDayId(group)); return <DayReferencePreview key={group.id} day={eventDay} draft={draft} week={week} weekday={weekday} eventGroup={group} eventClassName={group.priority < 0 && (eventIndex === 0 || events[eventIndex - 1].priority >= 0) ? 'after-main-event' : ''} onOpen={onOpenDay} onOpenSlot={onOpenSlot} onViewCandidates={() => onCandidateViewChange({ sequenceId: sequence.id, groupId: group.id, selectedId: eventFirstDayId(group), open: true, showAll: false, search: '', scrollTop: 0, listScrollTop: 0, sequenceScrollTop: ref.current.scrollTop, sequenceScrollLeft: ref.current.scrollLeft })} onEditEvent={() => setEventManager({ id: group.id, position })} t={t} />; })}
-                  {events.length > 2 && <button className="sequence-events-more" aria-label={t('eventMore', { count: events.length - 2 })} onClick={() => setEventManager({ position, onlyDate: true })}>+{events.length - 2}</button>}
-                  <button className="icon-button sequence-event-add" disabled={!draft.days.some((item) => !item.scope || item.scope === 'shared')} title={t('addEventGroup')} aria-label={t('addEventOnDate', { week: index + 1, weekday: t(weekday) })} onClick={() => setEventManager({ createAt: position, position })}><Plus size={13} /></button>
+                <div className="sequence-overlay-icons" aria-label={t('eventGroups')} style={{ height: rowHeights[index] - rowHeight + 26 }}>
+                  <div className="sequence-event-grid">{events.slice(0, !expandEvents && events.length > 12 ? 11 : expandEvents ? events.length : 12).map((group, eventIndex) => renderEvent(group, eventIndex))}
+                  {!expandEvents && events.length > 12 && <SequenceEventOverflow events={events} hiddenCount={events.length - 11} renderEvent={renderEvent} days={draft.days} t={t} />}</div>
+
                 </div>
                 <div className="sequence-day-content"><DayReferencePreview day={day} draft={draft} week={week} weekday={weekday} overridden={overridden} label={label} onOpen={onOpenDay} onOpenSlot={onOpenSlot} t={t} /></div><div className="sequence-day-actions"><button className="sequence-state sequence-override-button" aria-label={t('sequenceDayCell', { count: index + 1, weekday: t(weekday) })} onClick={() => setOverride({ rowUid: row.uid, weekday })}>{t(state)}<ChevronDown size={13} /></button><button className="icon-button" disabled={!date.active} title={t('simulationThisDay')} aria-label={t('simulationThisDate', { week: index + 1, weekday: t(weekday) })} onClick={() => onSimulateDay(sequence.id, position)}><Play size={13} /></button></div></div>;
             })}
@@ -81,7 +96,7 @@ export default function SequenceEditor({ draft, sequence, onChange, onDuplicate,
         })}
       </div>
     </div>
-    <div className="sequence-add">{rangeNotice === sequence.id && <p role="status" className="field-hint">{t('sequenceRangeAdjusted')}</p>}<button className="button add-branch" disabled={!draft.weeks.length} onClick={() => setWeekPicker({ rowUid: null })}><Plus size={17} />{t('addWeekRow')}</button>{!draft.weeks.length && <p className="field-hint">{t('noWeeksForSequence')}</p>}</div>
+    <div className="sequence-add">{rangeNotice === sequence.id && <p role="status" className="field-hint">{t('sequenceRangeAdjusted')}</p>}<button className="button add-branch" disabled={!draft.weeks.length || sequence.rows.some((row) => weekRepeatCount(row) === null)} onClick={() => setWeekPicker({ rowUid: null })}><Plus size={17} />{t('addWeekRow')}</button>{!draft.weeks.length && <p className="field-hint">{t('noWeeksForSequence')}</p>}</div>
     {weekPicker && <WeekPicker weeks={draft.weeks} selectedId={weekPicker.weekId} t={t} onClose={() => setWeekPicker(null)} onApply={(weekId) => { update(weekPicker.rowUid ? value(editProject(draft, t).sequences.replaceWeek(sequence.id, weekPicker.rowUid, weekId)) : value(editProject(draft, t).sequences.appendWeek(sequence.id, weekId))); setWeekPicker(null); }} />}
     {override && <SequenceOverrideDialog draft={draft} sequence={sequence} {...override} t={t} onChange={onChange} onClose={() => setOverride(null)} />}
     {candidateGroup && <EventCandidatesDialog draft={draft} group={candidateGroup} view={candidateView} onViewChange={onCandidateViewChange} onOpenDay={onOpenDay} onOpenSlot={onOpenSlot} onClose={() => onCandidateViewChange(null)} t={t} />}

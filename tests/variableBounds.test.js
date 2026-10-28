@@ -5,7 +5,7 @@ import { compileProject, projectToDraft, validateDocument } from '../src/core/mo
 import { compileEnvironment, validateEnvironment, createProjectWithEnvironment } from '../src/core/environmentModel.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 import { changeOperandType, duplicateOperandSubtree } from '../src/core/operandModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { simulateSlot, simulationInitialValues } from './reference/simulationModel.js';
 
 test('optional numeric bounds survive both layers, project/environment/runtime exports and copies', () => {
   const { draft, number, text } = builtinVariableFixture();

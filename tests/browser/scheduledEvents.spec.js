@@ -11,7 +11,7 @@ import { translator } from '../../src/i18n/index.js';
 function fixture() {
   const f = sequenceEventsFixture();
   f.draft.weeks[0].days.mon = f.eventDay.id;
-  f.draft.builtinTasks = { schedule_event: { symbol: 'events_schedule' } };
+  f.draft.builtinTasks = { schedule_event: { symbol: 'events_schedule', display_name: 'Schedule event' } };
   return f;
 }
 async function load(page, draft) {
@@ -69,7 +69,7 @@ test('reservation definition has protected flow-control fields and candidate ref
   await page.locator('.operand-sidebar').getByRole('button', { name: 'Schedule event', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Add parameter', exact: true })).toBeDisabled();
   await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Book appointment');
-  await page.getByRole('textbox', { name: 'Engine key', exact: true }).fill('events.book');
+  await page.getByRole('textbox', { name: 'Name (symbol)', exact: true }).first().fill('events_book');
   await page.getByRole('textbox', { name: 'Parameter name', exact: true }).nth(2).fill('Delay');
   await navigate(page, 'slots'); await expect(page.getByRole('combobox', { name: 'Task', exact: true })).toHaveValue('builtin:schedule_event');
   await expect(page.getByRole('button', { name: 'Delay', exact: true })).toBeVisible();

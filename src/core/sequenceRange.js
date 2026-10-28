@@ -1,3 +1,4 @@
+import { weekRepeatCount, firstExecutionPosition, resolveExecutionDate } from './sequenceExecution.js';
 import { WEEKDAYS } from './scheduleConstants.js';
 
 export function sequenceRange(sequence) {
@@ -8,14 +9,14 @@ export function sequenceRange(sequence) {
 
 export function normalizeSequenceRange(sequence) {
   const range = sequenceRange(sequence);
-  return sequence.rows.length === 1 && range.start > range.end ? { ...sequence, endWeekday: range.startWeekday } : sequence;
+  return sequence.rows.length === 1 && weekRepeatCount(sequence.rows[0]) === 1 && range.start > range.end ? { ...sequence, endWeekday: range.startWeekday } : sequence;
 }
 
 export function setSequenceBoundary(sequence, boundary, weekday) {
   if (!['start', 'end'].includes(boundary) || !WEEKDAYS.includes(weekday)) throw new Error('Invalid sequence boundary');
   const range = sequenceRange(sequence);
   const next = { ...sequence, startWeekday: range.startWeekday, endWeekday: range.endWeekday, [boundary === 'start' ? 'startWeekday' : 'endWeekday']: weekday };
-  if (next.rows.length === 1 && WEEKDAYS.indexOf(next.startWeekday) > WEEKDAYS.indexOf(next.endWeekday)) {
+  if (next.rows.length === 1 && weekRepeatCount(next.rows[0]) === 1 && WEEKDAYS.indexOf(next.startWeekday) > WEEKDAYS.indexOf(next.endWeekday)) {
     if (boundary === 'start') next.endWeekday = weekday; else next.startWeekday = weekday;
   }
   return next;
@@ -23,7 +24,7 @@ export function setSequenceBoundary(sequence, boundary, weekday) {
 
 export function sequenceDate(sequence, rowIndex, weekday) {
   const range = sequenceRange(sequence), position = rowIndex * 7 + WEEKDAYS.indexOf(weekday);
-  const before = position < range.start, after = position > range.end;
-  return { before, after, active: !before && !after, dayNumber: before || after ? null : position - range.start + 1,
-    isStart: rowIndex === 0 && weekday === range.startWeekday, isEnd: rowIndex === sequence.rows.length - 1 && weekday === range.endWeekday };
+  const actual = firstExecutionPosition(sequence, position), before = actual === null && position < range.start, after = actual === null && !before;
+  return { before, after, active: !before && !after, dayNumber: actual === null ? null : resolveExecutionDate(sequence, actual).dayNumber,
+    isStart: rowIndex === 0 && weekday === range.startWeekday, isEnd: rowIndex === sequence.rows.length - 1 && weekRepeatCount(sequence.rows.at(-1)) !== null && weekday === range.endWeekday };
 }

@@ -2778,6 +2778,13 @@
               "week_id": {
                 "$ref": "#/$defs/uuid"
               },
+              "repeat_count": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
               "day_overrides": {
                 "type": "object",
                 "properties": {
@@ -2858,6 +2865,7 @@
             },
             "required": [
               "week_id",
+              "repeat_count",
               "day_overrides"
             ],
             "additionalProperties": false

@@ -1,3 +1,4 @@
+import { weekRepeatCount, sequenceExecutionRange } from './sequenceExecution.js';
 import { scheduleEventUses } from './scheduledEvents.js';
 import { eventDayIds, eventDaySourceMode, eventDaySourceFromData } from './eventDaySource.js';
 import { eventExecutionMode } from './slotRelease.js';
@@ -55,11 +56,12 @@ export function compileReport(draft, { includeUnreferenced = false, t = translat
     const range = sequenceRange(sequence);
     if (!sequence.rows.length) { push(escape(t('emptySequence')), ''); continue; }
     field('eventStart', escape(eventDateLabel({ week: 1, weekday: range.startWeekday }, t)));
-    field('eventEnd', escape(eventDateLabel({ week: sequence.rows.length, weekday: range.endWeekday }, t)));
-    field('reportActiveDays', String(range.totalDays)); push('');
+    const executionRange = sequenceExecutionRange(sequence);
+    field('eventEnd', executionRange.infinite ? t('weekRepeatInfinite') : escape(eventDateLabel({ week: executionRange.totalWeeks, weekday: range.endWeekday }, t)));
+    field('reportActiveDays', executionRange.infinite ? '∞' : String(executionRange.totalDays)); push('');
     sequence.rows.forEach((row, index) => {
       const week = draft.weeks.find((item) => item.id === row.weekId);
-      push(`#### ${escape(t('weekNumber', { count: index + 1 }))}: ${escape(week.name)}`, '', `| ${['reportDate', 'reportMainDay', 'reportAssignmentSource', 'reportEvents', 'reportSourceOrder'].map((key) => escape(t(key))).join(' | ')} |`, '| --- | --- | --- | --- | --- |');
+      push(`#### ${escape(t('weekNumber', { count: index + 1 }))}: ${escape(week.name)}${weekRepeatCount(row) === 1 ? '' : ` (${weekRepeatCount(row) === null ? '∞' : '×' + weekRepeatCount(row)})`}`, '', `| ${['reportDate', 'reportMainDay', 'reportAssignmentSource', 'reportEvents', 'reportSourceOrder'].map((key) => escape(t(key))).join(' | ')} |`, '| --- | --- | --- | --- | --- |');
       for (const weekday of WEEKDAYS) {
         const date = sequenceDate(sequence, index, weekday);
         if (!date.active) { push(`| ${escape(t(weekday))} (${escape(t('reportOutsideRange'))}) | — | — | — | — |`); continue; }

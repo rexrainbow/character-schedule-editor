@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createProject, createSlot, compileProject, projectToDraft, branchFromData, duplicateSlot } from '../src/core/model.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
-import { simulateSlot } from '../src/core/simulationModel.js';
+import { simulateSlot } from './reference/simulationModel.js';
 
 test('named activities with no branches round-trip, duplicate, export and simulate without task calls', () => {
   const draft = createProject(), slot = createSlot([], 'Rest'); draft.slots = [slot];

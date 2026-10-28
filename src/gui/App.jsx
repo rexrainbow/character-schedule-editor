@@ -1,3 +1,5 @@
+import AppNotice from './components/AppNotice.jsx';
+import ContinuousSimulationEditor from './editors/ContinuousSimulationEditor.jsx';
 import { scheduledDayReferences } from '../core/scheduledEvents.js';
 import { eventDayIds } from '../core/eventDaySource.js';
 import { dayUses, DAY_USES, matchesDayUse } from '../core/dayUses.js';
@@ -28,11 +30,11 @@ import { TaskContext, TaskMacrosContext, BuiltinTasksContext, EventCatalogContex
 import OperandsEditor from './editors/OperandsEditor.jsx';
 import SlotIcon from './components/SlotIcon.jsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Download, FolderPlus, GitBranch, Globe2, Layers3, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download, FolderPlus, GitBranch, Globe2, Layers3, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload } from 'lucide-react';
 import ActionMenu from './components/ActionMenu.jsx';
 import { referenceCount, validateDocument } from '../core/model.js';
 import { resolveLocale, translator } from '../i18n/index.js';
-import { IconButton, Issues, SlotInfo } from './components/ui.jsx';
+import { Issues, SlotInfo } from './components/ui.jsx';
 import SlotEditor from './editors/SlotEditor.jsx';
 import DayEditor from './editors/DayEditor.jsx';
 import { DayTagChips } from './components/DayTags.jsx';
@@ -46,7 +48,7 @@ import SequenceEditor from './editors/SequenceEditor.jsx';
 import { dayOverrideReferenceCount, weekSequenceReferenceCount } from '../core/sequenceModel.js';
 import { dayReferenceCount, sharedDays } from '../core/weekModel.js';
 
-const MODE_PAGES = { user: ['days', 'weeks', 'sequences', 'slots', 'operands', 'enums', 'expressions', 'taskMacros'], environment: ['operands', 'enums', 'expressions', 'tasks'], simulation: ['simulation'] };
+const MODE_PAGES = { user: ['days', 'weeks', 'sequences', 'slots', 'operands', 'enums', 'expressions', 'taskMacros'], environment: ['operands', 'enums', 'expressions', 'tasks'], simulation: ['simulation', 'continuousSimulation'] };
 
 export default function App() {
   const [project, draft, connection] = useProject();
@@ -58,17 +60,20 @@ export default function App() {
   const [mode, setMode] = useState('user');
   const [modeTabs, setModeTabs] = useState({ user: 'days', environment: 'operands', simulation: 'simulation' });
   const [simulation, setSimulation] = useState(null);
+  const [continuousSimulation, setContinuousSimulation] = useState({});
+  useEffect(() => { setContinuousSimulation((previous) => ({ ...previous, result: null })); }, [draft]);
   const tab = modeTabs[mode];
   project.setMode(mode);
   const setTab = (page) => setModeTabs((previous) => ({ ...previous, [mode]: page }));
   const EDITOR_PAGES = MODE_PAGES[mode];
+  const SimulationView = tab === 'continuousSimulation' ? ContinuousSimulationEditor : SimulationEditor;
   const pageLabel = (page) => t(page === 'operands' ? (mode === 'environment' ? 'environmentVariables' : 'applicationVariables') : page === 'tasks' ? 'taskDefinitions' : page === 'expressions' && mode === 'environment' ? 'environmentExpressions' : page);
   const [editorViews, setEditorViews] = useState({});
   function editorView(page) {
     const key = `${mode}:${page}`;
     return { view: editorViews[key], onViewChange: (update) => setEditorViews((previous) => ({ ...previous, [key]: update(previous[key] ?? {}) })) };
   }
-  function resetNavigation() { setDayTagFilter(''); setDayUseFilter(''); setCollapsedDayUses([]); setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); setCandidateView(null); }
+  function resetNavigation() { setDayTagFilter(''); setDayUseFilter(''); setCollapsedDayUses([]); setMode('user'); setModeTabs({ user: 'days', environment: 'operands', simulation: 'simulation' }); setSimulation(null); setContinuousSimulation({}); setEditorViews({}); setWeekHighlight(null); setDayReturn(null); setDayRestore(null); setCandidateView(null); }
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -191,6 +196,21 @@ export default function App() {
       setWeekHighlight(null);
       setModeTabs((previous) => ({ ...previous, user: 'days' }));
     }
+  }
+  function openReferencedSequence(sequence) {
+    if (!sequence) return;
+    setContinuousSimulation((previous) => previous.result?.status === 'running' ? { ...previous, result: { ...previous.result, status: 'cancelled' } } : previous);
+    setMode('user'); setSelectedSequence(sequence.id);
+    setSearches((previous) => ({ ...previous, sequences: '' }));
+    setModeTabs((previous) => ({ ...previous, user: 'sequences' }));
+  }
+  function openContinuousSimulation(sequenceId) {
+    setContinuousSimulation((previous) => {
+      const target = previous.sequenceId ?? draft.sequences[0]?.id;
+      return { ...previous, sequenceId, result: target === sequenceId ? previous.result : null };
+    });
+    setModeTabs((previous) => ({ ...previous, simulation: 'continuousSimulation' }));
+    setMode('simulation');
   }
   function addItem() {
     if (tab === 'slots') { const result = editProject(draft, t).slots.create({ name: t('newSlot') }); const slot = result.value; commit(result.draft); setSelectedSlot(slot.id); }
@@ -316,9 +336,9 @@ export default function App() {
         {initialized && <input className="sr-only" ref={environmentInput} type="file" accept=".json,application/json" aria-label={t('importEnvironment')} onChange={importEnvironmentFile} />}
       </div>
     </header>
-    {notice && <div role="status" className={`notice ${notice.error ? 'notice-error' : ''}`}><span>{t(notice.key)}</span><IconButton icon={X} label={t('close')} onClick={() => { setNotice(null); setOperationIssues([]); }} /></div>}
+    <AppNotice notice={notice} t={t} onDismiss={(target) => { setNotice((current) => current === target ? null : current); if (target.error && target === notice) setOperationIssues([]); }} />
     {operationIssues.length > 0 && <details className="import-issues" open><summary>{t(notice?.issueTitle ?? 'errorsForExport')}</summary><Issues errors={operationIssues} t={t} /></details>}
-    {initialized && mode === 'simulation' ? <SimulationEditor onOpenDay={openReferencedDay} onOpenSequence={(sequence) => { setMode('user'); setSelectedSequence(sequence.id); setSearches((previous) => ({ ...previous, sequences: '' })); setModeTabs((previous) => ({ ...previous, user: 'sequences' })); }} draft={draft} session={simulation} onSessionChange={(update) => setSimulation((previous) => ({ ...previous, ...update }))} onOpenSlot={openReferencedSlot} t={t} /> : initialized && tab === 'enums' ? <EnumDefinitionsEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('enums')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'expressions' ? <ExpressionMacrosEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('expressions')} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized && tab === 'taskMacros' ? <TaskMacrosEditor {...editorView('taskMacros')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'tasks' ? <TasksEditor {...editorView('tasks')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'operands' ? <OperandsEditor {...editorView('operands')} scope={mode === 'environment' ? 'environment' : 'application'} key={mode} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized ? <div className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}><aside className="sidebar compact-sidebar"><div className="sidebar-heading"><h2><Layers3 size={17} /><span title={t(tab)}>{t(tab)}</span></h2><span className="count">{tab === 'days' ? `${items.length}/${allItems.length}` : allItems.length}</span>{tab === 'days' && <><DayListOptions search={search} onSearchChange={(value) => setSearches({ ...searches, days: value })} onClear={() => { setSearches({ ...searches, days: '' }); setDayTagFilter(''); setDayUseFilter(''); }} days={publicDays} uses={uses} role={dayUseFilter} onRoleChange={filterDayUse} view={dayListView} onViewChange={setDayListView} tag={dayTagFilter} onTagChange={setDayTagFilter} t={t} /></>}<button type="button" className="icon-button" aria-label={t(view.add)} title={t(view.add)} onClick={addItem}><Plus size={17} /></button><button type="button" className="icon-button sidebar-toggle" aria-label={t(sidebarCollapsed ? 'expandList' : 'collapseList')} title={t(sidebarCollapsed ? 'expandList' : 'collapseList')} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button></div>
+    {initialized && mode === 'simulation' ? <SimulationView onOpenDay={openReferencedDay} onOpenSequence={openReferencedSequence} draft={draft} session={tab === 'continuousSimulation' ? continuousSimulation : simulation} onSessionChange={(update) => (tab === 'continuousSimulation' ? setContinuousSimulation : setSimulation)((previous) => ({ ...previous, ...update }))} onOpenSlot={openReferencedSlot} t={t} /> : initialized && tab === 'enums' ? <EnumDefinitionsEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('enums')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'expressions' ? <ExpressionMacrosEditor scope={mode === 'environment' ? 'environment' : 'application'} key={mode} {...editorView('expressions')} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized && tab === 'taskMacros' ? <TaskMacrosEditor {...editorView('taskMacros')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'tasks' ? <TasksEditor {...editorView('tasks')} draft={draft} onChange={commit} t={t} /> : initialized && tab === 'operands' ? <OperandsEditor {...editorView('operands')} scope={mode === 'environment' ? 'environment' : 'application'} key={mode} draft={draft} t={t} onChange={(operandNodes) => commit({ ...draft, operandNodes })} /> : initialized ? <div className={`workspace ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}><aside className="sidebar compact-sidebar"><div className="sidebar-heading"><h2><Layers3 size={17} /><span title={t(tab)}>{t(tab)}</span></h2><span className="count">{tab === 'days' ? `${items.length}/${allItems.length}` : allItems.length}</span>{tab === 'days' && <><DayListOptions search={search} onSearchChange={(value) => setSearches({ ...searches, days: value })} onClear={() => { setSearches({ ...searches, days: '' }); setDayTagFilter(''); setDayUseFilter(''); }} days={publicDays} uses={uses} role={dayUseFilter} onRoleChange={filterDayUse} view={dayListView} onViewChange={setDayListView} tag={dayTagFilter} onTagChange={setDayTagFilter} t={t} /></>}<button type="button" className="icon-button" aria-label={t(view.add)} title={t(view.add)} onClick={addItem}><Plus size={17} /></button><button type="button" className="icon-button sidebar-toggle" aria-label={t(sidebarCollapsed ? 'expandList' : 'collapseList')} title={t(sidebarCollapsed ? 'expandList' : 'collapseList')} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button></div>
       {tab !== 'days' && <label className="search-field"><Search size={16} /><input aria-label={t(view.search)} placeholder={t(view.search)} value={search} onChange={(e) => setSearches({ ...searches, [tab]: e.target.value })} /></label>}
       <div className="slot-list">{tab === 'days' && dayListView === 'grouped' ? DAY_USES.filter((role) => !dayUseFilter || role === dayUseFilter).map((role) => {
         const days = items.filter((item) => uses[item.id]?.roles.includes(role));
@@ -330,7 +350,7 @@ export default function App() {
         {tab === 'slots' && activeSlot ? <SlotEditor onOpenMacro={(id) => { setMode('user'); setModeTabs((previous) => ({ ...previous, user: 'taskMacros' })); setEditorViews((previous) => ({ ...previous, 'user:taskMacros': { ...previous['user:taskMacros'], selected: id, search: '' } })); }} onReturnDay={returnDay ? returnToDay : undefined} returnDayName={returnDay?.name} tasks={draft.tasks} operandNodes={draft.operandNodes} slot={activeSlot} t={t} onChange={(slot) => commitResult(editProject(draft, t).slots.replace(slot.id, slot))} onDuplicate={copySlot} onDelete={deleteSlot} />
           : tab === 'days' && activeDay ? <DayEditor nodes={draft.operandNodes} days={publicDays} onOpenSlot={openReferencedSlot} restorePosition={dayRestore} day={activeDay} slots={draft.slots} t={t} onChange={(day) => commitResult(editProject(draft, t).days.update(day.id, day))} onDuplicate={copyDay} onDelete={deleteDay} onCell={(index) => setCellDialog({ dayId: activeDay.id, index })} />
             : tab === 'weeks' && activeWeek ? <WeekEditor onOpenDay={openReferencedDay} highlight={weekHighlight} key={activeWeek.id} week={activeWeek} draft={draft} t={t} onChange={(week) => commitResult(editProject(draft, t).weeks.update(week.id, week))} onDuplicate={copyWeek} onDelete={removeWeek} onDay={(weekday) => setDaySelector({ weekId: activeWeek.id, weekday })} onCell={(weekday, index) => setWeekCellDialog({ weekId: activeWeek.id, weekday, index })} />
-              : tab === 'sequences' && activeSequence ? <SequenceEditor candidateView={candidateView} onCandidateViewChange={setCandidateView} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
+              : tab === 'sequences' && activeSequence ? <SequenceEditor onSimulateSequence={openContinuousSimulation} candidateView={candidateView} onCandidateViewChange={setCandidateView} onSimulateDay={(sequenceId, position) => { setSimulation((previous) => ({ ...previous, target: 'day', sequenceId, position, result: null })); setModeTabs((previous) => ({ ...previous, simulation: 'simulation' })); setMode('simulation'); }} onOpenSlot={openReferencedSlot} onOpenDay={openReferencedDay} key={activeSequence.id} draft={draft} sequence={activeSequence} t={t} onChange={(sequence) => commitResult(editProject(draft, t).sequences.update(sequence.id, sequence))} onDuplicate={copySequence} onDelete={removeSequence} />
               : <div className="empty-state"><Layers3 size={40} /><h2>{t(view.empty)}</h2><p>{t(view.hint)}</p><button className="button primary" onClick={addItem}><Plus size={16} />{t(view.add)}</button></div>}
       </div></main></div> : <main className="welcome"><div className="empty-state"><FolderPlus size={40} /><h2>{t('welcome')}</h2><p>{t('welcomeHint')}</p><div className="welcome-actions"><button className="button primary" onClick={() => setSettings('new')}>{t('newProject')}</button><button className="button secondary" onClick={() => fileInput.current.click()}>{t('import')}</button></div></div></main>}
     {connection && <ConnectionStatus connection={connection} onReload={reloadServer} onExport={exportFile} t={t} />}

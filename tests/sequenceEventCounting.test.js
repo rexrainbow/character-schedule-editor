@@ -5,7 +5,7 @@ import { eventOccurs, eventCounts, eventGroupErrors, eventTooltip, duplicateEven
 import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 import { changeWeekCell, deleteSharedDay } from '../src/core/weekModel.js';
-import { daySimulationPlan } from '../src/core/daySimulationModel.js';
+import { daySimulationPlan } from './reference/daySimulationModel.js';
 import { WEEKDAYS } from '../src/core/scheduleConstants.js';
 import { translator } from '../src/i18n/index.js';
 function fixture() {

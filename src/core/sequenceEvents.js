@@ -1,3 +1,4 @@
+import { resolveExecutionDate, firstExecutionPosition, countExecutionDates, sequenceExecutionRange, weekRepeatCount } from './sequenceExecution.js';
 import { eventFirstDayId, eventDaySourceErrors, eventDaySourceToData, eventDaySourceFromData } from './eventDaySource.js';
 import { EVENT_EXECUTION_MODES, eventExecutionMode } from './slotRelease.js';
 import { eventKind } from './eventReferences.js';
@@ -74,10 +75,32 @@ export function eventOccurs(group, position, sequence, draft) {
   const rank = index.count(start, position) - 1;
   return index.matches(position) && rank >= 0 && rank % group.interval === 0;
 }
+export function eventOccursAtExecution(group, position, sequence, draft) {
+  const date = resolveExecutionDate(sequence, position);
+  if (!date) return false;
+  const start = datePosition(group.start), end = datePosition(group.end);
+  if (date.templatePosition < start || date.templatePosition > end) return false;
+  if (eventKind(group) === 'once') return position === firstExecutionPosition(sequence, start);
+  const index = eligibility(sequence, draft, group.countFilter ?? { kind: 'all' });
+  if (!index.matches(date.templatePosition)) return false;
+  if (eventKind(group) === 'probability') return true;
+  const rank = countExecutionDates(sequence, position, (template) => template >= start && template <= end && index.matches(template), 0) - 1;
+  return Number.isSafeInteger(group.interval) && group.interval > 0 && rank >= 0 && rank % group.interval === 0;
+}
 export function eventsOnDate(sequence, position, draft) {
-  return (sequence.eventGroups ?? []).map((group, index) => ({ group, index })).filter(({ group }) => eventOccurs(group, position, sequence, draft)).sort((a, b) => b.group.priority - a.group.priority || a.index - b.index).map(({ group }) => group);
+  return (sequence.eventGroups ?? []).map((group, index) => ({ group, index })).filter(({ group }) => { const actual = firstExecutionPosition(sequence, position); return actual === null ? eventOccurs(group, position, sequence, draft) : eventOccursAtExecution(group, actual, sequence, draft); }).sort((a, b) => b.group.priority - a.group.priority || a.index - b.index).map(({ group }) => group);
 }
 export function eventCounts(sequence, group, draft) {
+  if (sequence.rows.some((row) => weekRepeatCount(row) !== 1)) {
+    if (eventKind(group) === 'once') return { total: 1, active: firstExecutionPosition(sequence, datePosition(group.start)) === null ? 0 : 1 };
+    const range = sequenceExecutionRange(sequence), index = eligibility(sequence, draft, group.countFilter ?? { kind: 'all' });
+    const matches = (template) => template >= datePosition(group.start) && template <= datePosition(group.end) && index.matches(template);
+    const count = countExecutionDates(sequence, range.end, matches, 0), before = countExecutionDates(sequence, range.start - 1, matches, 0);
+    if (eventKind(group) === 'probability') return { total: count, active: count - before };
+    const total = count > 0 && group.interval > 0 ? Math.floor((count - 1) / group.interval) + 1 : 0;
+    return { total, active: Math.max(0, total - Math.ceil(before / group.interval)) };
+  }
+
   const start = datePosition(group.start), end = datePosition(group.end), range = sequenceRange(sequence);
   if (!Number.isFinite(start) || !Number.isFinite(end) || eventKind(group) === 'periodic' && (!Number.isSafeInteger(group.interval) || group.interval < 1) || end < start) return { total: 0, active: 0 };
   if (eventKind(group) === 'once') return { total: 1, active: sequence.rows.length && start >= range.start && start <= range.end ? 1 : 0 };

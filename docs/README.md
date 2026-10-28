@@ -1,5 +1,9 @@
 # Character Schedule Editor
 
+模擬模式提供 [連續模擬](CONTINUOUS_SIMULATION.md)，可查看多日事件、日終／周末快照、來源與任務副作用，以及由 checkpoint 詳細重跑某一天。
+
+周序列支援每筆周引用的有限／無限重複，包含 runtime 日期解析、快照與藍圖格式，見 [WEEK_REPEAT.md](WEEK_REPEAT.md)。
+
 現行識別規則：必填 name（符號）取代 engine_key，display_name 留白時使用 name。YAML 保留 mapping，API 可直接依名稱定位，詳見 [NAMING.md](./NAMING.md)。舊文件中的 engine_key 規則僅為開發歷程。
 
 可透過不含 UUID／圖示的 YAML 藍圖重建專案，支援文字運算式 parser、獨立 Schema、預覽與 MCP 匯入／匯出，見 [BLUEPRINT.md](./BLUEPRINT.md)。
@@ -200,3 +204,6 @@ Schema 使用 `task_macros` 與 `task_macro_id`，開發階段不轉換舊 `task
 [事件的多日行程來源與手動模擬選擇](./EVENT_DAY_SOURCES.md)
 
 [流程控制：預約事件](./SCHEDULE_EVENT_TASK.md)
+## 可恢復執行核心
+
+[`src/runtime`](../src/runtime/README.md) 提供 UUID／name 程式定義、逐任務執行、暫停／恢復、checkpoint、事件通知及 handler 交易。模擬 GUI 已使用 UUID runtime 與 `diagnostics: true`，由 `src/simulation/` 收集診斷、處理測試輸入並呈現結果；runtime 不保存歷史紀錄。既有執行資料匯出器尚未改接新 Program 格式。

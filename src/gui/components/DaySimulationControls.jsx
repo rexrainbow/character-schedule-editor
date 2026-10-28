@@ -4,7 +4,7 @@ import { Dialog } from './ui.jsx';
 import SequenceDatePicker from '../dialogs/SequenceDatePicker.jsx';
 import { positionDate, datePosition } from '../../core/sequenceEvents.js';
 import { nodePath } from '../../core/operandModel.js';
-import { PROGRESS_ROLES, PROGRESS_LABELS, progressCandidates } from '../../core/daySimulationModel.js';
+import { PROGRESS_ROLES, PROGRESS_LABELS, progressCandidates } from '../../simulation/planning.js';
 
 export function DaySimulationControls({ targetControl, draft, sequence, position, plan, onChange, onOpenSequence, t }) {
   const [calendar, setCalendar] = useState(false);

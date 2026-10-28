@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { flowControlFixture } from './flowControlFixture.js';
-import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
-import { simulationInitialValues } from '../src/core/simulationModel.js';
+import { simulateSequenceDay } from './reference/daySimulationModel.js';
+import { simulationInitialValues } from './reference/simulationModel.js';
 import { compileProject, projectToDraft, validateDocument, duplicateDay } from '../src/core/model.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 import { compileEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';

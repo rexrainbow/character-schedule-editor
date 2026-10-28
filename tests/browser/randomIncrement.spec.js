@@ -12,7 +12,7 @@ async function load(page, draft) {
 }
 
 test('integer constraint validates values, respects environment locks and saves amplitude with editable metadata', async ({ page }) => {
-  const { draft, number } = builtinVariableFixture(); await load(page, draft);
+  const { draft, number } = builtinVariableFixture(); draft.builtinTasks.increment_variable.display_name = 'Increase value'; await load(page, draft);
   await navigate(page, 'operands'); await page.getByRole('treeitem', { name: 'Counter', exact: true }).click();
   const checkbox = page.getByRole('checkbox', { name: 'Integer only', exact: true });
   await checkbox.check();

@@ -5,8 +5,8 @@ import { parse, stringify } from 'yaml';
 import { importBlueprint, exportBlueprint, parseExpression, formatExpression, blueprintSchema } from '../src/core/blueprint/index.js';
 import { projectToDraft } from '../src/core/model.js';
 import { createProjectSession } from '../src/core/projectApi.js';
-import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
-import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
+import { simulateSlot, simulationInitialValues } from './reference/simulationModel.js';
+import { simulateSequenceDay } from './reference/daySimulationModel.js';
 
 const example = new URL('./fixtures/life-simulation.yaml', import.meta.url);
 const uuid = /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;

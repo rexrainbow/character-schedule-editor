@@ -5,8 +5,8 @@ import { compileProject, projectToDraft, validateDocument } from '../src/core/mo
 import { compileRuntime } from '../src/core/runtimeModel.js';
 import { eventCounts, eventGroupErrors, duplicateEventGroup } from '../src/core/sequenceEvents.js';
 import { eventReferencesTo, eventUsageErrors } from '../src/core/eventReferences.js';
-import { daySimulationPlan, simulateSequenceDay } from '../src/core/daySimulationModel.js';
-import { simulateSlot, createSimulationEvaluator, simulationInitialValues } from '../src/core/simulationModel.js';
+import { daySimulationPlan, simulateSequenceDay } from './reference/daySimulationModel.js';
+import { simulateSlot, createSimulationEvaluator, simulationInitialValues } from './reference/simulationModel.js';
 import { translator } from '../src/i18n/index.js';
 import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment } from '../src/core/environmentModel.js';
 import { changeMacroParameterType, deleteMacroParameter, macroParameterReferences } from '../src/core/taskMacroModel.js';

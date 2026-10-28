@@ -83,7 +83,7 @@ test('central manager edits complete recurring groups with calendar dates and is
   expect((await saved(page)).week_sequences[sequence.id].event_groups[0].id).toBe(group.id);
 });
 
-test('icons sort by priority, overflow lists this date, and deletion/cancel preserve complete groups', async ({ page }) => {
+test('icons sort by priority, four events remain visible, and deletion/cancel preserve complete groups', async ({ page }) => {
   const { draft, sequence, eventDay } = sequenceEventsFixture();
   sequence.eventGroups = [-10, 10, 0, -1].map((priority) => rule(sequence, eventDay.id, 0, 20, 7, priority));
   await load(page, draft);
@@ -94,9 +94,9 @@ test('icons sort by priority, overflow lists this date, and deletion/cancel pres
   await cell.locator('.sequence-event-icon').nth(1).focus();
   await expect(page.locator('.event-preview-summary')).toContainText(/Priority: 0/);
   await page.keyboard.press('Escape');
-  await cell.getByRole('button', { name: 'Show 2 more events', exact: true }).click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('combobox', { name: 'Event list', exact: true })).toHaveValue('date');
+  await expect(cell.locator('.sequence-event-icon')).toHaveCount(4);
+  await expect(cell.locator('.sequence-events-more')).toHaveCount(0);
+  const dialog = await manager(page, 4);
   await expect(dialog.locator('.event-group-list').getByRole('option')).toHaveCount(4);
   page.once('dialog', (d) => d.accept()); await dialog.getByRole('button', { name: 'Delete event group', exact: true }).click();
   await expect(dialog.locator('.event-group-list').getByRole('option')).toHaveCount(3);
@@ -171,12 +171,12 @@ test('calendar pages reach later weeks and deleting their source week warns abou
   expect((await saved(page)).week_sequences[sequence.id].event_groups).toEqual([]);
 });
 
-test('icon day picker, independent names, four-line preview summaries and draft key warnings persist correctly', async ({ page }) => {
+test('icon day picker, independent names, four-line preview summaries and scoped names persist correctly', async ({ page }) => {
   const { draft, sequence, main } = sequenceEventsFixture(); main.symbol = 'day_workday';
   await load(page, draft); const dialog = await manager(page, 0);
   await dialog.getByRole('button', { name: 'Add event group', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('');
-  await expect(dialog.getByRole('textbox', { name: 'Engine key', exact: true })).toHaveValue('');
+  await expect(dialog.getByRole('textbox', { name: 'Name (symbol)', exact: true })).toBeVisible();
   const picker = dialog.getByRole('combobox', { name: 'Event day schedule', exact: true });
   await picker.click(); await showAllDayPurposes(page);
   const options = dialog.getByRole('listbox', { name: 'Shared day schedules', exact: true });
@@ -193,7 +193,7 @@ test('icon day picker, independent names, four-line preview summaries and draft 
   await dialog.getByRole('textbox', { name: 'Event name', exact: true }).fill('Night inspection');
   await picker.click(); await showAllDayPurposes(page); await options.getByRole('option', { name: 'Workday', exact: true }).click();
   await expect(dialog.getByRole('textbox', { name: 'Event name', exact: true })).toHaveValue('Night inspection');
-  await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('event_inspection');
+  await dialog.getByRole('textbox', { name: 'Name (symbol)', exact: true }).fill('event_inspection');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.locator('.sequence-event-icon').first().focus();
   await expect(page.locator('.event-preview-summary')).toBeVisible();
@@ -201,15 +201,15 @@ test('icon day picker, independent names, four-line preview summaries and draft 
   await page.keyboard.press('Escape');
   expect(tooltip).toHaveLength(3); expect(tooltip[0]).toContain('Once'); expect(tooltip[2]).toBe('Priority: 0');
   let group = (await saved(page)).week_sequences[sequence.id].event_groups[0];
-  expect(group.display_name).toBe('Night inspection'); expect(group.symbol).toBe('event_inspection');
-  await manager(page, 1); await dialog.getByRole('textbox', { name: 'Engine key', exact: true }).fill('day_workday');
-  await expect(dialog.locator('.engine-key-warning')).toHaveCount(1);
+  expect(group.display_name).toBe('Night inspection'); expect(group.name).toBe('event_inspection');
+  await manager(page, 1); await dialog.getByRole('textbox', { name: 'Name (symbol)', exact: true }).fill('day_workday');
+  await expect(dialog.locator('.engine-key-warning')).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeEnabled();
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  expect((await saved(page)).week_sequences[sequence.id].event_groups[0].symbol).toBe('event_inspection');
+  expect((await saved(page)).week_sequences[sequence.id].event_groups[0].name).toBe('event_inspection');
   await manager(page, 1); await dialog.getByRole('textbox', { name: 'Event name', exact: true }).fill('');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  group = (await saved(page)).week_sequences[sequence.id].event_groups[0]; expect(group.display_name).toBe('Workday');
+  group = (await saved(page)).week_sequences[sequence.id].event_groups[0]; expect(group.display_name).toBe('event_inspection');
 });
 
 test('tag counting updates recurrence, calendar markers, summaries and runtime tags; cancel preserves the rule', async ({ page }) => {
@@ -286,8 +286,9 @@ test('date-filtered manager keeps an edited group visible when the new count sou
   const { draft, sequence, eventDay } = sequenceEventsFixture();
   sequence.eventGroups = Array.from({ length: 3 }, () => rule(sequence, eventDay.id, 0, 20, 1));
   await load(page, draft);
-  await page.getByRole('button', { name: 'Show 1 more events', exact: true }).first().click();
+  await page.locator('.sequence-event-icon').first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('combobox', { name: 'Event list', exact: true }).selectOption('date');
   await dialog.getByRole('combobox', { name: 'Count dates by', exact: true }).selectOption('day');
   await expect(dialog.getByRole('combobox', { name: 'Day schedule to count', exact: true })).toBeVisible();
   await dialog.getByRole('combobox', { name: 'Day schedule to count', exact: true }).click();
@@ -295,5 +296,37 @@ test('date-filtered manager keeps an edited group visible when the new count sou
   await expect(dialog).toContainText('No matching dates in this event range.');
   await expect(dialog.getByRole('combobox', { name: 'Count dates by', exact: true })).toHaveValue('day');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Show 1 more events', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: 'Week 1', exact: true }).locator('.sequence-day').first().locator('.sequence-event-icon')).toHaveCount(2);
+});
+
+for (const mobile of [false, true]) test(`four-column event grid, overflow previews and full expansion (${mobile ? 'mobile' : 'desktop'})`, async ({ page }) => {
+  if (mobile) await page.setViewportSize({ width: 600, height: 850 });
+  const { draft, sequence, eventDay } = sequenceEventsFixture();
+  sequence.eventGroups = Array.from({ length: 15 }, (_, i) => ({ ...rule(sequence, eventDay.id, 0, 0, 0, 15 - i), display_name: `Event ${i + 1}` }));
+  await load(page, draft);
+  const row = page.getByRole('group', { name: 'Week 1', exact: true }), cell = row.locator('.sequence-day').first();
+  await expect(cell.locator('.sequence-event-icon')).toHaveCount(11);
+  const icons = await cell.locator('.sequence-event-icon').evaluateAll((items) => items.map((item) => { const r = item.getBoundingClientRect(); return { x: r.x, y: r.y }; }));
+  expect(icons[0].y).toBe(icons[3].y); expect(icons[4].y).toBeGreaterThan(icons[0].y);
+  const heights = await row.locator('.sequence-day-content').evaluateAll((items) => items.map((e) => e.getBoundingClientRect().top));
+  expect(new Set(heights).size).toBe(1);
+  await cell.getByRole('button', { name: 'Show 4 more events', exact: true }).click();
+  const list = page.getByRole('dialog', { name: 'Events on this day', exact: true });
+  await expect(list.locator('li')).toHaveCount(15);
+  await list.getByRole('button', { name: 'Edit event group: Event 15', exact: true }).focus();
+  await expect(page.locator('.day-reference-preview')).toContainText('Event 15');
+  await expect(page.locator('.day-reference-preview')).toContainText('Inspection task');
+  await page.keyboard.press('Escape'); await expect(page.locator('.day-reference-preview')).toHaveCount(0);
+  await expect(list).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(list).toHaveCount(0);
+  await expect(cell.locator('.sequence-events-more')).toBeFocused();
+  const toggle = page.getByRole('checkbox', { name: 'Expand all events', exact: true });
+  const compactHeight = await row.evaluate((e) => e.getBoundingClientRect().height);
+  await toggle.check();
+  await expect(cell.locator('.sequence-event-icon')).toHaveCount(15);
+  await expect(cell.locator('.sequence-events-more')).toHaveCount(0);
+  expect(await row.evaluate((e) => e.getBoundingClientRect().height)).toBeGreaterThan(compactHeight);
+  await page.screenshot({ path: `artifacts/sequence-event-grid-${mobile ? 'mobile' : 'desktop'}.png` });
+  await toggle.uncheck(); await expect(cell.locator('.sequence-event-icon')).toHaveCount(11);
+  expect(await row.evaluate((e) => e.getBoundingClientRect().height)).toBe(compactHeight);
 });

@@ -8,8 +8,8 @@ import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeMode
 import { compileEnvironment, createEnvironmentInfo, createProjectWithEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { changeParameterType, duplicateTask } from '../src/core/taskModel.js';
 import { changeMacroParameterType, deleteMacroParameter, duplicateTaskMacro } from '../src/core/taskMacroModel.js';
-import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
-import { simulateSlot } from '../src/core/simulationModel.js';
+import { simulateSequenceDay } from './reference/daySimulationModel.js';
+import { simulateSlot } from './reference/simulationModel.js';
 import { slotLogicText } from '../src/core/logicOverviewModel.js';
 import { translator } from '../src/i18n/index.js';
 const t = translator('en');

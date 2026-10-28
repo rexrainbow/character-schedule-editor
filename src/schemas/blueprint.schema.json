@@ -2582,9 +2582,35 @@
         "weeks": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "week": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "repeat": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "week",
+                  "repeat"
+                ],
+                "additionalProperties": false
+              }
+            ]
           }
         },
         "overrides": {

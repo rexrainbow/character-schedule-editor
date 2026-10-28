@@ -60,7 +60,7 @@ for (const name of ['day_start_slot_id', 'day_end_slot_id', 'slot_events']) defs
 defs.runtime_day.properties.slot_releases = arr({ oneOf: [ref('runtime_flow_control'), { type: 'null' }] });
 const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 defs.runtime_week = entity({ days: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }, ref('runtime_day')] }]))) }, ['days']);
-defs.runtime_sequence = entity({ start_weekday: { enum: weekdays }, end_weekday: { enum: weekdays }, entries: arr(obj({ week_id: ref('uuid'), day_overrides: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }] }])), []) })) }, ['start_weekday', 'end_weekday', 'entries']);
+defs.runtime_sequence = entity({ start_weekday: { enum: weekdays }, end_weekday: { enum: weekdays }, entries: arr(obj({ week_id: ref('uuid'), repeat_count: { type: ['integer', 'null'], minimum: 1 }, day_overrides: obj(Object.fromEntries(weekdays.map((day) => [day, { oneOf: [ref('uuid'), { type: 'null' }] }])), []) })) }, ['start_weekday', 'end_weekday', 'entries']);
 defs.runtime_sequence.properties.event_groups = structuredClone(source.$defs.week_sequence.properties.event_groups);
 for (const variant of defs.sequence_event_group.oneOf) {
   variant.required.push('display_name'); variant.properties.display_name.minLength = 0; variant.properties.name = key; delete variant.properties.icon;

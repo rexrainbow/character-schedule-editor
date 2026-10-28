@@ -36,6 +36,7 @@ add('days', 'uses', false, { id: text }, [], (p, c) => p.days.uses(c.id));
 add('days', 'assignSlot', true, { id: text, target, slotId: nullableId, editedSlot: values }, ['id', 'target', 'slotId'], (p, c) => p.days.assignSlot(c.id, c.target, c.slotId, c.editedSlot));
 add('weeks', 'assignDay', true, { id: text, weekday, dayId: nullableId }, ['id', 'weekday', 'dayId'], (p, c) => p.weeks.assignDay(c.id, c.weekday, c.dayId));
 add('weeks', 'assignSlot', true, { id: text, weekday, target, slotId: nullableId, editedSlot: values }, ['id', 'weekday', 'target', 'slotId'], (p, c) => p.weeks.assignSlot(c.id, c.weekday, c.target, c.slotId, c.editedSlot));
+add('sequences', 'setRepeat', true, { id: text, rowId: text, count: { type: ['integer', 'null'], minimum: 1 } }, ['id', 'rowId', 'count'], (p, c) => p.sequences.setRepeat(c.id, c.rowId, c.count), 'Total week executions; null means infinite and is allowed only on the last row.');
 for (const action of ['appendWeek', 'replaceWeek', 'moveWeek', 'duplicateWeek', 'removeWeek', 'setOverride', 'setBoundary']) {
   const extra = { appendWeek: ['weekId'], replaceWeek: ['rowId', 'weekId'], moveWeek: ['rowId', 'offset'], duplicateWeek: ['rowId'], removeWeek: ['rowId'], setOverride: ['rowId', 'weekday', 'dayId'], setBoundary: ['boundary', 'weekday'] }[action];
   const fields = { id: text, ...Object.fromEntries(extra.map((key) => [key, key === 'offset' ? integer : key === 'weekday' ? weekday : key === 'dayId' ? { anyOf: [nullableId, { const: 'inherit' }] } : key === 'boundary' ? { enum: ['start', 'end'] } : text])) };

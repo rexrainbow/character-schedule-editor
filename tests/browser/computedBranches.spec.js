@@ -44,7 +44,7 @@ test('multi-branch conversion requires choosing and confirming the result to kee
   page.once('dialog', (d) => d.accept()); await dialog.getByRole('button', { name: 'Keep this result', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'Numeric expression', exact: true })).toHaveText('20');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  const data = await save(page); expect(data.expression_macros[reward].definition).toEqual(numeric(20)); expect(data.expression_macros[reward].symbol).toBe('calc_reward');
+  const data = await save(page); expect(data.expression_macros[reward].definition).toEqual(numeric(20)); expect(data.expression_macros[reward].name).toBe('calc_reward');
 });
 
 test('branch results persist without editor metadata and appear in the simulation trace', async ({ page }) => {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { sequenceEventsFixture, rule } from './sequenceEventsFixture.js';
 import { compileProject, projectToDraft, validateDocument, createDay } from '../src/core/model.js';
 import { compileRuntime } from '../src/core/runtimeModel.js';
-import { daySimulationPlan, simulateSequenceDay } from '../src/core/daySimulationModel.js';
+import { daySimulationPlan, simulateSequenceDay } from './reference/daySimulationModel.js';
 import { eventGroupErrors } from '../src/core/sequenceEvents.js';
 import { dayUses } from '../src/core/dayUses.js';
 import { deleteSharedDay } from '../src/core/weekModel.js';

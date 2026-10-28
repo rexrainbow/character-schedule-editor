@@ -1,0 +1,37 @@
+import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { compileProject } from '../../src/core/model.js';
+import { sequenceEventsFixture } from '../sequenceEventsFixture.js';
+import { navigate, exportProject } from './navigation.js';
+
+for (const mobile of [false, true]) test(`week repetition controls save finite/infinite settings and preserve template layout (${mobile ? 'mobile' : 'desktop'})`, async ({ page }) => {
+  if (mobile) await page.setViewportSize({ width: 600, height: 900 });
+  const { draft, sequence } = sequenceEventsFixture();
+  await page.goto('/');
+  await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'repeat.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compileProject(draft).data)) });
+  await navigate(page, 'sequences');
+  const row = (index) => page.getByRole('group', { name: `Week ${index}`, exact: true });
+  const mode = (index) => row(index).getByRole('combobox', { name: 'Executions', exact: true });
+  await mode(1).selectOption('finite');
+  await row(1).getByRole('spinbutton', { name: 'Total week executions', exact: true }).fill('3');
+  await row(1).getByRole('spinbutton', { name: 'Total week executions', exact: true }).press('Tab');
+  await expect(row(2).locator('.sequence-day-number').first()).toHaveText('Day 22');
+  await expect(mode(1).locator('option[value=infinite]')).toHaveAttribute('disabled', '');
+  await mode(3).selectOption('infinite');
+  await expect(page.getByRole('button', { name: 'Add week row', exact: true })).toBeDisabled();
+  await expect(row(3).getByRole('button', { name: 'Duplicate week row', exact: true })).toBeDisabled();
+  await expect(page.locator('.sequence-end-flag')).toHaveCount(0);
+  const pending = page.waitForEvent('download'); await exportProject(page);
+  const data = JSON.parse(await readFile(await (await pending).path(), 'utf8'));
+  expect(data.week_sequences[sequence.id].week_repeat_counts).toEqual([3, 1, null]);
+  await page.screenshot({ path: `artifacts/week-repeat-${mobile ? 'mobile' : 'desktop'}.png` });
+  await mode(3).selectOption('once');
+  await expect(page.locator('.sequence-end-flag')).toHaveCount(7);
+  await expect(page.getByRole('button', { name: 'Add week row', exact: true })).toBeEnabled();
+  const input = row(1).getByRole('spinbutton', { name: 'Total week executions', exact: true });
+  await input.fill('0'); await input.press('Tab');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await input.fill('2'); await input.press('Tab');
+  await expect(input).toHaveAttribute('aria-invalid', 'false');
+  await expect(row(2).locator('.sequence-day-number').first()).toHaveText('Day 15');
+});

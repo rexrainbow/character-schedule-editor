@@ -1124,6 +1124,18 @@
         "description": {
           "type": "string",
           "description": "Optional editor/blueprint explanation. Does not affect execution."
+        },
+        "week_repeat_counts": {
+          "type": "array",
+          "description": "Total executions for each week reference, aligned with week_schedule_ids. Positive integer or null for infinite; infinite must be last. Omitted means one each.",
+          "items": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 1286742750677284
+          }
         }
       },
       "additionalProperties": false

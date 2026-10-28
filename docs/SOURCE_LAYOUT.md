@@ -10,6 +10,8 @@ src/
 │  ├─ model.js              # 專案存檔與工作資料的轉換
 │  ├─ builtinTaskModel.js   # 內建任務純資料定義
 │  └─ ...Model.js           # 各類物件的資料規則
+├─ runtime/                # UUID／name 共用執行核心、checkpoint 與 opt-in 診斷事件
+├─ simulation/             # 模擬輸入、唯讀計畫、診斷紀錄收集與 GUI 結果轉接
 ├─ node/                    # Node 專用，不進入網頁建置
 │  ├─ main.js               # MCP stdio 啟動入口
 │  ├─ projectService.js     # 專案狀態、版本、請求佇列與通知
@@ -42,3 +44,6 @@ import { createProjectSession } from './src/core/projectApi.js';
 測試仍位於根目錄的 `tests/`，瀏覽器測試位於 `tests/browser/`，生成工具位於 `scripts/`。Schema 產生器的輸入及輸出均使用 `src/schemas/`，圖示產生器使用 `src/icons/`；建置結果仍輸出至 `dist/`。
 
 Node 服務與共用命令見 [MCP_SERVER.md](./MCP_SERVER.md)，GUI 即時同步與兩種啟動方式見 [GUI_SYNC.md](./GUI_SYNC.md)。GitHub Pages 固定使用純網頁模式。Project API 用法詳見 [PROJECT_API.md](./PROJECT_API.md)。
+## 新增的 Runtime 核心
+
+`src/runtime/` 為獨立執行核心，公開入口為 `index.js`，內含 Program、DayExecution、EventOccurrence、ExecutionMachine、Evaluator、Runtime 與 MemoryCheckpointStore。它不依賴 GUI、Node.js I/O 或 MCP；重用部分 `core/` 的純資料規則與專案驗證。模擬 GUI 已透過 `src/simulation/` 改接 runtime；`core/simulationModel.js` 與 `daySimulationModel.js` 為新介面的 facade。舊同步實作只保留在 `tests/reference/` 比對。既有 `core/runtimeModel.js` 匯出器尚未改接新 Program 格式。使用方式見 [runtime README](../src/runtime/README.md)。

@@ -129,7 +129,7 @@ export function compileRuntime(draft, t = translator('en')) {
       const id = week.days[weekday], item = draft.days.find((item) => item.id === id);
       return [weekday, item?.scope === 'week_private' ? day(item) : id];
     })) }])),
-    sequences: Object.fromEntries(draft.sequences.map((sequence) => [sequence.id, { ...metadata(sequence), start_weekday: sequence.startWeekday ?? 'mon', end_weekday: sequence.endWeekday ?? 'sun', ...(sequence.eventGroups === undefined ? {} : { event_groups: eventGroupsToData(sequence.eventGroups, draft.days, true) }), entries: sequence.rows.map((row) => ({ week_id: row.weekId, day_overrides: { ...row.overrides } })) }])),
+    sequences: Object.fromEntries(draft.sequences.map((sequence) => [sequence.id, { ...metadata(sequence), start_weekday: sequence.startWeekday ?? 'mon', end_weekday: sequence.endWeekday ?? 'sun', ...(sequence.eventGroups === undefined ? {} : { event_groups: eventGroupsToData(sequence.eventGroups, draft.days, true) }), entries: sequence.rows.map((row) => ({ week_id: row.weekId, repeat_count: row.repeatCount === undefined ? 1 : row.repeatCount, day_overrides: { ...row.overrides } })) }])),
     exports: {},
   };
   data.environment_requirements = { variables: [...requirements.values()], tasks: [...tasks.values()], ...(draft.environment ? { environment: structuredClone(draft.environment) } : {}) };

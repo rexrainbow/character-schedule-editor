@@ -1,3 +1,4 @@
+import { sequenceRepeatErrors } from './sequenceExecution.js';
 import { newSymbol } from './symbols.js';
 import { clearEngineKey } from './engineKeyModel.js';
 import { clone, nextSlotId, uid } from './model.js';
@@ -66,4 +67,12 @@ export function weekSequenceReferenceCount(draft, weekId) {
 
 export function dayOverrideReferenceCount(draft, dayId) {
   return (draft.sequences ?? []).reduce((count, sequence) => count + sequence.rows.reduce((sum, row) => sum + Object.values(row.overrides).filter((id) => id === dayId).length, 0), 0);
+}
+
+export function setSequenceRepeat(sequence, rowUid, repeatCount) {
+  if (!sequence.rows.some((row) => row.uid === rowUid)) throw new Error('Unknown row');
+  const next = { ...sequence, rows: sequence.rows.map((row) => row.uid === rowUid ? { ...row, repeatCount } : row) };
+  const errors = sequenceRepeatErrors(next);
+  if (errors.length) throw Object.assign(new Error(errors[0].key), errors[0]);
+  return normalizeSequenceRange(next);
 }

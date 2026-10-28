@@ -39,7 +39,14 @@ export default function DayReferencePreview({ day, draft, week, weekday, overrid
     if (!position) return;
     const outside = (event) => { if (!anchor.current?.contains(event.target) && !panel.current?.contains(event.target)) setPosition(null); };
     const key = (event) => { if (event.key === 'Escape') { clearTimeout(timer.current); setPosition(null); if (panel.current?.contains(document.activeElement)) { skipFocus.current = true; anchor.current?.querySelector('button')?.focus(); } } };
-    const move = (event) => { if (!panel.current?.contains(event.target)) setPosition(null); };
+    const move = (event) => {
+      if (panel.current?.contains(event.target)) return;
+      // Keyboard focus can scroll the overflow list before its preview is shown.
+      if (event.target.classList?.contains('sequence-event-overflow') && event.target.contains(anchor.current)) {
+        const rect = anchor.current?.getBoundingClientRect(), bounds = event.target.getBoundingClientRect();
+        if (rect && rect.bottom > bounds.top && rect.top < bounds.bottom) show(); else setPosition(null);
+      } else setPosition(null);
+    };
     document.addEventListener('pointerdown', outside); document.addEventListener('focusin', outside); document.addEventListener('keydown', key);
     window.addEventListener('resize', move); window.addEventListener('scroll', move, true);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('focusin', outside); document.removeEventListener('keydown', key); window.removeEventListener('resize', move); window.removeEventListener('scroll', move, true); };

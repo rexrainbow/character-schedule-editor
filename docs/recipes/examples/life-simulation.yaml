@@ -9,6 +9,7 @@ variables:
   worked_shifts: { initial: 0, min: 0, integer: true, display_name: 本周完成班數 }
 expressions:
   weekly_pay:
+    display_name: 本期薪資
     description: 依本周完成班數結算薪資，包含全勤獎金與低出勤扣款。
     type: number
     branches:
@@ -24,87 +25,103 @@ expressions:
       - when: null
         value: "0"
         description: 未出勤，不發薪資。
-    display_name: 本期薪資
 task_macros:
   work:
+    display_name: 工作動作
     steps:
       - { builtin: increment_variable, target: stamina, value: "-12" }
       - { builtin: increment_variable, target: worked_shifts, value: "1" }
-    display_name: 工作動作
   rest:
+    display_name: 休息動作
     steps:
       - { builtin: increment_variable, target: stamina, value: "15" }
-    display_name: 休息動作
   entertain:
-    steps:
-      - { builtin: increment_variable, target: money, value: "-30" }
-      - { builtin: increment_variable, target: mood, value: "18" }
     display_name: 娛樂動作
+    mode: sequence
+    parameters: {}
+    eligibility: (vars.money >= 30)
+    steps:
+      - builtin: increment_variable
+        target: money
+        value: "-30"
+      - builtin: increment_variable
+        target: mood
+        value: "18"
   payroll:
+    display_name: 結算工資
     steps:
       - { builtin: increment_variable, target: money, value: expr.weekly_pay }
       - { builtin: reset_variable, target: worked_shifts }
-    display_name: 結算工資
   mood_decay:
+    display_name: 心情消耗
     steps:
       - { builtin: increment_variable, target: mood, value: "-6" }
-    display_name: 心情消耗
 slots:
   work:
-    branches: [ { when: null, run: { macro: work } } ]
     display_name: 工作
+    branches: [ { when: null, run: { macro: work } } ]
   rest:
-    branches: [ { when: null, run: { macro: rest } } ]
     display_name: 休息
+    branches: [ { when: null, run: { macro: rest } } ]
   entertain:
-    branches: [ { when: null, run: { macro: entertain } } ]
     display_name: 娛樂
+    mode: priority
+    candidates:
+      - macro: entertain
+        arguments: {}
+      - macro: rest
+        arguments: {}
   payroll:
-    branches: [ { when: null, run: { macro: payroll } } ]
     display_name: 薪資結算
+    branches: [ { when: null, run: { macro: payroll } } ]
   mood_decay:
-    branches: [ { when: null, run: { macro: mood_decay } } ]
     display_name: 每日心情消耗
-  doctor: { display_name: 看醫生 }
-  slumber: { display_name: 沉睡 }
+    branches: [ { when: null, run: { macro: mood_decay } } ]
+  doctor:
+    display_name: 看醫生
+  slumber:
+    display_name: 沉睡
 days:
   working:
-    {
-      slots: [ work, work, rest ],
-      tags: [ 工作 ],
-      purposes: [ main ],
-      display_name: 工作日
-    }
-  holiday: { slots: [ entertain, rest, rest ], purposes: [ main ], display_name: 休假日 }
-  payroll: { start: payroll, purposes: [ overlay ], display_name: 結算日 }
-  daily_mood: { end: mood_decay, purposes: [ overlay ], display_name: 心情消耗日 }
+    display_name: 工作日
+    slots: [ work, work, rest ]
+    tags: [ 工作 ]
+    purposes: [ main ]
+  holiday:
+    display_name: 休假日
+    slots: [ entertain, entertain, rest ]
+    purposes: [ main ]
+  payroll:
+    display_name: 結算日
+    start: payroll
+    purposes: [ overlay ]
+  daily_mood:
+    display_name: 心情消耗日
+    end: mood_decay
+    purposes: [ overlay ]
   cold:
-    {
-      slots: [ doctor, slumber, slumber ],
-      purposes: [ interrupt ],
-      display_name: 感冒日
-    }
+    display_name: 感冒日
+    slots: [ doctor, slumber, slumber ]
+    purposes: [ interrupt ]
 weeks:
   normal:
-    days:
-      {
-        mon: working,
-        tue: working,
-        wed: working,
-        thu: working,
-        fri: working,
-        sat: holiday,
-        sun: holiday
-      }
     display_name: 正常周
+    days:
+      mon: working
+      tue: working
+      wed: working
+      thu: working
+      fri: working
+      sat: holiday
+      sun: holiday
 sequences:
   life:
-    weeks: [ normal, normal, normal, normal ]
+    weeks: [ { week: normal, repeat: null } ]
     events:
       daily_mood:
         kind: periodic
         start: { week: 1, weekday: mon }
-        end: { week: 4, weekday: sun }
+        end: { week: 1, weekday: sun }
         every: 1
         day: daily_mood
         execution: overlay
@@ -113,8 +130,9 @@ sequences:
       payroll:
         kind: periodic
         start: { week: 1, weekday: sun }
-        end: { week: 4, weekday: sun }
-        every: 7
+        end: { week: 1, weekday: sun }
+        # Only Sunday matches this template range; every matching date is once per week.
+        every: 1
         day: payroll
         execution: overlay
         priority: 9
@@ -122,14 +140,14 @@ sequences:
       cold:
         kind: probability
         start: { week: 1, weekday: mon }
-        end: { week: 4, weekday: sun }
+        end: { week: 1, weekday: sun }
         probability: 4
         cooldown_days: 7
         day: cold
         execution: interrupt_main
         priority: 1
         display_name: 感冒
-    display_name: 四周生活
+    display_name: 單周無限循環生活
 builtins:
   increment_variable: {}
   reset_variable: {}

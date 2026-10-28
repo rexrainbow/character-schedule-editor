@@ -6,7 +6,7 @@ import { compileProject, projectToDraft, validateDocument } from '../src/core/mo
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 import { compileEnvironment, createProjectWithEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { addEnumNode, changeEnumDefinitions, duplicateEnumSubtree, enumPath, enumSubtree, enumTreeErrors, moveEnumNode } from '../src/core/enumDefinitions.js';
-import { simulateSequenceDay } from '../src/core/daySimulationModel.js';
+import { simulateSequenceDay } from './reference/daySimulationModel.js';
 import { changeMacroParameterType } from '../src/core/taskMacroModel.js';
 import { translator } from '../src/i18n/index.js';
 const t = translator('en');

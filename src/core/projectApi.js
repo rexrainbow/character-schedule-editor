@@ -1,3 +1,4 @@
+import { sequenceRepeatErrors } from './sequenceExecution.js';
 import { normalizeSymbols, symbolErrors } from './symbols.js';
 import { scheduledDayReferences } from './scheduledEvents.js';
 import { eventDayIds } from './eventDaySource.js';
@@ -6,7 +7,7 @@ import { subtreeIds } from './operandModel.js';
 // Platform-independent project editing. No React, browser storage or filesystem APIs.
 import { createProject, createSlot, duplicateSlot, createDay, duplicateDay, compileProject, projectToDraft, validateDocument, deleteSlotAndReferences, assignCell, applySlotEdit, referenceCount } from './model.js';
 import { createWeek, duplicateWeek, deleteWeek, deleteSharedDay, setWeekDay, changeWeekCell, dayReferenceCount } from './weekModel.js';
-import { createSequence, duplicateSequence, addSequenceRow, replaceSequenceWeek, moveSequenceRow, duplicateSequenceRow, removeSequenceRow, setSequenceOverride, weekSequenceReferenceCount, dayOverrideReferenceCount } from './sequenceModel.js';
+import { createSequence, duplicateSequence, addSequenceRow, replaceSequenceWeek, moveSequenceRow, duplicateSequenceRow, removeSequenceRow, setSequenceOverride, setSequenceRepeat, weekSequenceReferenceCount, dayOverrideReferenceCount } from './sequenceModel.js';
 import { setSequenceBoundary, sequenceRange } from './sequenceRange.js';
 import { newEventGroup, changeEventStart, duplicateEventGroup, eventGroupName, countDayReferences, positionDate, datePosition } from './sequenceEvents.js';
 import { eventCatalog, eventReferencesTo, eventUsageErrors } from './eventReferences.js';
@@ -227,7 +228,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
     };
   }
   function sequenceAction(name, id, transform) {
-    return apply(`sequences.${name}`, (draft) => { const sequence = requireItem(draft.sequences, id, '/sequences'), next = transform(draft, sequence); return { draft: { ...draft, sequences: patchItem(draft.sequences, id, next) }, value: next }; });
+    return apply(`sequences.${name}`, (draft) => { const sequence = requireItem(draft.sequences, id, '/sequences'), next = transform(draft, sequence); const errors = sequenceRepeatErrors(next); if (errors.length) fail(errors[0].key, errors[0].path); return { draft: { ...draft, sequences: patchItem(draft.sequences, id, next) }, value: next }; });
   }
   const api = {
     getSnapshot: () => snapshot,
@@ -302,6 +303,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
   api.sequences.duplicateWeek = (id, rowId) => sequenceAction('duplicateWeek', id, (d, s) => duplicateSequenceRow(s, rowId));
   api.sequences.removeWeek = (id, rowId) => sequenceAction('removeWeek', id, (d, s) => removeSequenceRow(s, rowId));
   api.sequences.setOverride = (id, rowId, weekday, dayId) => sequenceAction('setOverride', id, (d, s) => setSequenceOverride(d, s, rowId, weekday, dayId));
+  api.sequences.setRepeat = (id, rowId, count) => sequenceAction('setRepeat', id, (d, s) => setSequenceRepeat(s, rowId, count));
   api.sequences.setBoundary = (id, boundary, weekday) => sequenceAction('setBoundary', id, (d, s) => setSequenceBoundary(s, boundary, weekday));
   api.sequences.events = (id) => {
     function edit(name, transform, pick = (groups, sequence) => sequence) {

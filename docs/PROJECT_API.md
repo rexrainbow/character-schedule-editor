@@ -45,7 +45,7 @@ API 使用現有 JavaScript model 的欄位：行程為 `name`、`slotIds`、`ro
 | `slots` | `list`、`get`、`create`、`update`、`replace`、`duplicate`、`references`、`remove` |
 | `days` | 同上，另有 `assignSlot`、手動用途查詢 `uses(id?)`，`list({ use })` 可依用途篩選 |
 | `weeks` | 同上，另有 `assignDay`、`assignSlot` |
-| `sequences` | 同上，另有 `appendWeek`、`replaceWeek`、`moveWeek`、`duplicateWeek`、`removeWeek`、`setOverride`、`setBoundary` |
+| `sequences` | 同上，另有 `appendWeek`、`replaceWeek`、`moveWeek`、`duplicateWeek`、`removeWeek`、`setOverride`、`setBoundary`、`setRepeat`（總執行次數；null 為末筆無限重複，詳見 [周重複](WEEK_REPEAT.md)） |
 | `sequences.events(sequenceId)` | `list`、`get`、`create`、`update`、`replace`、`duplicate`、`remove`、`references`、`moveStart` |
 | `variables` | `list`、`get`、`create`、`update`、`unset`、`duplicate`、`remove`、`references`、`move`、`addProgress` |
 | `expressions` | `list`、`get`、`create`、`update`、`duplicate`、`remove`、`references`、`setDefinition` |

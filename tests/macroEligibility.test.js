@@ -4,7 +4,7 @@ import { priorityMacroFixture, constant, reference } from './priorityMacroFixtur
 import { createTaskMacro, createTaskStep, changeMacroMode } from '../src/core/taskMacroModel.js';
 import { compileProject, projectToDraft, validateDocument } from '../src/core/model.js';
 import { compileRuntime } from '../src/core/runtimeModel.js';
-import { simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { simulateSlot, simulationInitialValues } from './reference/simulationModel.js';
 import { addOperandNode } from '../src/core/operandModel.js';
 const comparison = (value) => ({ kind: 'comparison', operand_a: constant(value), comparator: '==', operand_b: constant(true) });
 const call = (id) => ({ task_macro_id: id, arguments: {} });

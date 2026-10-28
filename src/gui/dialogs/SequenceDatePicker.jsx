@@ -1,8 +1,9 @@
+import { firstExecutionPosition } from '../../core/sequenceExecution.js';
 import { useState } from 'react';
 import { WEEKDAYS } from '../../core/scheduleConstants.js';
 import { sequenceDate } from '../../core/sequenceRange.js';
 import { resolveSequenceDay } from '../../core/sequenceModel.js';
-import { datePosition, eventOccurs } from '../../core/sequenceEvents.js';
+import { datePosition, eventOccurs, eventOccursAtExecution } from '../../core/sequenceEvents.js';
 import { eventKind } from '../../core/eventReferences.js';
 
 export default function SequenceDatePicker({ draft, sequence, group, field, onPick, t, executionOnly = false }) {
@@ -16,7 +17,7 @@ export default function SequenceDatePicker({ draft, sequence, group, field, onPi
         return <div className="event-calendar-week" key={row.uid}><strong>{t('weekNumber', { count: index + 1 })}</strong>{WEEKDAYS.map((weekday, dayIndex) => {
           const date = { week: index + 1, weekday }, position = index * 7 + dayIndex, info = sequenceDate(sequence, index, weekday), { day } = resolveSequenceDay(draft, row, weekday);
           const selected = datePosition(group[field]) === position, disabled = executionOnly ? !info.active : field === 'end' && position < datePosition(group.start);
-          return <button key={weekday} className={`event-calendar-date ${info.active ? '' : 'inactive-date'} ${!executionOnly && eventOccurs(group, position, sequence, draft) ? 'occurrence-date' : ''}`} aria-label={`${t('weekNumber', { count: index + 1 })} / ${t(weekday)}`} aria-pressed={selected} title={day?.name || t('unassigned')} disabled={disabled} onClick={() => onPick(date)}><span>{info.active ? t('sequenceDayNumber', { count: info.dayNumber }) : t(info.before ? 'sequenceBeforeStart' : 'sequenceAfterEnd')}</span>{!executionOnly && datePosition(group.start) === position && <small>{t('eventStart')}</small>}</button>;
+          return <button key={weekday} className={`event-calendar-date ${info.active ? '' : 'inactive-date'} ${!executionOnly && (firstExecutionPosition(sequence, position) === null ? eventOccurs(group, position, sequence, draft) : eventOccursAtExecution(group, firstExecutionPosition(sequence, position), sequence, draft)) ? 'occurrence-date' : ''}`} aria-label={`${t('weekNumber', { count: index + 1 })} / ${t(weekday)}`} aria-pressed={selected} title={day?.name || t('unassigned')} disabled={disabled} onClick={() => onPick(date)}><span>{info.active ? t('sequenceDayNumber', { count: info.dayNumber }) : t(info.before ? 'sequenceBeforeStart' : 'sequenceAfterEnd')}</span>{!executionOnly && datePosition(group.start) === position && <small>{t('eventStart')}</small>}</button>;
         })}</div>;
       })}</div></div>
     <div className="event-calendar-pagination"><button className="button secondary" disabled={page === 0} onClick={() => setPage(page - 1)}>{t('eventPreviousWeeks')}</button><span>{t('eventWeeksShown', { first: first + 1, last })}</span><button className="button secondary" disabled={last >= sequence.rows.length} onClick={() => setPage(page + 1)}>{t('eventNextWeeks')}</button></div>

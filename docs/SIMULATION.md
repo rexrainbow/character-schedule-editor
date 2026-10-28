@@ -1,6 +1,12 @@
 # 行程模擬
 
-專案選單提供第三種「模擬模式」，支援單一時段行程與周序列某日的全天模擬。求值器獨立於 React，位於 `src/core/simulationModel.js`；全天計畫與執行位於 `src/core/daySimulationModel.js`，共用同一套條件、計算式與任務求值邏輯。
+模擬模式另有 [連續模擬](CONTINUOUS_SIMULATION.md) 分頁，觀察多日事件、日終／周末變數快照與累積副作用。以下敘述針對原本的時段／單日微觀模擬。
+
+專案選單提供第三種「模擬模式」，支援單一時段行程與周序列某日的全天模擬。執行與計算式求值已改用 `src/runtime/`；`src/simulation/` 負責測試輸入、目標依賴、手動事件決策，以及將 diagnostic event 轉成多語系樹狀紀錄。`src/core/simulationModel.js` 與 `daySimulationModel.js` 只保留新介面的 re-export，不含第二套執行邏輯。
+
+模擬使用 UUID Program、`diagnostics: true`、`unhandledTasks: 'record'`，不執行真正 engine handler。模擬結果帶 `engine: 'runtime'`。程式介面的 `simulateSlot()`／`simulateSequenceDay()` 現在回傳 Promise；舊同步實作僅保留在 `tests/reference/` 作為比對基準。
+
+每次執行為獨立的非同步 session。執行期間 Run 禁用並標示 busy，可按 Cancel；更改輸入、專案資料或離開畫面也會中止舊執行。完成前不允許套用數值，過期結果不回寫。一般 checkpoint 檔案管理仍保留於 runtime API；連續模擬內部保存每日執行前 checkpoint，以支援當日詳細重跑。
 
 ## 操作
 

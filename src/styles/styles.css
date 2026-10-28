@@ -131,6 +131,8 @@ main { min-width: 0; background: radial-gradient(ellipse at top right, #1a19272b
 .sidebar-empty { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--muted); padding: 30px 12px; font-size: 12px; line-height: 1.8; }
 .notice { display: flex; align-items: center; justify-content: space-between; background: #20352c; color: #b2e5c7; padding: 8px 30px; font-size: 13px; border-bottom: 1px solid #365344; }
 .notice-error { background: #38232c; color: #ffc2cd; border-color: #623544; }
+.notice.app-toast { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 1400; width: max-content; max-width: calc(100vw - 32px); padding: 12px 16px; justify-content: flex-start; gap: 10px; background: #232332; color: #e2e5ed; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; box-shadow: 0 8px 24px #0006; overflow-wrap: anywhere; pointer-events: none; }
+.app-toast>svg { color: var(--accent); }
 .import-issues { padding: 16px 30px; background: #2a1f25; font-size: 13px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (min-width: 1600px) { .workspace { grid-template-columns: 300px minmax(0, 1fr); } }

@@ -4,7 +4,7 @@ import { compileProject, projectToDraft, validateDocument } from '../src/core/mo
 import { compileEnvironment, createProjectWithEnvironment, prepareEnvironmentImport } from '../src/core/environmentModel.js';
 import { compileRuntime, validateRuntimeDocument } from '../src/core/runtimeModel.js';
 import { changeComputedMode, applyComputedDefinition, duplicateOperandSubtree, deleteOperandNode, changeOperandType, computedErrors } from '../src/core/operandModel.js';
-import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues } from '../src/core/simulationModel.js';
+import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues } from './reference/simulationModel.js';
 import { computedBranchFixture, constant, numeric, boolean } from './computedBranchFixture.js';
 
 test('numeric and boolean branch definitions preserve project/environment/runtime structure and typed results', () => {
