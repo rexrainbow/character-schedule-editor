@@ -1,4 +1,5 @@
 import AppNotice from './components/AppNotice.jsx';
+import HelpDialog from './dialogs/HelpDialog.jsx';
 import ContinuousSimulationEditor from './editors/ContinuousSimulationEditor.jsx';
 import { scheduledDayReferences } from '../core/scheduledEvents.js';
 import { eventDayIds } from '../core/eventDaySource.js';
@@ -33,7 +34,7 @@ import { TaskContext, TaskMacrosContext, BuiltinTasksContext, EventCatalogContex
 import OperandsEditor from './editors/OperandsEditor.jsx';
 import SlotIcon from './components/SlotIcon.jsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Download, FolderPlus, GitBranch, Globe2, Layers3, Link, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload } from 'lucide-react';
+import { ChevronDown, ChevronRight, CircleHelp, Download, FolderPlus, GitBranch, Globe2, Layers3, Link, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings2, Upload } from 'lucide-react';
 import ActionMenu from './components/ActionMenu.jsx';
 import { referenceCount, validateDocument } from '../core/model.js';
 import { resolveLocale, translator } from '../i18n/index.js';
@@ -58,6 +59,8 @@ export default function App() {
   const [initialized, setInitialized] = useState(false);
   const [settings, setSettings] = useState(null);
   const [reportDialog, setReportDialog] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpTrigger = useRef(null);
   const [mode, setMode] = useState('user');
   const [modeTabs, setModeTabs] = useState({ user: 'days', environment: 'operands', simulation: 'simulation' });
   const [simulation, setSimulation] = useState(null);
@@ -121,6 +124,7 @@ export default function App() {
   const locationObject = currentLocation.eventId ? locationDefinition?.eventGroups?.find((group) => group.id === currentLocation.eventId) : locationDefinition;
   const locationName = (locationObject?.display_name ?? locationObject?.name) || locationObject?.symbol;
   function applyLocation(location) {
+    setHelpOpen(false);
     setMode(location.mode); setModeTabs((previous) => ({ ...previous, [location.mode]: location.page }));
     const select = { slots: setSelectedSlot, days: setSelectedDay, weeks: setSelectedWeek, sequences: setSelectedSequence }[location.page];
     if (select) select(location.id);
@@ -363,6 +367,7 @@ export default function App() {
       <div className="header-actions">{initialized && <button type="button" className="icon-button" aria-label={t('copyEditorLink')} title={t('copyEditorLink')} onClick={() => copyEditorLink()}><Link size={17} /></button>}<label className="language-picker"><Globe2 size={16} /><select aria-label={t('language')} value={preference} onChange={(e) => setPreference(e.target.value)}><option value="system">{t('system')}</option><option value="zh-TW">繁體中文</option><option value="en">English</option></select></label>
         {initialized && mode === 'environment' && <ActionMenu label={t('environmentActions')} icon={Settings2} items={[{ label: t('environmentSettings'), icon: Settings2, onClick: () => setEnvironmentSettings(true) }, { label: t('importEnvironment'), icon: Upload, onClick: () => environmentInput.current.click() }, { label: t('exportEnvironment'), icon: Download, onClick: exportEnvironmentFile }]} />}
         {initialized && mode === 'user' && <ActionMenu label={t('exportMenu')} triggerClassName="button primary export-button" items={[{ label: t('exportRuntimeOption'), icon: Download, onClick: exportRuntime }, { label: t('exportBlueprintOption'), icon: Download, onClick: exportBlueprintFile }, { label: t('exportReportOption'), icon: Download, onClick: () => setReportDialog(true) }, { label: t('exportProjectOption'), icon: Download, onClick: exportFile }]}><Download size={17} /><span>{t('exportMenu')}</span><ChevronDown size={14} /></ActionMenu>}
+        <button ref={helpTrigger} type="button" className="icon-button" aria-label={t('help')} title={t('help')} aria-haspopup="dialog" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}><CircleHelp size={19} /></button>
         <input className="sr-only" ref={fileInput} type="file" accept=".json,.yaml,.yml,application/json,application/yaml,text/yaml" aria-label={t('import')} onChange={importFile} />
         {initialized && <input className="sr-only" ref={environmentInput} type="file" accept=".json,application/json" aria-label={t('importEnvironment')} onChange={importEnvironmentFile} />}
       </div>
@@ -389,6 +394,7 @@ export default function App() {
     <footer className="app-footer" title={connection?.file ?? t('unsaved')}><span>{connection ? [t(projectDirty ? 'remoteUnsaved' : 'remoteSaved'), connection.file?.split(/[\\/]/).at(-1) ?? t('remoteNoFile')].join(' · ') : t('unsaved')}</span></footer>
     {serverFileDialog && <ServerFileDialog kind={serverFileDialog} project={project} connection={connection} onOpened={() => { resetNavigation(); setOperationIssues([]); setNotice(null); }} onClose={() => setServerFileDialog(null)} t={t} />}
     {navigation.confirmation && <Dialog title={t('editorLeaveTitle')} t={t} onClose={navigation.cancel} footer={<><button autoFocus className="button secondary" onClick={navigation.cancel}>{t('editorStay')}</button><button className="button primary" onClick={navigation.discard}>{t('editorDiscard')}</button></>}><p>{t('editorLeaveHint')}</p></Dialog>}
+    {helpOpen && <HelpDialog locale={locale} t={t} onClose={() => { setHelpOpen(false); requestAnimationFrame(() => helpTrigger.current?.focus()); }} />}
     {reportDialog && <ReportExportDialog t={t} onExport={exportReport} onClose={() => setReportDialog(false)} />}
     {settings === 'existing' && <ProjectSettings draft={draft} t={t} onSave={saveSettings} onClose={() => setSettings(null)} />}
     {settings === 'new' && <NewProjectDialog t={t} onCreate={createNewProject} onClose={() => setSettings(null)} />}

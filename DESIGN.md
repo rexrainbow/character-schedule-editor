@@ -86,6 +86,8 @@ Expand/collapse details for the trace; source icons jump to the same day/slot de
 
 ### Forms and overlays
 
+The always-available header Help action uses lucide CircleHelp and the existing icon-button. HelpDialog renders the bilingual introduction Markdown documents as a compact semantic table and three short sections. Reuse the shared modal and one body scroller on small screens; desktop targets one-screen reading. Help does not mutate the project or URL, and closing restores focus to its trigger.
+
 Reuse existing native selects when the OS popup is acceptable, the shared Dialog and the existing SequenceDatePicker. Shared descriptions grow with their content up to a scrollable limit instead of requiring drag resizing. Application forms own validation, without native validation bubbles. This task adds no overlay or destructive action.
 
 ### Iconography

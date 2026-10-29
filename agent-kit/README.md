@@ -4,10 +4,10 @@
 
 ## 閱讀順序
 
-1. [系統能力總覽](docs/SYSTEM_SEMANTICS.md)：將需求對應到系統構件。
-2. [Engine 執行語意](docs/ENGINE_SEMANTICS.md)：確認條件、候選、事件排序、變數更新及中斷規則。
-3. [命名規則](docs/NAMING.md)：確認 name 的格式、作用域與引用。
-4. [Blueprint 格式](docs/BLUEPRINT.md) 與 [JSON Schema](schemas/blueprint.schema.json)：撰寫宣告與文字運算式。
+1. [一頁式工具介紹](docs/INTRODUCTION.md)（[English](docs/INTRODUCTION.en.md)）：先掌握工具目的與由周序列到任務的整體結構。
+2. [系統能力總覽](docs/SYSTEM_SEMANTICS.md)：將需求對應到系統構件。
+3. [Engine 執行語意](docs/ENGINE_SEMANTICS.md)：確認條件、候選、事件排序、變數更新及中斷規則。
+4. [命名規則](docs/NAMING.md)、[Blueprint 格式](docs/BLUEPRINT.md) 與 [JSON Schema](schemas/blueprint.schema.json)：確認命名、引用、宣告與文字運算式寫法。
 5. [Recipes](docs/RECIPES.md) 與 [完整 YAML 範例](examples/life-simulation.yaml)：參考具體組合。
 
 ## 編輯與驗證

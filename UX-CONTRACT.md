@@ -11,6 +11,12 @@
 | Toast | AppNotice and inline role=status/Issues | src/gui/components/AppNotice.jsx and shared ui.jsx | Ordinary notices use a one-second lower-left toast; actionable errors remain dismissible inline | tests/browser/toast.spec.js |
 | CRUD | Project API and existing editor navigation | docs/PROJECT_API.md | Simulation is isolated, not a project mutation | Project-equality assertions in browser tests |
 
+## Tool introduction
+
+- The global Help icon is available before a project is loaded and in every editing/simulation mode. Its content follows the active English/Traditional Chinese locale.
+- `HelpDialog` reads `docs/INTRODUCTION.md` and `docs/INTRODUCTION.en.md` directly; the documentation remains the content owner. It uses the shared Dialog, native table semantics, Escape/Close actions and trigger focus restoration.
+- Help is read-only and transient: opening/closing does not change project data, navigation history or editor selection. Desktop targets one screen; narrow screens use the shared modal body scroller.
+
 ## Shareable editor locations
 
 - The canonical owner is `src/gui/navigation/editorLocation.js` with `useEditorLocation.js`; App selections remain UUID-based. Hash routes contain mode, page and persistent name, with optional sequence event name. GitHub Pages requires no server fallback configuration.

@@ -1,10 +1,12 @@
 # Character Schedule Editor
 
+第一次使用可先閱讀 [一頁式工具介紹](INTRODUCTION.md)（[English](INTRODUCTION.en.md)）。網頁右上角的「說明（?）」在載入專案前及各編輯模式都可開啟同一份介紹，內容跟隨介面語系。
+
 各編輯器支援可分享的 [編輯位置連結](EDITOR_LINKS.md)，包含模式、物件與周序列事件，並支援瀏覽器上一頁／下一頁及面板草稿保護。
 
 ## Agent 離線文件包
 
-執行 `npm run build:agent-kit`，會先更新 Blueprint Schema，再將 YAML 格式、Engine 語意、命名規則、能力總覽、Recipes 與完整範例輸出至 `agent-kit/`。產物提供閱讀順序與驗證說明，可整包分享給 agent；不包含 MCP server、GUI 或 parser。來源文件仍維護於原位置，產生時改寫相對連結，未收錄文件改為專案路徑說明，並檢查缺檔及失效的本地檔案連結。`agent-kit/` 已加入 `.gitignore`，每次重新產生會替換既有產物。
+執行 `npm run build:agent-kit`，會先更新 Blueprint Schema，再將中英文一頁式介紹、YAML 格式、Engine 語意、命名規則、能力總覽、Recipes 與完整範例輸出至 `agent-kit/`。產物提供從工具介紹開始的閱讀順序與驗證說明，可整包分享給 agent；不包含 MCP server、GUI 或 parser。來源文件仍維護於原位置，產生時改寫相對連結，未收錄文件改為專案路徑說明，並檢查缺檔及失效的本地檔案連結。`agent-kit/` 已加入 `.gitignore`，每次重新產生會替換既有產物。
 
 模擬模式提供 [連續模擬](CONTINUOUS_SIMULATION.md)，可查看多日事件、日終／周末快照、來源與任務副作用，以及由 checkpoint 詳細重跑某一天。
 
