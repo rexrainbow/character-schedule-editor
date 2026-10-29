@@ -13,7 +13,7 @@ test('curated catalog has unique, bundled SVG data and searches both languages',
   for (const item of catalog.filter((item) => item.category !== 'colors')) { assert.ok(data[item.id].body); assert.equal(data[item.id].width, 24); }
   assert.equal(colorIcons.length, 8);
   assert.deepEqual(catalog.slice(0, 8), colorIcons);
-  assert.equal(findIcons('blue', 'colors')[0].id, 'color:blue');
+  assert.equal(findIcons('blue', 'colors')[0].id, 'blue');
   assert.equal(findIcons('看醫生')[0].id, 'tabler:stethoscope');
   assert.equal(findIcons('DOCTOR', 'health')[0].id, 'tabler:stethoscope');
   assert.equal(findIcons('DOCTOR', 'work').length, 0);

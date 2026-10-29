@@ -8,7 +8,7 @@ Plan what a character does and when, then adapt those activities to their state 
 | Week schedule | Assign a day schedule to each weekday | Work on weekdays, rest on weekends |
 | Day schedule | Arrange slots and day/slot start and end actions | Work in the morning and afternoon, rest in the evening |
 | Slot schedule | Define an activity, optionally chosen by conditions | Work if stamina is sufficient; otherwise rest |
-| Task macro | Combine tasks into sequences, branches or priority candidates | Work: spend stamina and count completed shifts |
+| Task macro | Sequence tasks or choose by branch, priority or weight | Work: spend stamina and count completed shifts |
 | Task | Perform one specific action | Increase money, set a variable or reserve an event |
 | Variables / expression macros | Store state or calculate results shared across all levels | Stamina, completed shifts and weekly pay |
 

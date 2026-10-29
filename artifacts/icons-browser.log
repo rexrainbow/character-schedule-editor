@@ -1,0 +1,74 @@
+[WebServer] (node:32184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 12 tests using 1 worker
+
+(node:36548) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\browser\enumDefinitions.spec.js:12:1 › both modes expose enum definitions, nested creation and task references use the shared catalog (4.6s)
+  ok  2 tests\browser\enumDefinitions.spec.js:43:1 › live enum option names reach callers, referenced subtree deletion is blocked and simulation resolves sources (2.6s)
+  ok  3 tests\browser\enumDefinitions.spec.js:60:1 › application enum creation, source selection and readonly provided definitions fit Chinese mobile (3.3s)
+  ok  4 tests\browser\enumParameters.spec.js:13:1 › option definitions support names, unique values, ordering and persisted environment contracts (3.3s)
+  ok  5 tests\browser\enumParameters.spec.js:32:1 › macro option parameters forward into probability adjustments and can be selected at invocation (3.3s)
+  ok  6 tests\browser\enumParameters.spec.js:53:1 › Chinese mobile enum definitions wrap and used values cannot be removed (1.8s)
+  ok  7 tests\browser\iconAppearance.spec.js:29:1 › parameter and enum icons share composition, contrast, cancel and project/Blueprint persistence (5.6s)
+  x   8 tests\browser\iconAppearance.spec.js:60:1 › fixed builtin option icons remain editable and the picker fits a narrow Traditional Chinese screen (30.1s)
+(node:14784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  9 tests\browser\icons.spec.js:25:1 › eight solid colors appear first, render without a glyph and survive export and import (5.7s)
+  ok 10 tests\browser\icons.spec.js:47:1 › one offline catalog edits all entity types and updates relationship icons (6.6s)
+  x  11 tests\browser\icons.spec.js:69:1 › picker cancel, translated search, clear, and editor-dialog drafts stay isolated (8.2s)
+(node:10024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 12 tests\browser\icons.spec.js:99:1 › unknown imported names display locally and cancel preserves their original value (3.5s)
+
+
+  1) tests\browser\iconAppearance.spec.js:60:1 › fixed builtin option icons remain editable and the picker fits a narrow Traditional Chinese screen 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Adjust probability event', exact: true })
+
+
+      61 |   await page.setViewportSize({ width: 390, height: 844 });
+      62 |   await load(page); await navigate(page, 'tasks');
+    > 63 |   await page.getByRole('button', { name: translator('en')('adjustProbabilityEvent'), exact: true }).click();
+         |                                                                                                     ^
+      64 |   const operation = page.locator('.parameter-row').nth(2);
+      65 |   await expect(operation.getByRole('combobox', { name: 'Parameter type', exact: true })).toBeDisabled();
+      66 |   await choose(page, operation.locator('.enum-options-preview .icon-field').first(), 'Green');
+        at C:\mywork\electron-app\character-schedule-editor\tests\browser\iconAppearance.spec.js:63:101
+
+    Error Context: test-results\iconAppearance-fixed-built-85c1f--Traditional-Chinese-screen\error-context.md
+
+  2) tests\browser\icons.spec.js:69:1 › picker cancel, translated search, clear, and editor-dialog drafts stay isolated 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('dialog').locator('.icon-field [data-icon="tabler:bus"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('dialog').locator('.icon-field [data-icon="tabler:bus"]') with timeout 5000ms
+      - waiting for getByRole('dialog').locator('.icon-field [data-icon="tabler:bus"]')
+
+
+      78 |   await page.keyboard.press('Escape');
+      79 |   await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Display name', exact: true })).toHaveValue('Draft name');
+    > 80 |   await expect(page.getByRole('dialog').locator('.icon-field [data-icon="tabler:bus"]')).toBeVisible();
+         |                                                                                          ^
+      81 |   await pick(page, 'Doctor');
+      82 |   await expect(page.getByRole('dialog').locator('.icon-field [data-icon="tabler:stethoscope"]')).toBeVisible();
+      83 |   await page.getByRole('dialog').getByRole('button', { name: 'Back', exact: true }).click();
+        at C:\mywork\electron-app\character-schedule-editor\tests\browser\icons.spec.js:80:90
+
+    Error Context: test-results\icons-picker-cancel-transl-606c8-dialog-drafts-stay-isolated\error-context.md
+
+  2 failed
+    tests\browser\iconAppearance.spec.js:60:1 › fixed builtin option icons remain editable and the picker fits a narrow Traditional Chinese screen 
+    tests\browser\icons.spec.js:69:1 › picker cancel, translated search, clear, and editor-dialog drafts stay isolated 
+  10 passed (1.6m)

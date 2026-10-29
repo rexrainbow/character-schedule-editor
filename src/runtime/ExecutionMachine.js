@@ -24,6 +24,54 @@ export class ExecutionMachine {
         continue;
       }
       if (frame.kind === 'macroEnd') { frames.pop(); this.diagnostics?.end('macro'); this.emit('macro.end', { ...context, macroRef: frame.ref }); continue; }
+      if (frame.kind === 'random') {
+        if (frame.items.length > 20000) fail('executionLimit');
+        frames.pop();
+        this.diagnostics?.begin('weighted', () => ({ path: frame.path }));
+        const eligible = [];
+        for (const [index, item] of frame.items.entries()) {
+          const path = `${frame.path}/candidates/${index}`;
+          this.diagnostics?.begin('candidate', () => ({ index: index + 1, task: item.task, path }));
+          let use = copy(item.task), args, matched = true;
+          if (use.task_macro_id || use.task_id) {
+            const definition = this.program.get(use.task_macro_id ? 'macros' : 'tasks', use.task_macro_id ?? use.task_id);
+            args = evaluator.arguments(use, definition, frame.scope, `${path}/task`);
+            if (use.task_macro_id) matched = evaluator.condition(definition.eligibility ?? null, args, 0, `/task_macros/${use.task_macro_id}/eligibility`);
+          } else {
+            // Freeze pure builtin inputs, without sampling randomness or applying effects.
+            const value = (operand, suffix) => ({ type: 'constant', value: evaluator.operand(operand, frame.scope, 0, `${path}/task/${suffix}`) });
+            for (const key of ['value', 'random_amplitude']) if (use[key] !== undefined) use[key] = value(use[key], key);
+            if (use.date) use.date.offset = value(use.date.offset, 'date/offset');
+            if (use.event) use.event = { type: 'event_reference', event_group_id: evaluator.event(use.event, frame.scope) };
+            for (const key of ['property', 'operation']) if (typeof use[key] === 'object') use[key] = evaluator.operand(use[key], frame.scope, 0, `${path}/task/${key}`);
+          }
+          this.diagnostics?.end('candidate', () => ({ result: matched }));
+          if (matched) eligible.push({ use, args, item, index, path });
+        }
+        const pool = [];
+        for (const candidate of eligible) {
+          this.diagnostics?.begin('weight', () => ({ path: `${candidate.path}/weight`, index: candidate.index + 1 }));
+          const weight = evaluator.operand(candidate.item.weight, frame.scope, 0, `${candidate.path}/weight`);
+          if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0) fail('invalidRandomWeight', { path: `${candidate.path}/weight` });
+          this.diagnostics?.end('weight', () => ({ value: weight }));
+          if (weight > 0) pool.push({ ...candidate, weight });
+        }
+        let selected = null, draw = null;
+        if (pool.length) {
+          const maximum = pool.reduce((max, candidate) => Math.max(max, candidate.weight), 0);
+          const total = pool.reduce((sum, candidate) => sum + candidate.weight / maximum, 0);
+          draw = random(state);
+          let cursor = draw * total;
+          selected = pool.at(-1);
+          for (const candidate of pool) { cursor -= candidate.weight / maximum; if (cursor < 0) { selected = candidate; break; } }
+        }
+        this.diagnostics?.note('weightedSelection', () => ({ index: selected ? selected.index + 1 : null, draw, fallback: !selected && !!frame.fallback, weights: pool.map(({ index, weight }) => ({ index: index + 1, weight })) }));
+        if (selected || frame.fallback) {
+          if (this.diagnostics?.enabled) frames.push({ kind: 'traceEnd', nodeKind: 'weighted' });
+          frames.push(selected ? { kind: 'call', use: selected.use, args: selected.args, qualified: true, scope: frame.scope, path: `${selected.path}/task` } : { kind: 'call', use: frame.fallback.task, scope: frame.scope, path: `${frame.path}/fallback/task` });
+        } else this.diagnostics?.end('weighted');
+        continue;
+      }
       if (['sequence', 'branches', 'priority'].includes(frame.kind)) {
         if (frame.index >= frame.items.length) { frames.pop(); continue; }
         const index = frame.index++, item = frame.items[index], path = `${frame.path}/${index}`;
@@ -59,7 +107,7 @@ export class ExecutionMachine {
       const use = frame.use;
       if (use.task_macro_id) {
         const macro = this.program.get('macros', use.task_macro_id);
-        this.diagnostics?.begin('macro', () => ({ macroRef: use.task_macro_id, path: frame.path, empty: !(macro.steps ?? macro.candidates ?? macro.branches ?? []).length }));
+        this.diagnostics?.begin('macro', () => ({ macroRef: use.task_macro_id, path: frame.path, empty: !(macro.steps ?? macro.candidates ?? macro.branches ?? []).length && !macro.fallback }));
         const args = frame.args ?? evaluator.arguments(use, macro, frame.scope, frame.path);
         if (!frame.qualified && macro.eligibility != null) {
           this.diagnostics?.begin('guard', () => ({ path: `/task_macros/${use.task_macro_id}/eligibility` }));
@@ -70,8 +118,8 @@ export class ExecutionMachine {
         if (frames.some((item) => item.kind === 'macroEnd' && item.ref === use.task_macro_id)) fail('macroCycle');
         this.emit('macro.start', { ...context, macroRef: use.task_macro_id, arguments: copy(args) });
         frames.push({ kind: 'macroEnd', ref: use.task_macro_id });
-        const kind = macro.mode === 'sequence' ? 'sequence' : macro.mode === 'priority' ? 'priority' : 'branches';
-        frames.push({ kind, items: copy(macro.steps ?? macro.candidates ?? macro.branches ?? []), index: 0, scope: args, path: `/task_macros/${use.task_macro_id}/${kind === 'sequence' ? 'steps' : kind === 'priority' ? 'candidates' : 'branches'}` });
+        const kind = macro.mode === 'sequence' ? 'sequence' : ['priority', 'random'].includes(macro.mode) ? macro.mode : 'branches';
+        frames.push({ kind, items: copy(macro.steps ?? macro.candidates ?? macro.branches ?? []), fallback: copy(macro.fallback ?? null), index: 0, scope: args, path: `/task_macros/${use.task_macro_id}${kind === 'random' ? '' : '/' + (kind === 'sequence' ? 'steps' : kind === 'priority' ? 'candidates' : 'branches')}` });
         continue;
       }
       const nodeKind = use.builtin === 'release_slot' ? 'control' : use.builtin === 'schedule_event' ? 'reservation' : use.builtin ? 'builtin' : 'task';
@@ -79,7 +127,7 @@ export class ExecutionMachine {
       this.diagnostics?.begin(nodeKind, () => ({ use, path: frame.path, invocationId, attempt: 1 }));
       const prepared = { use: copy(use), path: frame.path, arguments: {}, context: copy(context) };
       if (!use.builtin) {
-        const task = this.program.get('tasks', use.task_id), args = evaluator.arguments(use, task, frame.scope, frame.path);
+        const task = this.program.get('tasks', use.task_id), args = frame.args ?? evaluator.arguments(use, task, frame.scope, frame.path);
         prepared.taskRef = use.task_id; prepared.name = task.name;
         prepared.arguments = Object.fromEntries(task.parameters.map((p) => [p.name, args[p.id]]));
       } else {

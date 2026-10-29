@@ -5,7 +5,7 @@ import ConditionEditor from './ConditionEditor.jsx';
 import TaskUseEditor from './TaskUseEditor.jsx';
 import { IconButton } from '../components/ui.jsx';
 
-export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch', 'priority'], ownerMacroId, allowEmpty = false, emptyHint = 'emptyMacroHint', renderResult, onAddBranch, emptyActions, t }) {
+export default function BranchRulesEditor({ branches, onChange, nodes = {}, tasks = [], parameters = [], allowedMacroModes = ['sequence', 'branch', 'priority', 'random'], ownerMacroId, allowEmpty = false, emptyHint = 'emptyMacroHint', renderResult, onAddBranch, emptyActions, t }) {
   function patchBranch(index, values) { onChange(branches.map((branch, i) => i === index ? { ...branch, ...values } : branch)); }
   return (
     <section className="branch-section">

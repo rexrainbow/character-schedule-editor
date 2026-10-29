@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const source = JSON.parse(fs.readFileSync(new URL('../src/schemas/slots.schema.json', import.meta.url), 'utf8'));
 const defs = structuredClone(source.$defs);
-function stripDescriptions(value) { if (!value || typeof value !== 'object') return; if (value.properties) delete value.properties.description; Object.values(value).forEach(stripDescriptions); }
+function stripDescriptions(value) { if (!value || typeof value !== 'object') return; if (value.properties) { delete value.properties.description; delete value.properties.icon; } if (value.required) value.required = value.required.filter((key) => !['description', 'icon'].includes(key)); Object.values(value).forEach(stripDescriptions); }
 stripDescriptions(defs);
 const ref = (name) => ({ $ref: `#/$defs/${name}` });
 const obj = (properties, required = Object.keys(properties)) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -43,6 +43,7 @@ defs.runtime_macro = { oneOf: [
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'sequence' }, steps: arr(ref('runtime_step')) }, ['parameters', 'mode', 'steps']),
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'branch' }, branches: arr(ref('runtime_branch')) }, ['parameters', 'mode', 'branches']),
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'priority' }, candidates: arr(ref('scoped_task_macro_use')) }, ['parameters', 'mode', 'candidates']),
+  entity({ parameters: arr(ref('task_parameter')), mode: { const: 'random' }, candidates: arr(obj({ weight: ref('scoped_numeric_operand'), task: ref('runtime_action') })), fallback: { oneOf: [obj({ task: ref('runtime_action') }), { type: 'null' }] } }, ['parameters', 'mode', 'candidates']),
 ] };
 for (const variant of defs.runtime_macro.oneOf) variant.properties.eligibility = { oneOf: [ref('scoped_condition'), { type: 'null' }] };
 defs.variable_tree = { oneOf: [

@@ -122,7 +122,7 @@ export function compileRuntime(draft, t = translator('en')) {
     environment_variables: tree(null, 'environment'),
     application_variables: tree(),
     expression_macros: Object.fromEntries(Object.entries(nodes).filter(([, node]) => isComputed(node)).map(([id, node]) => [id, { ...metadata(node), value_type: node.value_type, definition: computedDefinition(node.definition) }])),
-    task_macros: Object.fromEntries(draft.taskMacros.map((value) => { const macro = normalizeTaskMacro(value); return [macro.id, { ...metadata(macro), parameters: macro.parameters.map((p) => ({ id: p.id, symbol: p.symbol ?? p.id, display_name: p.display_name, type: p.type, ...contract(p) })), mode: macro.mode, ...(macro.eligibility == null ? {} : { eligibility: condition(macro.eligibility) }), ...(macro.mode === 'sequence' ? { steps: macro.steps.map((step) => task(step.task)) } : macro.mode === 'branch' ? { branches: branches(macro.branches) } : { candidates: macro.candidates.map((entry) => task(entry.task)) }) }]; })),
+    task_macros: Object.fromEntries(draft.taskMacros.map((value) => { const macro = normalizeTaskMacro(value); return [macro.id, { ...metadata(macro), parameters: macro.parameters.map((p) => ({ id: p.id, symbol: p.symbol ?? p.id, display_name: p.display_name, type: p.type, ...contract(p) })), mode: macro.mode, ...(macro.eligibility == null ? {} : { eligibility: condition(macro.eligibility) }), ...(macro.mode === 'sequence' ? { steps: macro.steps.map((step) => task(step.task)) } : macro.mode === 'branch' ? { branches: branches(macro.branches) } : macro.mode === 'random' ? { candidates: macro.candidates.map((entry) => ({ weight: operand(entry.weight), task: task(entry.task) })), fallback: macro.fallback ? { task: task(macro.fallback.task) } : null } : { candidates: macro.candidates.map((entry) => task(entry.task)) }) }]; })),
     slots: Object.fromEntries(draft.slots.map((slot) => [slot.id, { ...metadata(slot), ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: slot.candidates.map((entry) => task(entry.task)) } : { branches: branches(slot.branches) }) }])),
     days: Object.fromEntries(draft.days.filter((item) => item.scope !== 'week_private').map((item) => [item.id, day(item)])),
     weeks: Object.fromEntries(draft.weeks.map((week) => [week.id, { ...metadata(week), days: Object.fromEntries(WEEKDAYS.map((weekday) => {
@@ -143,7 +143,7 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   data.exports = Object.fromEntries(exportEntries);
   data = namedData(data);
-  const stripDescriptions = (value) => { if (value && typeof value === 'object') { delete value.description; Object.values(value).forEach(stripDescriptions); } };
+  const stripDescriptions = (value) => { if (value && typeof value === 'object') { delete value.description; delete value.icon; Object.values(value).forEach(stripDescriptions); } };
   stripDescriptions(data);
   if (!errors.length) errors.push(...validateRuntimeDocument(data));
   return { data: errors.length ? null : data, errors };

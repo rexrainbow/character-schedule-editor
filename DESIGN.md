@@ -86,6 +86,8 @@ Expand/collapse details for the trace; source icons jump to the same day/slot de
 
 ### Forms and overlays
 
+Weighted random task macros reuse candidate cards, TaskUseEditor, OperandEditor and DescriptionField. A persistent explanation above the mode selector states qualification → weights → one draw → empty-pool fallback. Each card shows the shared qualification summary before the numeric weight and action selector; fallback is a separate optional section. Reuse existing borders/accent tokens and one editor scroller, with the same controls and explanatory states in English and Traditional Chinese.
+
 The always-available header Help action uses lucide CircleHelp and the existing icon-button. HelpDialog renders the bilingual introduction Markdown documents as a compact semantic table and three short sections. Reuse the shared modal and one body scroller on small screens; desktop targets one-screen reading. Help does not mutate the project or URL, and closing restores focus to its trigger.
 
 Reuse existing native selects when the OS popup is acceptable, the shared Dialog and the existing SequenceDatePicker. Shared descriptions grow with their content up to a scrollable limit instead of requiring drag resizing. Application forms own validation, without native validation bubbles. This task adds no overlay or destructive action.
@@ -93,6 +95,8 @@ Reuse existing native selects when the OS popup is acceptable, the shared Dialog
 ### Iconography
 
 Lucide for controls; the existing local icon catalog for user objects. Icon-only actions need an accessible name.
+
+All named definitions, task/macro parameters and enum options use the shared `IconField` and `SlotIcon`. The title row remains icon, persistent name, display label; parameter titles use the same compact layout. `src/icons/catalog.js` owns the eight background colors and offline foregrounds; `appearance.js` owns composition, fallback and contrast. The shared picker adds background/hex controls without changing Apply/Cancel semantics. Runtime output excludes icons at every depth; Blueprint preserves optional icons. Generated `docs/ICONS.md` and `src/icons/manifest.json` feed the agent kit from this same catalog.
 
 ### Motion
 

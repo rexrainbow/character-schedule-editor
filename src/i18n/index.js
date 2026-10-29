@@ -1,5 +1,10 @@
 export const messages = {
   en: {
+    macroMode_random: 'Weighted random candidates', weightedCandidates: 'Weighted candidates', randomWeight: 'Random weight', invalidRandomWeight: 'Random weight must be a finite, nonnegative number.',
+    weightedExecutionOrder: 'Evaluate all candidate arguments and eligibility → evaluate eligible weights → draw one positive-weight candidate. If none is available, run the fallback action. Selection and evaluated arguments are reused without a second eligibility check.',
+    weightedUnrestricted: 'Eligibility: unrestricted (ordinary tasks have no eligibility condition).', weightedWeightHint: 'Relative weight: 0 excludes this candidate. Dynamic eligibility and weights are resolved when called.', weightedChance: 'Selection probability: {value}%.',
+    weightedEmptyHint: 'No candidates. Only the optional fallback action can run.', weightedFallback: 'Fallback action', addFallback: 'Set fallback action', removeFallback: 'Remove fallback action', weightedFallbackHint: 'Runs only when no eligible candidate has a positive weight. A fallback macro still checks its own eligibility. Without a fallback, this macro finishes without an action.',
+    weightedSelected: 'Selected candidate {count}', weightedNoSelection: 'No selectable candidate; no action.', weightedUseFallback: 'No selectable candidate; run fallback.', weightedDraw: 'Random draw: {value}', weightedPool: 'Eligible positive weights: {value}',
     help: 'Help', helpLevels: 'Schedule structure from weeks to actions',
     copyEditorLink: 'Copy link to this editor', editorLinkCopied: 'Editor link copied. Open the same project to use it.', editorLinkCopyFailed: 'Unable to copy. Copy the address from your browser.',
     editorLinkInvalid: 'This editor link is invalid. Choose a page from the tabs.', editorLinkMissing: 'The current project has no object named “{name}” at this location. Choose an item from the list.',
@@ -141,6 +146,11 @@ export const messages = {
     branchLabel: 'Branch {count}', errorsForImport: 'Import issues', close: 'Close',
   },
   'zh-TW': {
+    macroMode_random: '加權隨機候選', weightedCandidates: '加權隨機候選', randomWeight: '隨機權重', invalidRandomWeight: '隨機權重必須為有限、非負的數字。',
+    weightedExecutionOrder: '先求值所有候選的呼叫參數與資格條件 → 計算符合資格者的權重 → 隨機選擇一個正權重候選。沒有可抽選者時，執行後備動作。選中後沿用參數與資格結果，不重複檢查。',
+    weightedUnrestricted: '資格條件：無限制（一般任務沒有資格條件）。', weightedWeightHint: '相對權重，0 表示不參與抽選；動態資格與權重於呼叫時求值。', weightedChance: '抽選機率：{value}%。',
+    weightedEmptyHint: '尚無候選，只會執行選填的後備動作。', weightedFallback: '後備動作', addFallback: '設定後備動作', removeFallback: '移除後備動作', weightedFallbackHint: '沒有符合資格且權重大於 0 的候選時才執行。後備巨集仍檢查自身資格條件；未指定時，正常結束而沒有動作。',
+    weightedSelected: '選中候選 {count}', weightedNoSelection: '沒有可抽選的候選，不執行動作。', weightedUseFallback: '沒有可抽選的候選，執行後備動作。', weightedDraw: '亂數抽樣值：{value}', weightedPool: '符合資格的正權重：{value}',
     help: '說明', helpLevels: '由周序列到任務的行程結構',
     copyEditorLink: '複製此編輯位置連結', editorLinkCopied: '編輯位置連結已複製，開啟同一份專案即可定位。', editorLinkCopyFailed: '無法複製，請從瀏覽器網址列複製連結。',
     editorLinkInvalid: '此編輯位置連結無效，請從分頁選擇頁面。', editorLinkMissing: '目前專案在此位置找不到名為「{name}」的物件，請從清單選擇。',
@@ -570,11 +580,15 @@ Object.assign(messages['zh-TW'], {
 
 Object.assign(messages.en, {
   chooseIcon: 'Choose icon', searchIcons: 'Search icons', iconCategory: 'Category', iconChoices: 'Activity icons', noIcons: 'No matching icons', clearIcon: 'Clear icon', defaultIcon: 'Default icon',
+  iconBackground: 'Background', defaultIconBackground: 'Default background', customIconBackground: 'Custom color', iconHexColor: 'Hex color', iconNoForeground: 'No foreground',
+  iconInvalidFormat: 'Use foreground|background.', iconUnknownForeground: 'Unknown foreground; displaying the background only.', iconUnknownBackground: 'Unknown background; using the default background.', iconUnknownValue: 'Unknown icon or color; displaying a default background.',
   eventIntervalError: 'The interval must be a positive safe integer.',
   icons_all: 'All', icons_work: 'Work & study', icons_life: 'Daily life', icons_leisure: 'Leisure & exercise', icons_health: 'Health', icons_travel: 'Travel & places', icons_schedule: 'Schedules & time',
 });
 Object.assign(messages['zh-TW'], {
   chooseIcon: '選擇圖示', searchIcons: '搜尋圖示', iconCategory: '分類', iconChoices: '活動圖示', noIcons: '沒有符合的圖示', clearIcon: '清除圖示', defaultIcon: '預設圖示',
+  iconBackground: '背景色', defaultIconBackground: '預設背景', customIconBackground: '自訂顏色', iconHexColor: '十六進位色碼', iconNoForeground: '無前景圖示',
+  iconInvalidFormat: '請使用「前景圖示|背景色」。', iconUnknownForeground: '找不到前景圖示，僅顯示背景。', iconUnknownBackground: '找不到背景色，使用預設背景。', iconUnknownValue: '找不到圖示或顏色，顯示預設背景。',
   eventIntervalError: '週期必須為大於 0 的安全整數。',
   icons_all: '全部', icons_work: '工作與學習', icons_life: '日常生活', icons_leisure: '娛樂與運動', icons_health: '健康醫療', icons_travel: '交通與地點', icons_schedule: '行程與時間',
 });

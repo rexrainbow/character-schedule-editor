@@ -105,7 +105,7 @@ export function prepareEnvironmentImport(draft, environment) {
   for (const slot of next.slots) for (const { entry, path } of slotEntries(slot)) { walk(entry.condition, `${path}/condition`); walk(entry.task, `${path}/task`); }
   for (const macro of next.taskMacros) {
     walk(macro.eligibility, `/task_macros/${macro.id}/eligibility`);
-    for (const { entry, path } of macroEntries(macro)) { walk(entry.condition, `${path}/condition`); walk(entry.task, `${path}/task`); }
+    for (const { entry, path } of macroEntries(macro)) { walk(entry.condition, `${path}/condition`); walk(entry.weight, `${path}/weight`); walk(entry.task, `${path}/task`); }
   }
   for (const day of next.days) walk(day.slotReleases, `/day_schedules/${day.id}/slot_releases`);
   for (const [id, node] of Object.entries(application)) if (isComputed(node)) walk(node.definition, `/expression_macros/${id}/definition`);

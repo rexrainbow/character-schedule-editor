@@ -1,15 +1,17 @@
 # Test blueprint: assumptions below are examples, not an interpretation of every payroll policy.
+# Optional icon format: foreground|background (offline Tabler icon + palette color).
 project:
   name: 生活與薪資測試
   slots_per_day: 3
 variables:
-  stamina: { initial: 60, min: 0, max: 100, display_name: 體力 }
-  money: { initial: 90, min: 0, display_name: 金錢 }
-  mood: { initial: 65, min: 0, max: 100, display_name: 心情 }
-  worked_shifts: { initial: 0, min: 0, integer: true, display_name: 本周完成班數 }
+  stamina: { initial: 60, min: 0, max: 100, display_name: 體力, icon: 'tabler:heartbeat|red' }
+  money: { initial: 90, min: 0, display_name: 金錢, icon: 'tabler:building-bank|yellow' }
+  mood: { initial: 65, min: 0, max: 100, display_name: 心情, icon: 'tabler:heart|purple' }
+  worked_shifts: { initial: 0, min: 0, integer: true, display_name: 本周完成班數, icon: 'tabler:clipboard-list|blue' }
 expressions:
   weekly_pay:
     display_name: 本期薪資
+    icon: 'tabler:calculator|yellow'
     description: 依本周完成班數結算薪資，包含全勤獎金與低出勤扣款。
     type: number
     branches:
@@ -28,15 +30,18 @@ expressions:
 task_macros:
   work:
     display_name: 工作動作
+    icon: 'tabler:briefcase|blue'
     steps:
       - { builtin: increment_variable, target: stamina, value: "-12" }
       - { builtin: increment_variable, target: worked_shifts, value: "1" }
   rest:
     display_name: 休息動作
+    icon: 'tabler:armchair|green'
     steps:
       - { builtin: increment_variable, target: stamina, value: "15" }
   entertain:
     display_name: 娛樂動作
+    icon: 'tabler:device-gamepad-2|purple'
     mode: sequence
     parameters: {}
     eligibility: (vars.money >= 30)
@@ -49,22 +54,27 @@ task_macros:
         value: "18"
   payroll:
     display_name: 結算工資
+    icon: 'tabler:building-bank|yellow'
     steps:
       - { builtin: increment_variable, target: money, value: expr.weekly_pay }
       - { builtin: reset_variable, target: worked_shifts }
   mood_decay:
     display_name: 心情消耗
+    icon: 'tabler:brain|gray'
     steps:
       - { builtin: increment_variable, target: mood, value: "-6" }
 slots:
   work:
     display_name: 工作
+    icon: 'tabler:briefcase|blue'
     branches: [ { when: null, run: { macro: work } } ]
   rest:
     display_name: 休息
+    icon: 'tabler:armchair|green'
     branches: [ { when: null, run: { macro: rest } } ]
   entertain:
     display_name: 娛樂
+    icon: 'tabler:device-gamepad-2|purple'
     mode: priority
     candidates:
       - macro: entertain
@@ -73,39 +83,49 @@ slots:
         arguments: {}
   payroll:
     display_name: 薪資結算
+    icon: 'tabler:building-bank|yellow'
     branches: [ { when: null, run: { macro: payroll } } ]
   mood_decay:
     display_name: 每日心情消耗
+    icon: 'tabler:brain|gray'
     branches: [ { when: null, run: { macro: mood_decay } } ]
   doctor:
     display_name: 看醫生
+    icon: 'tabler:stethoscope|red'
   slumber:
     display_name: 沉睡
+    icon: 'tabler:bed|cyan'
 days:
   working:
     display_name: 工作日
+    icon: 'tabler:building-skyscraper|blue'
     slots: [ work, work, rest ]
     tags: [ 工作 ]
     purposes: [ main ]
   holiday:
     display_name: 休假日
+    icon: 'tabler:beach|green'
     slots: [ entertain, entertain, rest ]
     purposes: [ main ]
   payroll:
     display_name: 結算日
+    icon: 'tabler:calendar-check|yellow'
     start: payroll
     purposes: [ overlay ]
   daily_mood:
     display_name: 心情消耗日
+    icon: 'tabler:heart|gray'
     end: mood_decay
     purposes: [ overlay ]
   cold:
     display_name: 感冒日
+    icon: 'tabler:thermometer|red'
     slots: [ doctor, slumber, slumber ]
     purposes: [ interrupt ]
 weeks:
   normal:
     display_name: 正常周
+    icon: 'tabler:calendar-week|blue'
     days:
       mon: working
       tue: working
@@ -116,9 +136,11 @@ weeks:
       sun: holiday
 sequences:
   life:
+    icon: 'tabler:repeat|cyan'
     weeks: [ { week: normal, repeat: null } ]
     events:
       daily_mood:
+        icon: 'tabler:heart|gray'
         kind: periodic
         start: { week: 1, weekday: mon }
         end: { week: 1, weekday: sun }
@@ -128,6 +150,7 @@ sequences:
         priority: 9
         display_name: 每日心情消耗
       payroll:
+        icon: 'tabler:calculator|yellow'
         kind: periodic
         start: { week: 1, weekday: sun }
         end: { week: 1, weekday: sun }
@@ -138,6 +161,7 @@ sequences:
         priority: 9
         display_name: 周日結算
       cold:
+        icon: 'tabler:thermometer|red'
         kind: probability
         start: { week: 1, weekday: mon }
         end: { week: 1, weekday: sun }
@@ -149,5 +173,5 @@ sequences:
         display_name: 感冒
     display_name: 單周無限循環生活
 builtins:
-  increment_variable: {}
-  reset_variable: {}
+  increment_variable: { icon: 'tabler:calculator|orange' }
+  reset_variable: { icon: 'tabler:repeat|cyan' }

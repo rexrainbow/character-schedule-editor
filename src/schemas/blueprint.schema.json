@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Character Schedule Blueprint",
-  "description": "Declarative rebuild input/output without UUIDs or icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
+  "description": "Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
   "$comment": "This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
   "type": "object",
   "properties": {
@@ -28,6 +28,10 @@
         },
         "version": {
           "type": "string"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
         }
       },
       "required": [],
@@ -65,6 +69,10 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
+          "icon": {
+            "type": "string",
+            "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+          },
           "description": {
             "type": "string"
           },
@@ -160,6 +168,10 @@
         "set_variable": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -176,6 +188,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -199,6 +228,10 @@
         "increment_variable": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -215,6 +248,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -238,6 +288,10 @@
         "toggle_variable": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -254,6 +308,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -277,6 +348,10 @@
         "reset_variable": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -293,6 +368,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -316,6 +408,10 @@
         "release_slot": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -332,6 +428,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -355,6 +468,10 @@
         "adjust_probability_event": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -371,6 +488,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -394,6 +528,10 @@
         "schedule_event": {
           "type": "object",
           "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
             "description": {
               "type": "string"
             },
@@ -410,6 +548,23 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "parameter_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              }
+            },
+            "parameter_option_icons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                }
               }
             },
             "parameter_descriptions": {
@@ -795,6 +950,10 @@
                 },
                 "display_name": {
                   "type": "string"
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
                 },
                 "date": {
                   "type": "object",
@@ -1438,6 +1597,10 @@
                 "display_name": {
                   "type": "string"
                 },
+                "icon": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                },
                 "date": {
                   "type": "object",
                   "properties": {
@@ -1723,9 +1886,522 @@
       ],
       "description": "Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated."
     },
+    "weightedCandidate": {
+      "oneOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "task": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "task"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "macro": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "arguments": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  },
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16000,
+                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "variable": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "variable"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "current_event": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "current_event"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "parameter": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          }
+                        },
+                        "required": [
+                          "parameter"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "macro"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "set_variable",
+                    "increment_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "random_amplitude": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "enum": [
+                    "toggle_variable",
+                    "reset_variable"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "target"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "adjust_probability_event"
+                },
+                "event": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "current_event": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "current_event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "property": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "operation": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "parameter": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                        }
+                      },
+                      "required": [
+                        "parameter"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "event",
+                "property",
+                "operation",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "schedule_event"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                },
+                "date": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "days",
+                        "weeks_weekday"
+                      ]
+                    },
+                    "offset": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 16000,
+                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    },
+                    "weekday": {
+                      "enum": [
+                        "mon",
+                        "tue",
+                        "wed",
+                        "thu",
+                        "fri",
+                        "sat",
+                        "sun"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "offset"
+                  ],
+                  "additionalProperties": false
+                },
+                "day": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "random",
+                        "sequential"
+                      ]
+                    },
+                    "candidates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                          },
+                          "weight": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": [
+                          "day"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "candidates"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                },
+                "execution": {
+                  "enum": [
+                    "overlay",
+                    "interrupt_main",
+                    "interrupt_lower"
+                  ],
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                },
+                "priority": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                }
+              },
+              "required": [
+                "builtin",
+                "date"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
     "parameter": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -1772,6 +2448,10 @@
               "display_name": {
                 "type": "string"
               },
+              "icon": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              },
               "value": {
                 "type": "string"
               }
@@ -1796,6 +2476,10 @@
     "variable": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -1869,6 +2553,10 @@
     "enum": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -1913,6 +2601,10 @@
               "display_name": {
                 "type": "string"
               },
+              "icon": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              },
               "value": {
                 "type": "string"
               }
@@ -1930,6 +2622,10 @@
     "computed": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2002,6 +2698,10 @@
     "macro": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2013,7 +2713,8 @@
           "enum": [
             "sequence",
             "branch",
-            "priority"
+            "priority",
+            "random"
           ]
         },
         "parameters": {
@@ -2084,17 +2785,57 @@
         "candidates": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/candidate"
+            "$ref": "#/$defs/weightedCandidate"
           }
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/step"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [],
       "additionalProperties": false,
-      "description": "Sequence, branch or priority macro; eligibility is checked after argument evaluation. Empty content is valid. See ENGINE_SEMANTICS.md section 3."
+      "description": "Sequence, branch, priority or weighted random macro. Random evaluates arguments/eligibility, then eligible weights, then draws once; fallback runs only if the pool is empty. See ENGINE_SEMANTICS.md section 3.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "random"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {},
+          "else": {
+            "properties": {
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/candidate"
+                }
+              },
+              "fallback": false
+            }
+          }
+        }
+      ]
     },
     "slot": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2155,6 +2896,10 @@
     "day": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2321,6 +3066,10 @@
     "week": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2426,6 +3175,10 @@
     "event": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },
@@ -2595,6 +3348,10 @@
     "sequence": {
       "type": "object",
       "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
         "description": {
           "type": "string"
         },

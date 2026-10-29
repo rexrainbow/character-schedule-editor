@@ -1,0 +1,1038 @@
+{
+  "separator": "|",
+  "formats": [
+    "tabler:briefcase",
+    "tabler:briefcase|blue",
+    "tabler:briefcase|#60A5FA",
+    "blue",
+    "#60A5FA"
+  ],
+  "foregrounds": [
+    {
+      "id": "tabler:briefcase",
+      "category": "work",
+      "labels": {
+        "en": "Work",
+        "zh-TW": "工作"
+      }
+    },
+    {
+      "id": "tabler:building-skyscraper",
+      "category": "work",
+      "labels": {
+        "en": "Office",
+        "zh-TW": "辦公室"
+      }
+    },
+    {
+      "id": "tabler:device-laptop",
+      "category": "work",
+      "labels": {
+        "en": "Computer",
+        "zh-TW": "電腦"
+      }
+    },
+    {
+      "id": "tabler:keyboard",
+      "category": "work",
+      "labels": {
+        "en": "Typing",
+        "zh-TW": "打字"
+      }
+    },
+    {
+      "id": "tabler:mail",
+      "category": "work",
+      "labels": {
+        "en": "Email",
+        "zh-TW": "郵件"
+      }
+    },
+    {
+      "id": "tabler:phone",
+      "category": "work",
+      "labels": {
+        "en": "Phone",
+        "zh-TW": "電話"
+      }
+    },
+    {
+      "id": "tabler:video",
+      "category": "work",
+      "labels": {
+        "en": "Video call",
+        "zh-TW": "視訊"
+      }
+    },
+    {
+      "id": "tabler:users",
+      "category": "work",
+      "labels": {
+        "en": "Meeting",
+        "zh-TW": "會議"
+      }
+    },
+    {
+      "id": "tabler:presentation",
+      "category": "work",
+      "labels": {
+        "en": "Presentation",
+        "zh-TW": "簡報"
+      }
+    },
+    {
+      "id": "tabler:clipboard-list",
+      "category": "work",
+      "labels": {
+        "en": "Checklist",
+        "zh-TW": "工作清單"
+      }
+    },
+    {
+      "id": "tabler:pencil",
+      "category": "work",
+      "labels": {
+        "en": "Writing",
+        "zh-TW": "寫作"
+      }
+    },
+    {
+      "id": "tabler:school",
+      "category": "work",
+      "labels": {
+        "en": "School",
+        "zh-TW": "學校"
+      }
+    },
+    {
+      "id": "tabler:book",
+      "category": "work",
+      "labels": {
+        "en": "Reading",
+        "zh-TW": "閱讀"
+      }
+    },
+    {
+      "id": "tabler:books",
+      "category": "work",
+      "labels": {
+        "en": "Study",
+        "zh-TW": "學習"
+      }
+    },
+    {
+      "id": "tabler:certificate",
+      "category": "work",
+      "labels": {
+        "en": "Exam",
+        "zh-TW": "考試"
+      }
+    },
+    {
+      "id": "tabler:calculator",
+      "category": "work",
+      "labels": {
+        "en": "Calculation",
+        "zh-TW": "計算"
+      }
+    },
+    {
+      "id": "tabler:microscope",
+      "category": "work",
+      "labels": {
+        "en": "Research",
+        "zh-TW": "研究"
+      }
+    },
+    {
+      "id": "tabler:tools",
+      "category": "work",
+      "labels": {
+        "en": "Repair",
+        "zh-TW": "維修"
+      }
+    },
+    {
+      "id": "tabler:code",
+      "category": "work",
+      "labels": {
+        "en": "Coding",
+        "zh-TW": "程式設計"
+      }
+    },
+    {
+      "id": "tabler:palette",
+      "category": "work",
+      "labels": {
+        "en": "Design",
+        "zh-TW": "設計"
+      }
+    },
+    {
+      "id": "tabler:home",
+      "category": "life",
+      "labels": {
+        "en": "Home",
+        "zh-TW": "居家"
+      }
+    },
+    {
+      "id": "tabler:bed",
+      "category": "life",
+      "labels": {
+        "en": "Sleep",
+        "zh-TW": "睡眠"
+      }
+    },
+    {
+      "id": "tabler:armchair",
+      "category": "life",
+      "labels": {
+        "en": "Rest",
+        "zh-TW": "休息"
+      }
+    },
+    {
+      "id": "tabler:coffee",
+      "category": "life",
+      "labels": {
+        "en": "Coffee",
+        "zh-TW": "咖啡"
+      }
+    },
+    {
+      "id": "tabler:cup",
+      "category": "life",
+      "labels": {
+        "en": "Drink",
+        "zh-TW": "飲水"
+      }
+    },
+    {
+      "id": "tabler:tools-kitchen-2",
+      "category": "life",
+      "labels": {
+        "en": "Meal",
+        "zh-TW": "用餐"
+      }
+    },
+    {
+      "id": "tabler:chef-hat",
+      "category": "life",
+      "labels": {
+        "en": "Cooking",
+        "zh-TW": "料理"
+      }
+    },
+    {
+      "id": "tabler:bowl",
+      "category": "life",
+      "labels": {
+        "en": "Breakfast",
+        "zh-TW": "早餐"
+      }
+    },
+    {
+      "id": "tabler:pizza",
+      "category": "life",
+      "labels": {
+        "en": "Pizza",
+        "zh-TW": "披薩"
+      }
+    },
+    {
+      "id": "tabler:apple",
+      "category": "life",
+      "labels": {
+        "en": "Fruit",
+        "zh-TW": "水果"
+      }
+    },
+    {
+      "id": "tabler:shopping-cart",
+      "category": "life",
+      "labels": {
+        "en": "Shopping",
+        "zh-TW": "購物"
+      }
+    },
+    {
+      "id": "tabler:shopping-bag",
+      "category": "life",
+      "labels": {
+        "en": "Groceries",
+        "zh-TW": "採買"
+      }
+    },
+    {
+      "id": "tabler:basket",
+      "category": "life",
+      "labels": {
+        "en": "Basket",
+        "zh-TW": "菜籃"
+      }
+    },
+    {
+      "id": "tabler:wash-machine",
+      "category": "life",
+      "labels": {
+        "en": "Laundry",
+        "zh-TW": "洗衣"
+      }
+    },
+    {
+      "id": "tabler:ironing",
+      "category": "life",
+      "labels": {
+        "en": "Ironing",
+        "zh-TW": "熨衣"
+      }
+    },
+    {
+      "id": "tabler:bath",
+      "category": "life",
+      "labels": {
+        "en": "Bath",
+        "zh-TW": "泡澡"
+      }
+    },
+    {
+      "id": "tabler:droplets",
+      "category": "life",
+      "labels": {
+        "en": "Shower",
+        "zh-TW": "淋浴"
+      }
+    },
+    {
+      "id": "tabler:vacuum-cleaner",
+      "category": "life",
+      "labels": {
+        "en": "Cleaning",
+        "zh-TW": "打掃"
+      }
+    },
+    {
+      "id": "tabler:plant",
+      "category": "life",
+      "labels": {
+        "en": "Gardening",
+        "zh-TW": "園藝"
+      }
+    },
+    {
+      "id": "tabler:paw",
+      "category": "life",
+      "labels": {
+        "en": "Pet",
+        "zh-TW": "寵物"
+      }
+    },
+    {
+      "id": "tabler:baby-carriage",
+      "category": "life",
+      "labels": {
+        "en": "Childcare",
+        "zh-TW": "育兒"
+      }
+    },
+    {
+      "id": "tabler:heart-handshake",
+      "category": "life",
+      "labels": {
+        "en": "Care",
+        "zh-TW": "照顧"
+      }
+    },
+    {
+      "id": "tabler:friends",
+      "category": "life",
+      "labels": {
+        "en": "Friends",
+        "zh-TW": "朋友"
+      }
+    },
+    {
+      "id": "tabler:gift",
+      "category": "life",
+      "labels": {
+        "en": "Gift",
+        "zh-TW": "禮物"
+      }
+    },
+    {
+      "id": "tabler:cake",
+      "category": "life",
+      "labels": {
+        "en": "Birthday",
+        "zh-TW": "生日"
+      }
+    },
+    {
+      "id": "tabler:device-gamepad-2",
+      "category": "leisure",
+      "labels": {
+        "en": "Gaming",
+        "zh-TW": "遊戲"
+      }
+    },
+    {
+      "id": "tabler:movie",
+      "category": "leisure",
+      "labels": {
+        "en": "Movie",
+        "zh-TW": "電影"
+      }
+    },
+    {
+      "id": "tabler:music",
+      "category": "leisure",
+      "labels": {
+        "en": "Music",
+        "zh-TW": "音樂"
+      }
+    },
+    {
+      "id": "tabler:headphones",
+      "category": "leisure",
+      "labels": {
+        "en": "Listening",
+        "zh-TW": "聽音樂"
+      }
+    },
+    {
+      "id": "tabler:microphone",
+      "category": "leisure",
+      "labels": {
+        "en": "Singing",
+        "zh-TW": "唱歌"
+      }
+    },
+    {
+      "id": "tabler:guitar-pick",
+      "category": "leisure",
+      "labels": {
+        "en": "Instrument",
+        "zh-TW": "樂器"
+      }
+    },
+    {
+      "id": "tabler:camera",
+      "category": "leisure",
+      "labels": {
+        "en": "Photography",
+        "zh-TW": "攝影"
+      }
+    },
+    {
+      "id": "tabler:brush",
+      "category": "leisure",
+      "labels": {
+        "en": "Painting",
+        "zh-TW": "繪畫"
+      }
+    },
+    {
+      "id": "tabler:puzzle",
+      "category": "leisure",
+      "labels": {
+        "en": "Puzzle",
+        "zh-TW": "拼圖"
+      }
+    },
+    {
+      "id": "tabler:dice",
+      "category": "leisure",
+      "labels": {
+        "en": "Board game",
+        "zh-TW": "桌遊"
+      }
+    },
+    {
+      "id": "tabler:ball-football",
+      "category": "leisure",
+      "labels": {
+        "en": "Football",
+        "zh-TW": "足球"
+      }
+    },
+    {
+      "id": "tabler:ball-basketball",
+      "category": "leisure",
+      "labels": {
+        "en": "Basketball",
+        "zh-TW": "籃球"
+      }
+    },
+    {
+      "id": "tabler:ball-tennis",
+      "category": "leisure",
+      "labels": {
+        "en": "Tennis",
+        "zh-TW": "網球"
+      }
+    },
+    {
+      "id": "tabler:run",
+      "category": "leisure",
+      "labels": {
+        "en": "Running",
+        "zh-TW": "跑步"
+      }
+    },
+    {
+      "id": "tabler:walk",
+      "category": "leisure",
+      "labels": {
+        "en": "Walking",
+        "zh-TW": "散步"
+      }
+    },
+    {
+      "id": "tabler:bike",
+      "category": "leisure",
+      "labels": {
+        "en": "Cycling",
+        "zh-TW": "單車"
+      }
+    },
+    {
+      "id": "tabler:swimming",
+      "category": "leisure",
+      "labels": {
+        "en": "Swimming",
+        "zh-TW": "游泳"
+      }
+    },
+    {
+      "id": "tabler:barbell",
+      "category": "leisure",
+      "labels": {
+        "en": "Workout",
+        "zh-TW": "健身"
+      }
+    },
+    {
+      "id": "tabler:yoga",
+      "category": "leisure",
+      "labels": {
+        "en": "Yoga",
+        "zh-TW": "瑜伽"
+      }
+    },
+    {
+      "id": "tabler:mountain",
+      "category": "leisure",
+      "labels": {
+        "en": "Hiking",
+        "zh-TW": "登山"
+      }
+    },
+    {
+      "id": "tabler:tent",
+      "category": "leisure",
+      "labels": {
+        "en": "Camping",
+        "zh-TW": "露營"
+      }
+    },
+    {
+      "id": "tabler:beach",
+      "category": "leisure",
+      "labels": {
+        "en": "Beach",
+        "zh-TW": "海灘"
+      }
+    },
+    {
+      "id": "tabler:fish",
+      "category": "leisure",
+      "labels": {
+        "en": "Fishing",
+        "zh-TW": "釣魚"
+      }
+    },
+    {
+      "id": "tabler:ticket",
+      "category": "leisure",
+      "labels": {
+        "en": "Event",
+        "zh-TW": "活動票券"
+      }
+    },
+    {
+      "id": "tabler:confetti",
+      "category": "leisure",
+      "labels": {
+        "en": "Celebration",
+        "zh-TW": "慶祝"
+      }
+    },
+    {
+      "id": "tabler:stethoscope",
+      "category": "health",
+      "labels": {
+        "en": "Doctor",
+        "zh-TW": "看醫生"
+      }
+    },
+    {
+      "id": "tabler:hospital",
+      "category": "health",
+      "labels": {
+        "en": "Hospital",
+        "zh-TW": "醫院"
+      }
+    },
+    {
+      "id": "tabler:first-aid-kit",
+      "category": "health",
+      "labels": {
+        "en": "First aid",
+        "zh-TW": "急救"
+      }
+    },
+    {
+      "id": "tabler:pill",
+      "category": "health",
+      "labels": {
+        "en": "Medication",
+        "zh-TW": "服藥"
+      }
+    },
+    {
+      "id": "tabler:vaccine",
+      "category": "health",
+      "labels": {
+        "en": "Vaccine",
+        "zh-TW": "疫苗"
+      }
+    },
+    {
+      "id": "tabler:dental",
+      "category": "health",
+      "labels": {
+        "en": "Dentist",
+        "zh-TW": "牙醫"
+      }
+    },
+    {
+      "id": "tabler:eye",
+      "category": "health",
+      "labels": {
+        "en": "Eye care",
+        "zh-TW": "眼科"
+      }
+    },
+    {
+      "id": "tabler:heart",
+      "category": "health",
+      "labels": {
+        "en": "Health",
+        "zh-TW": "健康"
+      }
+    },
+    {
+      "id": "tabler:heartbeat",
+      "category": "health",
+      "labels": {
+        "en": "Heartbeat",
+        "zh-TW": "心率"
+      }
+    },
+    {
+      "id": "tabler:thermometer",
+      "category": "health",
+      "labels": {
+        "en": "Temperature",
+        "zh-TW": "體溫"
+      }
+    },
+    {
+      "id": "tabler:bandage",
+      "category": "health",
+      "labels": {
+        "en": "Bandage",
+        "zh-TW": "包紮"
+      }
+    },
+    {
+      "id": "tabler:massage",
+      "category": "health",
+      "labels": {
+        "en": "Massage",
+        "zh-TW": "按摩"
+      }
+    },
+    {
+      "id": "tabler:brain",
+      "category": "health",
+      "labels": {
+        "en": "Mental health",
+        "zh-TW": "心理健康"
+      }
+    },
+    {
+      "id": "tabler:lungs",
+      "category": "health",
+      "labels": {
+        "en": "Breathing",
+        "zh-TW": "呼吸"
+      }
+    },
+    {
+      "id": "tabler:stretching",
+      "category": "health",
+      "labels": {
+        "en": "Stretching",
+        "zh-TW": "伸展"
+      }
+    },
+    {
+      "id": "tabler:bus",
+      "category": "travel",
+      "labels": {
+        "en": "Commute",
+        "zh-TW": "通勤"
+      }
+    },
+    {
+      "id": "tabler:car",
+      "category": "travel",
+      "labels": {
+        "en": "Driving",
+        "zh-TW": "開車"
+      }
+    },
+    {
+      "id": "tabler:train",
+      "category": "travel",
+      "labels": {
+        "en": "Train",
+        "zh-TW": "火車"
+      }
+    },
+    {
+      "id": "tabler:plane",
+      "category": "travel",
+      "labels": {
+        "en": "Flight",
+        "zh-TW": "搭機"
+      }
+    },
+    {
+      "id": "tabler:ship",
+      "category": "travel",
+      "labels": {
+        "en": "Boat",
+        "zh-TW": "搭船"
+      }
+    },
+    {
+      "id": "tabler:motorbike",
+      "category": "travel",
+      "labels": {
+        "en": "Motorcycle",
+        "zh-TW": "機車"
+      }
+    },
+    {
+      "id": "tabler:car-suv",
+      "category": "travel",
+      "labels": {
+        "en": "Taxi",
+        "zh-TW": "計程車"
+      }
+    },
+    {
+      "id": "tabler:map",
+      "category": "travel",
+      "labels": {
+        "en": "Map",
+        "zh-TW": "地圖"
+      }
+    },
+    {
+      "id": "tabler:map-pin",
+      "category": "travel",
+      "labels": {
+        "en": "Location",
+        "zh-TW": "地點"
+      }
+    },
+    {
+      "id": "tabler:luggage",
+      "category": "travel",
+      "labels": {
+        "en": "Travel",
+        "zh-TW": "旅行"
+      }
+    },
+    {
+      "id": "tabler:building-bank",
+      "category": "travel",
+      "labels": {
+        "en": "Bank",
+        "zh-TW": "銀行"
+      }
+    },
+    {
+      "id": "tabler:building-store",
+      "category": "travel",
+      "labels": {
+        "en": "Store",
+        "zh-TW": "商店"
+      }
+    },
+    {
+      "id": "tabler:gas-station",
+      "category": "travel",
+      "labels": {
+        "en": "Fuel",
+        "zh-TW": "加油"
+      }
+    },
+    {
+      "id": "tabler:parking",
+      "category": "travel",
+      "labels": {
+        "en": "Parking",
+        "zh-TW": "停車"
+      }
+    },
+    {
+      "id": "tabler:world",
+      "category": "travel",
+      "labels": {
+        "en": "Abroad",
+        "zh-TW": "出國"
+      }
+    },
+    {
+      "id": "tabler:calendar-event",
+      "category": "schedule",
+      "labels": {
+        "en": "Activity",
+        "zh-TW": "時段行程"
+      }
+    },
+    {
+      "id": "tabler:calendar",
+      "category": "schedule",
+      "labels": {
+        "en": "Day schedule",
+        "zh-TW": "日行程"
+      }
+    },
+    {
+      "id": "tabler:calendar-week",
+      "category": "schedule",
+      "labels": {
+        "en": "Week schedule",
+        "zh-TW": "周行程"
+      }
+    },
+    {
+      "id": "tabler:calendar-stats",
+      "category": "schedule",
+      "labels": {
+        "en": "Week sequence",
+        "zh-TW": "周序列行程"
+      }
+    },
+    {
+      "id": "tabler:clock",
+      "category": "schedule",
+      "labels": {
+        "en": "Time",
+        "zh-TW": "時間"
+      }
+    },
+    {
+      "id": "tabler:alarm",
+      "category": "schedule",
+      "labels": {
+        "en": "Alarm",
+        "zh-TW": "提醒"
+      }
+    },
+    {
+      "id": "tabler:sun",
+      "category": "schedule",
+      "labels": {
+        "en": "Morning",
+        "zh-TW": "早晨"
+      }
+    },
+    {
+      "id": "tabler:sunset",
+      "category": "schedule",
+      "labels": {
+        "en": "Evening",
+        "zh-TW": "傍晚"
+      }
+    },
+    {
+      "id": "tabler:moon",
+      "category": "schedule",
+      "labels": {
+        "en": "Night",
+        "zh-TW": "夜晚"
+      }
+    },
+    {
+      "id": "tabler:star",
+      "category": "schedule",
+      "labels": {
+        "en": "Important",
+        "zh-TW": "重要"
+      }
+    },
+    {
+      "id": "tabler:flag",
+      "category": "schedule",
+      "labels": {
+        "en": "Goal",
+        "zh-TW": "目標"
+      }
+    },
+    {
+      "id": "tabler:check",
+      "category": "schedule",
+      "labels": {
+        "en": "Done",
+        "zh-TW": "完成"
+      }
+    },
+    {
+      "id": "tabler:hourglass",
+      "category": "schedule",
+      "labels": {
+        "en": "Waiting",
+        "zh-TW": "等待"
+      }
+    },
+    {
+      "id": "tabler:repeat",
+      "category": "schedule",
+      "labels": {
+        "en": "Repeat",
+        "zh-TW": "重複"
+      }
+    },
+    {
+      "id": "tabler:list-details",
+      "category": "schedule",
+      "labels": {
+        "en": "Plan",
+        "zh-TW": "計畫"
+      }
+    },
+    {
+      "id": "tabler:route",
+      "category": "schedule",
+      "labels": {
+        "en": "Route",
+        "zh-TW": "路線"
+      }
+    },
+    {
+      "id": "tabler:calendar-check",
+      "category": "schedule",
+      "labels": {
+        "en": "Appointment",
+        "zh-TW": "預約"
+      }
+    },
+    {
+      "id": "tabler:calendar-off",
+      "category": "schedule",
+      "labels": {
+        "en": "Day off",
+        "zh-TW": "休假"
+      }
+    },
+    {
+      "id": "tabler:calendar-time",
+      "category": "schedule",
+      "labels": {
+        "en": "Deadline",
+        "zh-TW": "期限"
+      }
+    },
+    {
+      "id": "tabler:sparkles",
+      "category": "schedule",
+      "labels": {
+        "en": "Special event",
+        "zh-TW": "特別活動"
+      }
+    }
+  ],
+  "backgrounds": [
+    {
+      "id": "red",
+      "color": "#F87171",
+      "labels": {
+        "en": "Red",
+        "zh-TW": "紅色"
+      }
+    },
+    {
+      "id": "orange",
+      "color": "#FB923C",
+      "labels": {
+        "en": "Orange",
+        "zh-TW": "橙色"
+      }
+    },
+    {
+      "id": "yellow",
+      "color": "#FACC15",
+      "labels": {
+        "en": "Yellow",
+        "zh-TW": "黃色"
+      }
+    },
+    {
+      "id": "green",
+      "color": "#4ADE80",
+      "labels": {
+        "en": "Green",
+        "zh-TW": "綠色"
+      }
+    },
+    {
+      "id": "cyan",
+      "color": "#22D3EE",
+      "labels": {
+        "en": "Cyan",
+        "zh-TW": "青色"
+      }
+    },
+    {
+      "id": "blue",
+      "color": "#60A5FA",
+      "labels": {
+        "en": "Blue",
+        "zh-TW": "藍色"
+      }
+    },
+    {
+      "id": "purple",
+      "color": "#A78BFA",
+      "labels": {
+        "en": "Purple",
+        "zh-TW": "紫色"
+      }
+    },
+    {
+      "id": "gray",
+      "color": "#94A3B8",
+      "labels": {
+        "en": "Gray",
+        "zh-TW": "灰色"
+      }
+    }
+  ]
+}

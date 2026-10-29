@@ -24,6 +24,8 @@ async function exported(page) {
 
 test('eight solid colors appear first, render without a glyph and survive export and import', async ({ page }) => {
   await load(page);
+  await expect(page.locator('.slot-list .slot-item .slot-icon').first()).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(page.locator('.icon-field .slot-icon').first()).toHaveCSS('color', 'rgb(255, 255, 255)');
   await page.getByRole('button', { name: 'Choose icon', exact: true }).click();
   const dialog = page.getByRole('dialog');
   expect((await dialog.locator('.icon-choice').allTextContents()).slice(0, 8)).toEqual(['Red', 'Orange', 'Yellow', 'Green', 'Cyan', 'Blue', 'Purple', 'Gray']);
@@ -31,10 +33,10 @@ test('eight solid colors appear first, render without a glyph and survive export
   await expect(dialog.locator('.icon-choice')).toHaveCount(8);
   await dialog.getByRole('button', { name: 'Blue', exact: true }).click();
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
-  const icon = page.locator('.icon-field [data-icon="color:blue"]');
+  const icon = page.locator('.icon-field [data-icon="blue"]');
   await expect(icon).toHaveCSS('background-color', 'rgb(96, 165, 250)');
   await expect(icon.locator('svg')).toHaveCount(0);
-  const saved = await exported(page); expect(Object.values(saved.day_schedules)[0].icon).toBe('color:blue');
+  const saved = await exported(page); expect(Object.values(saved.day_schedules)[0].icon).toBe('blue');
   await load(page, saved);
   await expect(icon).toHaveCSS('background-color', 'rgb(96, 165, 250)');
   await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW');
@@ -101,7 +103,7 @@ test('unknown imported names display locally and cancel preserves their original
   Object.values(data.day_schedules)[0].icon = 'constructor';
   Object.values(data.week_schedules)[0].icon = '__proto__';
   await load(page, data);
-  await expect(page.locator('.icon-field [data-icon="tabler:calendar-event"]')).toBeVisible();
+  await expect(page.locator('.icon-field [data-icon="constructor"]')).toBeVisible();
   await page.getByRole('button', { name: 'Choose icon', exact: true }).click();
   await expect(page.locator('.icon-preview')).toContainText('constructor');
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();

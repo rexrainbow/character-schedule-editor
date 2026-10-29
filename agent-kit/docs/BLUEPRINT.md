@@ -2,7 +2,7 @@
 
 本文件說明「如何宣告」，[ENGINE_SEMANTICS.md](ENGINE_SEMANTICS.md) 定義「如何執行」。編寫會執行的藍圖時，須一併閱讀後者，尤其是候選選擇、資格求值、事件排序、逐次變數寫入、中斷／放行及狀態重置；Schema 不代表完整 engine 語意。
 
-藍圖替代人類操作 GUI 建立專案的步驟，保留執行定義與共用引用，匯入時產生全新 UUID、使用預設圖示。不包含 UUID、icon、schema_version、畫面展開狀態或執行中的變數／冷卻／預約佇列。這是宣告式重建，不是專案存檔或完整展開的 Markdown 報告。
+藍圖替代人類操作 GUI 建立專案的步驟，保留執行定義與共用引用，匯入時產生全新 UUID。圖示 icon 可選填，未指定時使用編輯器預設。不包含 UUID、schema_version、畫面展開狀態或執行中的變數／冷卻／預約佇列。這是宣告式重建，不是專案存檔或完整展開的 Markdown 報告。
 
 第一版只支援整份替換，不合併、不同步刪除、不處理舊格式相容性。環境任務可重建介面，但 engine 的實作仍需外部提供。
 
@@ -38,7 +38,25 @@ Schema 來源為 `src/core/blueprint/schema.js`，不直接引用或改造專案
 
 集合省略代表空集合，不加入預設行程進度範本。各定義 display_name 留白時顯示 mapping key，且仍保存為空白。scope 預設 application，環境定義需明確標 environment；tasks 本身就是環境介面。變數 kind 預設 value、type 預設 number、read_only 預設 false；初始值依型別預設 0／空字串／false。群組使用 kind: group，不可指定數值屬性。列舉 kind 預設 enum。
 
-mapping key 直接保存為 name，匯出不依顯示名稱產生符號。圖示不在藍圖內，匯入時使用編輯器預設；手動用途只是分類，tags 保留事件計數語意。
+mapping key 直接保存為 name，匯出不依顯示名稱產生符號。所有具名定義、參數及列舉選項支援選填 icon；手動用途只是分類，tags 保留事件計數語意。
+
+圖示格式為 `tabler:briefcase`、`tabler:briefcase|blue`、`tabler:briefcase|#60A5FA`，或純色 `blue`／`#60A5FA`。`|` 分隔前景與背景；未知字串保留並顯示警告，不影響引用或阻擋匯入。詳見 [ICONS.md](../ICONS.md) 的格式、內建參數設定與離線清單。任務／巨集參數及列舉選項中的 icon 使用相同格式，專案與藍圖均保存，runtime 不輸出。
+
+## 加權隨機任務巨集
+
+任務巨集支援 `mode: random`，例如：
+
+```yaml
+task_macros:
+  choose_activity:
+    mode: random
+    candidates:
+      - { macro: work, weight: "3" }
+      - { macro: entertain, weight: "expr.entertain_weight" }
+    fallback: { macro: rest }
+```
+
+每個候選可呼叫任務、內建任務或巨集，weight 為數字文字運算式，省略預設 "1"。候選先全部求值引數及資格，再對符合者計算權重並抽選；空池才呼叫選填 fallback，後備使用一般 action 格式，也可省略或為 null。work、entertain、rest 與 entertain_weight 必須在對應集合定義。精確語意見 [Engine 契約第 3 節](ENGINE_SEMANTICS.md#34-加權隨機候選與後備)。
 
 ## 文字運算式
 
@@ -84,7 +102,7 @@ task_macros:
       - { macro: reward, arguments: { amount: "10" } }
 ```
 
-mode 預設 sequence，steps 是直接動作陣列，不包含內部步驟 UUID。mode: branch 使用 `branches: [{when: 條件字串或null, run: 動作}]`；非空時唯一 ELSE（when: null）須在最後。mode: priority 使用 `candidates: [{macro: 符號, arguments: {...}}]`，候選只能呼叫巨集。三種模式皆可設定 eligibility，空內容合法。
+mode 預設 sequence，steps 是直接動作陣列，不包含內部步驟 UUID。mode: branch 使用 `branches: [{when: 條件字串或null, run: 動作}]`；非空時唯一 ELSE（when: null）須在最後。mode: priority 使用 `candidates: [{macro: 符號, arguments: {...}}]`，候選只能呼叫巨集。mode: random 使用帶 weight 的任務／巨集候選與選填 fallback。四種模式皆可設定 eligibility，空內容合法。
 
 一般呼叫為 `{task: 符號, arguments: {...}}`，巨集呼叫為 `{macro: 符號, arguments: {...}}`；arguments 的 key 是被呼叫者參數符號。parameters 是 mapping，支援 number、string、boolean、variable_reference、event_reference、enum。引用參數另填 value_type／access，事件參數另填 event_kind，列舉使用 enum 符號或 options: [{display_name, value}]。
 
@@ -175,7 +193,7 @@ GUI 起始畫面與系統選單共用「匯入專案」入口，依副檔名分�
 
 匯出完整定義，保留未被使用的物件、共用巨集、參數、分支、環境契約、Override、私有日與事件來源，不輸出展開後的副本。mapping key 保留物件的持久化 name，修改 display_name 不影響 key；修改 name 後，匯出依原 UUID 找到新名稱並重寫引用。
 
-匯入先分配符號，再解析前向引用，最後完整驗證才可提交。不嘗試用同名物件配對舊專案。重建後 UUID 與圖示可以不同，但可執行邏輯與共用關係相同。文字匯出有標準化，例如括號、ALL／ANY 與預設初始值；不保留原始註解或排版。
+匯入先分配符號，再解析前向引用，最後完整驗證才可提交。不嘗試用同名物件配對舊專案。重建後 UUID 不同；指定的圖示、可執行邏輯與共用關係保留。文字匯出有標準化，例如括號、ALL／ANY 與預設初始值；不保留原始註解或排版。
 
 ## 測試案例假設
 

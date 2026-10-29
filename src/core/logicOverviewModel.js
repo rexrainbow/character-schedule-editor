@@ -96,7 +96,8 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
     if (taskStack.has(call.macro.id)) { line(indent + 1, t('logicCycle')); return; }
     taskStack.add(call.macro.id);
     const macro = call.macro;
-    if (macro.mode === 'priority') priority(macro.candidates ?? [], indent + 1, remaining - 1, call.scope);
+    if (macro.mode === 'random') weighted(macro, indent + 1, remaining - 1, call.scope);
+    else if (macro.mode === 'priority') priority(macro.candidates ?? [], indent + 1, remaining - 1, call.scope);
     else if (macro.mode === 'branch') branches(macro.branches ?? [], indent + 1, remaining - 1, call.scope);
     else {
       const steps = macro.mode === 'conditional' ? [{ task: macro.task }] : macro.steps ?? [];
@@ -109,6 +110,15 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
     if (!items.length) line(indent, t('logicNoActions'));
     if (items.length === 1 && items[0].condition === null) { comments(items[0], indent); task(items[0].task, indent, remaining, scope); return; }
     items.forEach((item, index) => { comments(item, indent); task(item.task, indent, remaining, scope, `${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining)})`} → `); });
+  }
+  function weighted(macro, indent, remaining, scope) {
+    line(indent, t('weightedExecutionOrder'));
+    for (const item of macro.candidates ?? []) {
+      comments(item, indent + 1);
+      task(item.task, indent + 1, remaining, scope, `${t('randomWeight')} (${operand(item.weight, scope, remaining)}) → `);
+    }
+    if (macro.fallback) { comments(macro.fallback, indent + 1); task(macro.fallback.task, indent + 1, remaining, scope, `${t('weightedFallback')} → `); }
+    else if (!macro.candidates?.length) line(indent + 1, t('logicNoActions'));
   }
   function priority(items, indent, remaining, scope) {
     line(indent, t('logicPriorityHint'));
@@ -130,7 +140,8 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
     const eligibility = macroEligibility(rootMacro), indent = eligibility == null ? 0 : 1;
     if (eligibility != null) line(0, `IF (${condition(eligibility, scope, limit)})`);
     taskStack.add(rootMacro.id);
-    if (rootMacro.mode === 'priority') priority(rootMacro.candidates ?? [], indent, limit, scope);
+    if (rootMacro.mode === 'random') weighted(rootMacro, indent, limit, scope);
+    else if (rootMacro.mode === 'priority') priority(rootMacro.candidates ?? [], indent, limit, scope);
     else if (rootMacro.mode === 'branch') branches(rootMacro.branches ?? [], indent, limit, scope);
     else {
       const steps = rootMacro.mode === 'conditional' ? [{ task: rootMacro.task }] : rootMacro.steps ?? [];

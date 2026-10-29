@@ -44,6 +44,12 @@ export class TraceCollector {
     }
     if (record.type !== 'record' || !parent) return;
     if (record.kind === 'selection') { parent.result = record.result; return; }
+    if (record.kind === 'weightedSelection') {
+      parent.children.push({ kind: 'message', label: record.index !== null ? t('weightedSelected', { count: record.index }) : t(record.fallback ? 'weightedUseFallback' : 'weightedNoSelection') });
+      parent.children.push({ kind: 'message', label: t('weightedPool', { value: record.weights.map((item) => `${item.index}: ${item.weight}`).join(', ') || '—' }) });
+      if (record.draw !== null) parent.children.push({ kind: 'message', label: t('weightedDraw', { value: record.draw }) });
+      return;
+    }
     if (record.kind === 'return') parent.children.push({ kind: 'return', label: t('computedReturn'), value: record.value, path: record.path });
     else if (record.kind === 'skipped') parent.children.push({ kind: 'skipped', label: t('computedReturn') });
     else if (record.kind === 'random' && record.random_amplitude > 0) parent.children.push({ kind: 'random', label: t('simulationRandomOffset', { amount: record.increment, amplitude: record.random_amplitude, offset: record.random_offset }), value: record.random_offset });
@@ -67,7 +73,9 @@ export class TraceCollector {
     else if (record.kind === 'slot') node.label = this.draft.slots.find((slot) => slot.id === record.slotRef)?.name ?? '?';
     else if (record.kind === 'macro') node.label = this.draft.taskMacros.find((macro) => macro.id === record.macroRef)?.display_name ?? '?';
     else if (record.kind === 'step') node.label = t('taskStep', { count: record.index });
-    else if (record.kind === 'candidate') node.label = `${t('candidateNumber', { count: record.index })}: ${this.draft.taskMacros.find((macro) => macro.id === record.task?.task_macro_id)?.display_name ?? '?'}`;
+    else if (record.kind === 'candidate') node.label = `${t('candidateNumber', { count: record.index })}: ${record.task?.builtin ? builtinTaskDefinition(record.task.builtin, this.draft.builtinTasks, t).display_name : (record.task?.task_macro_id ? this.draft.taskMacros : this.draft.tasks).find((item) => item.id === (record.task?.task_macro_id ?? record.task?.task_id))?.display_name ?? '?'}`;
+    else if (record.kind === 'weighted') node.label = t('weightedCandidates');
+    else if (record.kind === 'weight') node.label = `${t('candidateNumber', { count: record.index })}: ${t('randomWeight')}`;
     else if (record.kind === 'guard') node.label = t('candidateCondition');
     else if (record.use) node.label = record.use.builtin ? builtinTaskDefinition(record.use.builtin, this.draft.builtinTasks, t).display_name : this.draft.tasks.find((task) => task.id === record.use.task_id)?.display_name ?? '?';
     else node.label = record.kind;

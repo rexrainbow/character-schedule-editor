@@ -1,0 +1,30 @@
+[WebServer] (node:28120) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 21 tests using 1 worker
+
+(node:7696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\browser\daySimulation.spec.js:29:1 › day simulation shares state, repeats from inputs, applies explicitly, and keeps project intact (4.1s)
+  ok  2 tests\browser\daySimulation.spec.js:50:1 › calendar limits active dates and progress bindings can be changed or disabled (1.7s)
+  ok  3 tests\browser\daySimulation.spec.js:67:1 › sequence cell shortcut and source links open the selected definitions (2.2s)
+  ok  4 tests\browser\daySimulation.spec.js:79:1 › failed day stops with context and Chinese mobile layout remains usable (2.3s)
+  ok  5 tests\browser\iconAppearance.spec.js:29:1 › parameter and enum icons share composition, contrast, cancel and project/Blueprint persistence (5.1s)
+  ok  6 tests\browser\iconAppearance.spec.js:60:1 › fixed builtin option icons remain editable and the picker fits a narrow Traditional Chinese screen (2.0s)
+  ok  7 tests\browser\icons.spec.js:25:1 › eight solid colors appear first, render without a glyph and survive export and import (3.3s)
+  ok  8 tests\browser\icons.spec.js:47:1 › one offline catalog edits all entity types and updates relationship icons (5.7s)
+  ok  9 tests\browser\icons.spec.js:69:1 › picker cancel, translated search, clear, and editor-dialog drafts stay isolated (4.5s)
+  ok 10 tests\browser\icons.spec.js:99:1 › unknown imported names display locally and cancel preserves their original value (2.1s)
+  ok 11 tests\browser\runtimeEngine.spec.js:5:1 › standalone runtime runs in the browser and restores a paused async task from JSON (1.4s)
+  ok 12 tests\browser\simulation.spec.js:21:1 › unconditional slots, task macros and computed branches omit ELSE while conditional fallbacks use natural labels (3.0s)
+  ok 13 tests\browser\simulation.spec.js:52:1 › simulation inputs, repeated runs, explicit apply and reset never modify the project (2.4s)
+  ok 14 tests\browser\simulation.spec.js:74:1 › opaque engine calls and scoped macro references are traced, sessions persist and editing invalidates results (2.0s)
+  ok 15 tests\browser\simulation.spec.js:91:1 › runtime expression failures show paths, stop execution and prevent applying partial results (1.9s)
+  ok 16 tests\browser\simulation.spec.js:109:1 › Chinese mobile simulation edits readonly progress, evaluates macros and switches input/result tabs (2.7s)
+  ok 17 tests\browser\simulationRuntime.spec.js:25:1 › runtime simulation prevents duplicate runs, cancels without applying and can run again (2.3s)
+  ok 18 tests\browser\simulationRuntime.spec.js:42:1 › editing inputs and leaving simulation invalidate pending results instead of publishing stale values (2.7s)
+  ok 19 tests\browser\simulationRuntime.spec.js:57:1 › Chinese narrow-screen runtime trace preserves keyboard controls, apply and reset (1.6s)
+  ok 20 tests\browser\trendInteraction.spec.js:24:37 › event colors, overlapping markers and point-to-day navigation (desktop) (3.3s)
+  ok 21 tests\browser\trendInteraction.spec.js:24:37 › event colors, overlapping markers and point-to-day navigation (mobile) (3.0s)
+
+  21 passed (1.1m)

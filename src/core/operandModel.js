@@ -121,7 +121,7 @@ export function argumentErrors(value, parameter, nodes, path = '', scope = []) {
   if (type && type !== parameter.type) errors.push({ path, key: 'parameterTypeMismatch', field: parameter.display_name });
   return errors;
 }
-export const TASK_MACRO_MODES = ['sequence', 'branch', 'priority'];
+export const TASK_MACRO_MODES = ['sequence', 'branch', 'priority', 'random'];
 export const allowedMacroModes = () => TASK_MACRO_MODES;
 export const macroEligibility = (macro) => macro.mode === 'conditional' ? macro.condition : macro.eligibility;
 export function taskUseErrors(use, tasks = [], nodes = {}, path = '', scope = [], sequences = [], allowedModes = TASK_MACRO_MODES) {
@@ -153,13 +153,15 @@ export function branchOrderErrors(branches, path = '') {
 }
 export function macroEntries(macro) {
   if (macro.mode === 'conditional') return [{ entry: macro, index: 0, path: `/task_macros/${macro.id}` }];
-  const key = macro.mode === 'branch' ? 'branches' : macro.mode === 'priority' ? 'candidates' : 'steps';
-  return (Array.isArray(macro[key]) ? macro[key] : []).map((entry, index) => ({ entry, index, path: `/task_macros/${macro.id}/${key}/${index}` })).filter(({ entry }) => entry && typeof entry === 'object');
+  const key = macro.mode === 'branch' ? 'branches' : ['priority', 'random'].includes(macro.mode) ? 'candidates' : 'steps';
+  const entries = (Array.isArray(macro[key]) ? macro[key] : []).map((entry, index) => ({ entry, index, path: `/task_macros/${macro.id}/${key}/${index}` })).filter(({ entry }) => entry && typeof entry === 'object');
+  if (macro.mode === 'random' && macro.fallback != null) entries.push({ entry: macro.fallback, index: entries.length, path: `/task_macros/${macro.id}/fallback`, fallback: true });
+  return entries;
 }
 export function mapMacroEntries(macro, change) {
   if (macro.mode === 'conditional') return change(macro);
-  const key = macro.mode === 'branch' ? 'branches' : macro.mode === 'priority' ? 'candidates' : 'steps';
-  return { ...macro, [key]: (macro[key] ?? []).map(change) };
+  const key = macro.mode === 'branch' ? 'branches' : ['priority', 'random'].includes(macro.mode) ? 'candidates' : 'steps';
+  return { ...macro, [key]: (macro[key] ?? []).map(change), ...(macro.mode === 'random' && macro.fallback != null ? { fallback: change(macro.fallback) } : {}) };
 }
 export function macroReaches(macros, start, target) {
   const byId = new Map(macros.map((macro) => [macro.id, macro])), pending = [start], seen = new Set();
@@ -170,10 +172,15 @@ export function macroReaches(macros, start, target) {
   }
   return false;
 }
+export function randomWeightErrors(weight, nodes, path = '', parameters = []) {
+  return [...operandErrors(weight, nodes, path, true, parameters).filter((error) => error.key !== 'divisionByZero'),
+    ...(weight?.type === 'constant' && weight.value < 0 ? [{ path, key: 'invalidRandomWeight' }] : [])];
+}
 export function taskMacroContentErrors(macros = [], tasks = [], nodes = {}, allMacros = macros) {
   return macros.flatMap((macro) => [
     ...(macro.eligibility == null ? [] : conditionErrors(macro.eligibility, nodes, `/task_macros/${macro.id}/eligibility`, macro.parameters ?? [])),
-    ...macroEntries(macro).flatMap(({ entry, path }) => [
+    ...macroEntries(macro).flatMap(({ entry, path, fallback }) => [
+    ...(macro.mode === 'random' && !fallback ? randomWeightErrors(entry.weight, nodes, `${path}/weight`, macro.parameters ?? []) : []),
     ...(['branch', 'conditional'].includes(macro.mode) ? conditionErrors(entry.condition, nodes, `${path}/condition`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : []) : []),
     ...(macro.mode === 'priority' && !entry.task?.task_macro_id ? [{ path: `${path}/task`, key: 'conditionalCandidateRequired' }] : []),
     ...taskUseErrors(entry.task, tasks, nodes, `${path}/task`, Array.isArray(macro.parameters) ? macro.parameters.filter(Boolean) : [], allMacros, allowedMacroModes(macro.mode)),
@@ -293,7 +300,7 @@ export function nodeReferences(slots, id, nodes = {}, excludedOwners = new Set()
   for (const macro of sequences) {
     for (const ref of referencesIn(macro.eligibility, `/task_macros/${macro.id}/eligibility`)) if (targets.has(ref.nodeId)) found.push({ ...ref, macroId: macro.id, macroName: macro.display_name });
     for (const { entry, index, path } of macroEntries(macro)) {
-      const refs = [...referencesIn(entry.condition, `${path}/condition`), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => taskArgumentReferences(entry.task, root, tasks, sequences))];
+      const refs = [...referencesIn(entry.condition, `${path}/condition`), ...referencesIn(entry.weight, `${path}/weight`), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => taskArgumentReferences(entry.task, root, tasks, sequences))];
       if (isBuiltinVariableTask(entry.task)) refs.push({ nodeId: entry.task.target_variable_id, path: `${path}/task/target_variable_id`, access: 'write' });
       for (const ref of refs) if (targets.has(ref.nodeId)) found.push({ ...ref, macroId: macro.id, macroName: macro.display_name, ...(macro.mode === 'branch' ? { branch: index + 1 } : { step: index + 1 }) });
     }

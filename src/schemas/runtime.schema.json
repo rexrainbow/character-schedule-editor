@@ -1597,6 +1597,83 @@
             "candidates"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/task_parameter"
+              }
+            },
+            "mode": {
+              "const": "random"
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "weight": {
+                    "$ref": "#/$defs/scoped_numeric_operand"
+                  },
+                  "task": {
+                    "$ref": "#/$defs/runtime_action"
+                  }
+                },
+                "required": [
+                  "weight",
+                  "task"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "fallback": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "$ref": "#/$defs/runtime_action"
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "eligibility": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/scoped_condition"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "display_name",
+            "parameters",
+            "mode",
+            "candidates"
+          ],
+          "additionalProperties": false
         }
       ]
     },

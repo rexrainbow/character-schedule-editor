@@ -8,7 +8,8 @@ const choice = (...schemas) => ({ oneOf: schemas });
 const enumeration = (...values) => ({ enum: values });
 const symbol = { type: 'string', pattern: '^[A-Za-z_][A-Za-z0-9_]*$', description: 'Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID.' };
 const catalog = (items) => ({ type: 'object', propertyNames: symbol, additionalProperties: items });
-const metadata = { description: string, display_name: { type: 'string', description: 'Optional human label. Blank displays the catalog key (persistent name).' } };
+const icon = { type: 'string', description: 'Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors.' };
+const metadata = { icon, description: string, display_name: { type: 'string', description: 'Optional human label. Blank displays the catalog key (persistent name).' } };
 const scope = enumeration('application', 'environment');
 const expr = { type: 'string', minLength: 1, maxLength: 16000, description: 'Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression.' };
 const condition = { ...nullable(expr), description: 'null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3.' };
@@ -25,16 +26,19 @@ const builtin = choice(
   object({ builtin: enumeration('set_variable', 'increment_variable'), target: symbol, value: expr, random_amplitude: expr }, ['builtin', 'target', 'value']),
   object({ builtin: enumeration('toggle_variable', 'reset_variable'), target: symbol }, ['builtin', 'target']),
   object({ builtin: { const: 'adjust_probability_event' }, event: eventArgument, property: enumArgument, operation: enumArgument, value: expr }, ['builtin', 'event', 'property', 'operation', 'value']),
-  object({ builtin: { const: 'schedule_event' }, display_name: string, date: object({ mode: enumeration('days', 'weeks_weekday'), offset: expr, weekday }, ['mode', 'offset']), day: symbol, source, execution, priority: { type: 'integer' } }, ['builtin', 'date'])
+  object({ builtin: { const: 'schedule_event' }, display_name: string, icon, date: object({ mode: enumeration('days', 'weeks_weekday'), offset: expr, weekday }, ['mode', 'offset']), day: symbol, source, execution, priority: { type: 'integer' } }, ['builtin', 'date'])
 );
 const described = (schema) => schema.oneOf ? { ...schema, oneOf: schema.oneOf.map(described) } : { ...schema, properties: { ...schema.properties, description: string } };
 const branch = object({ description: string, when: condition, run: ref('action') }, ['when', 'run']);
-const commonLogic = { ...metadata, mode: enumeration('sequence', 'branch', 'priority'), parameters: catalog(ref('parameter')), eligibility: condition, steps: array(ref('step')), branches: array(branch), candidates: array(ref('candidate')) };
+const weightedCandidate = described(choice(invocation, builtin));
+function addWeight(schema) { if (schema.oneOf) schema.oneOf.forEach(addWeight); else schema.properties.weight = expr; }
+addWeight(weightedCandidate);
+const commonLogic = { ...metadata, mode: enumeration('sequence', 'branch', 'priority', 'random'), parameters: catalog(ref('parameter')), eligibility: condition, steps: array(ref('step')), branches: array(branch), candidates: array(ref('weightedCandidate')), fallback: nullable(ref('step')) };
 const defs = {
-  expression: expr, action: choice(invocation, builtin), invocation, step: described(choice(invocation, builtin)), candidate: described(invocation),
-  parameter: object({ ...metadata, type: enumeration('number', 'string', 'boolean', 'variable_reference', 'event_reference', 'enum'), value_type: enumeration('number', 'string', 'boolean', 'any'), access: enumeration('read', 'write', 'read_write'), event_kind: enumeration('any', 'probability'), options: array(object({ display_name: string, value: string }, ['value'])), enum: symbol }, ['type']),
+  expression: expr, action: choice(invocation, builtin), invocation, step: described(choice(invocation, builtin)), candidate: described(invocation), weightedCandidate,
+  parameter: object({ ...metadata, type: enumeration('number', 'string', 'boolean', 'variable_reference', 'event_reference', 'enum'), value_type: enumeration('number', 'string', 'boolean', 'any'), access: enumeration('read', 'write', 'read_write'), event_kind: enumeration('any', 'probability'), options: array(object({ display_name: string, icon, value: string }, ['value'])), enum: symbol }, ['type']),
   variable: object({ ...metadata, scope, kind: enumeration('group', 'value'), parent: nullable(symbol), order: nonnegative, type: enumeration('number', 'string', 'boolean'), initial: { type: ['number', 'string', 'boolean'] }, min: number, max: number, integer: boolean, read_only: boolean }),
-  enum: object({ ...metadata, scope, kind: enumeration('group', 'enum'), parent: nullable(symbol), order: nonnegative, options: array(object({ display_name: string, value: string }, ['value'])) }),
+  enum: object({ ...metadata, scope, kind: enumeration('group', 'enum'), parent: nullable(symbol), order: nonnegative, options: array(object({ display_name: string, icon, value: string }, ['value'])) }),
   computed: object({ ...metadata, scope, type: enumeration('number', 'boolean'), value: expr, branches: { ...array(object({ description: string, when: condition, value: expr }, ['when', 'value'])), minItems: 1 } }, ['type']),
   macro: object(commonLogic),
   slot: object({ ...metadata, mode: enumeration('branch', 'priority'), branches: array(branch), candidates: array(ref('candidate')) }),
@@ -48,7 +52,8 @@ source.description = 'Choose one day per event occurrence, before day execution.
 execution.description = 'Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8.';
 branch.description = 'Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE.';
 defs.candidate.description = 'Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated.';
-defs.macro.description = 'Sequence, branch or priority macro; eligibility is checked after argument evaluation. Empty content is valid. See ENGINE_SEMANTICS.md section 3.';
+defs.macro.description = 'Sequence, branch, priority or weighted random macro. Random evaluates arguments/eligibility, then eligible weights, then draws once; fallback runs only if the pool is empty. See ENGINE_SEMANTICS.md section 3.';
+defs.macro.allOf = [{ if: { properties: { mode: { const: 'random' } }, required: ['mode'] }, then: {}, else: { properties: { candidates: array(ref('candidate')), fallback: false } } }];
 defs.computed.description = 'Evaluated against current state on every reference. Branches return only the first matching result; no state storage or implicit accumulation.';
 defs.variable.properties.initial.description = 'Constant validated before runtime creation. Default reset baseline comes from Program initial values; simulation input overrides do not redefine it.';
 defs.variable.properties.integer = { ...boolean, description: 'Writes truncate toward zero, then clamp to optional min/max. Intermediate arithmetic is not truncated. Initial values must already satisfy integer constraints.' };
@@ -58,8 +63,8 @@ defs.event.properties.priority.description = 'Execution order is descending; non
 defs.event.properties.cooldown_days = { ...nonnegative, description: 'After occurrence, skip this many subsequent eligible dates. Ineligible dates do not consume cooldown; changes to this setting do not rewrite remaining cooldown.' };
 export const blueprintSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema', title: 'Character Schedule Blueprint',
-  description: 'Declarative rebuild input/output without UUIDs or icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.',
+  description: 'Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.',
   $comment: 'This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.',
-  ...object({ project: object({ name: string, slots_per_day: { type: 'integer', minimum: 1, default: 3 } }), environment: object({ name: string, version: string }), variables: catalog(ref('variable')), expressions: catalog(ref('computed')), tasks: catalog(object({ ...metadata, parameters: catalog(ref('parameter')) })), task_macros: catalog(ref('macro')), slots: catalog(ref('slot')), days: catalog(ref('day')), weeks: catalog(ref('week')), sequences: catalog(ref('sequence')), enums: catalog(ref('enum')), builtins: object(Object.fromEntries(['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable', 'release_slot', 'adjust_probability_event', 'schedule_event'].map((key) => [key, object({ ...metadata, name: symbol, parameter_names: { type: 'object', additionalProperties: string }, parameter_descriptions: { type: 'object', additionalProperties: string }, parameter_symbols: { type: 'object', additionalProperties: symbol } })]))) }),
+  ...object({ project: object({ name: string, slots_per_day: { type: 'integer', minimum: 1, default: 3 } }), environment: object({ name: string, version: string, icon }), variables: catalog(ref('variable')), expressions: catalog(ref('computed')), tasks: catalog(object({ ...metadata, parameters: catalog(ref('parameter')) })), task_macros: catalog(ref('macro')), slots: catalog(ref('slot')), days: catalog(ref('day')), weeks: catalog(ref('week')), sequences: catalog(ref('sequence')), enums: catalog(ref('enum')), builtins: object(Object.fromEntries(['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable', 'release_slot', 'adjust_probability_event', 'schedule_event'].map((key) => [key, object({ ...metadata, name: symbol, parameter_names: { type: 'object', additionalProperties: string }, parameter_icons: { type: 'object', additionalProperties: icon }, parameter_option_icons: { type: 'object', additionalProperties: { type: 'object', additionalProperties: icon } }, parameter_descriptions: { type: 'object', additionalProperties: string }, parameter_symbols: { type: 'object', additionalProperties: symbol } })]))) }),
   $defs: defs,
 };

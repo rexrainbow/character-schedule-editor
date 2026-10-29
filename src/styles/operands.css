@@ -128,3 +128,6 @@
 .reference-source-heading { color: var(--muted); margin: 14px 0 8px; }
 .expression-macro-list { min-height: 0; overflow-y: auto; }
 .expression-macro-list .parameter-reference strong { flex: 1; }
+.weighted-mode-order { padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 7px; font-size: 14px; line-height: 1.6; }
+.candidate-weight, .weighted-fallback { display: grid; gap: 10px; }
+.weighted-fallback { padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px; }

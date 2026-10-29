@@ -12,18 +12,19 @@ async function saved(page) { const pending = page.waitForEvent('download'); awai
 
 test('eligibility defaults to collapsed, remains active while collapsed, can be cleared, and survives mode changes', async ({ page }) => {
   const { eligible, priority } = await load(page);
-  await expect(page.getByRole('combobox', { name: 'Macro mode', exact: true }).locator('option')).toHaveCount(3);
+  await expect(page.getByRole('combobox', { name: 'Macro mode', exact: true }).locator('option')).toHaveCount(4);
   await expect(page.locator('.macro-eligibility summary')).toContainText('Engine.Counter');
   await expect(page.locator('.macro-eligibility')).not.toHaveAttribute('open', '');
   await page.locator('.macro-eligibility summary').click();
   await page.getByRole('button', { name: 'Clear eligibility condition', exact: true }).click();
   await expect(page.locator('.macro-eligibility summary')).toContainText('Unrestricted');
   let project = await saved(page); expect(project.task_macros[eligible.id].eligibility).toBeNull(); expect(project.task_macros[eligible.id].steps).toHaveLength(1);
+  const beforeParameters = project.task_macros[eligible.id].parameters;
   await page.getByRole('button', { name: 'Set eligibility condition', exact: true }).click();
   project = await saved(page); const guard = project.task_macros[eligible.id].eligibility;
   page.once('dialog', (dialog) => dialog.accept()); await page.getByRole('combobox', { name: 'Macro mode', exact: true }).selectOption('priority');
   project = await saved(page); expect(project.task_macros[eligible.id].eligibility).toEqual(guard); expect(project.task_macros[eligible.id].mode).toBe('priority');
-  expect(project.task_macros[eligible.id].parameters).toEqual(eligible.parameters);
+  expect(project.task_macros[eligible.id].parameters).toEqual(beforeParameters);
   await page.locator('.operand-sidebar').getByRole('button', { name: /Choose activity/ }).click();
   await expect(page.locator('.macro-eligibility summary')).toContainText('Unrestricted');
   await expect(page.locator('.macro-eligibility')).not.toHaveAttribute('open', '');

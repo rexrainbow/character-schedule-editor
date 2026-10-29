@@ -15,7 +15,7 @@ function roundtrip(draft) {
   const first = good(exportBlueprint(draft)).data;
   const rebuilt = good(importBlueprint(first));
   assert.equal(good(exportBlueprint(rebuilt.draft)).data, first);
-  assert.doesNotMatch(first, uuid); assert.doesNotMatch(first, /^\s*icon:/m);
+  assert.doesNotMatch(first, uuid);
   const originalIds = new Set(Object.keys(draft.operandNodes));
   assert.ok(Object.keys(rebuilt.draft.operandNodes).every((id) => !originalIds.has(id)));
   return rebuilt;
@@ -99,7 +99,7 @@ test('schema, references, cycles, types and permissions fail without replacing t
   assert.equal(session.importBlueprint(original).ok, true);
   const snapshot = session.getSnapshot();
   const cases = [
-    'project: {name: A, name: B}', 'project: !custom value', 'x: &x [*x]', 'project: {slots_per_day: 0}', 'slots: {x: {icon: red}}',
+    'project: {name: A, name: B}', 'project: !custom value', 'x: &x [*x]', 'project: {slots_per_day: 0}', 'slots: {x: {icon: 123}}',
     'expressions: {x: {type: number, value: vars.missing}}',
     'expressions: {x: {type: number, value: expr.x}}',
     'variables: {x: {type: boolean, initial: 1}}',

@@ -182,8 +182,8 @@ body { min-width: 360px; font-size: 15px; }
 .variable-bounds input { width: 100%; min-width: 0; }
 .variable-bounds small { grid-column: 1 / -1; }
 .slot-icon { display: inline-flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
-.slot-icon>svg { width: 68%; height: 68%; flex: none; color: #fff; }
-.icon-field { border: 0; padding: 0; background: transparent; border-radius: 9px; flex: none; display: inline-flex; }
+.slot-icon>svg { width: 68%; height: 68%; flex: none; color: inherit; }
+.icon-field { border: 0; padding: 0; background: transparent; border-radius: 9px; flex: none; display: inline-flex; position: relative; }
 .icon-field:hover { outline: 2px solid #b9a3ff; outline-offset: 2px; }
 .property-fields { grid-template-columns: minmax(0, 640px); }
 .property-fields .field-label { display: block; margin-bottom: 9px; }
@@ -208,6 +208,20 @@ body { min-width: 360px; font-size: 15px; }
 .icon-choice .slot-icon { width: 36px; height: 36px; flex-basis: 36px; }
 .icon-preview { display: flex; gap: 10px; align-items: center; font-size: 13px; overflow-wrap: anywhere; margin-bottom: 0; }
 .icon-clear { margin-right: auto; }
+.icon-background-tools { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.icon-background-tools label { display: grid; gap: 8px; min-width: 0; flex: 1 1 150px; }
+.icon-background-tools input, .icon-background-tools select { width: 100%; min-width: 0; }
+.icon-warning { position: absolute; right: -4px; bottom: -3px; color: var(--warning, #FACC15); background: var(--bg, #101218); border-radius: 3px; }
+.icon-warning-message { display: flex; gap: 8px; color: var(--warning, #FACC15); align-items: center; }
+.icon-warning-message svg { flex: none; }
+.parameter-name-fields { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 12px; }
+.parameter-row > .parameter-name-fields, .parameter-row > .parameter-contract-fields { grid-column: 1 / -1; }
+.parameter-row:has(.parameter-name-fields) > .row-actions { grid-column: 1 / -1; grid-row: auto; justify-content: flex-end; }
+.enum-option-name, .enum-argument-control { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.enum-option-name > label, .enum-argument-control > select { flex: 1; min-width: 0; }
+.enum-option-name:has(label) { align-items: end; }
+.task-argument > .parameter-label { display: flex; align-items: center; gap: 8px; }
+.parameter-label .slot-icon, .enum-argument-control .slot-icon { width: 22px; height: 22px; flex: 0 0 22px; }
 @media (max-width: 720px) {
   .icon-picker-tools { align-items: stretch; flex-direction: column; }
   .icon-category select { flex: 1; max-width: none; }

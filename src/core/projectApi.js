@@ -339,7 +339,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
     list: () => builtinTaskDefinitions(snapshot.builtinTasks, t),
     update: (id, patch) => apply('tasks.builtins.update', (draft) => {
       const current = requireItem(builtinTaskDefinitions(draft.builtinTasks, t), id, '/builtin_tasks');
-      const structural = (parameters) => parameters.map(({ display_name, symbol, description, ...p }) => p);
+      const structural = (parameters) => parameters.map(({ display_name, symbol, description, icon, ...p }) => ({ ...p, ...(p.options ? { options: p.options.map(({ icon, ...option }) => option) } : {}) }));
       if (patch.parameters && !equal(structural(current.parameters), structural(patch.parameters))) fail('protectedProjectField', `/builtin_tasks/${id}/parameters`);
       return { draft: { ...draft, builtinTasks: changeBuiltinDefinition(draft.builtinTasks, current, { ...current, ...clone(patch) }) } };
     }),

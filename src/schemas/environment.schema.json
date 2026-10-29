@@ -74,6 +74,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -92,6 +96,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -141,6 +149,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -159,6 +171,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -177,6 +193,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -226,6 +246,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -275,6 +299,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -324,6 +352,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -342,6 +374,16 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+                    },
+                    "option_icons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [],
@@ -360,6 +402,16 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+                    },
+                    "option_icons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [],
@@ -378,6 +430,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "required": [],
@@ -426,6 +482,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "additionalProperties": false
@@ -473,6 +533,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "additionalProperties": false
@@ -490,6 +554,16 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+                    },
+                    "option_icons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -507,6 +581,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "additionalProperties": false
@@ -524,6 +602,16 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+                    },
+                    "option_icons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -541,6 +629,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "additionalProperties": false
@@ -558,6 +650,16 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+                    },
+                    "option_icons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -575,6 +677,10 @@
                     "description": {
                       "type": "string",
                       "description": "Optional editor/blueprint explanation. Does not affect execution."
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                     }
                   },
                   "additionalProperties": false
@@ -582,6 +688,10 @@
                 "description": {
                   "type": "string",
                   "description": "Optional editor/blueprint explanation. Does not affect execution."
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
                 }
               },
               "additionalProperties": false
@@ -638,6 +748,10 @@
         "description": {
           "type": "string",
           "description": "Optional editor/blueprint explanation. Does not affect execution."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
         }
       },
       "additionalProperties": false
@@ -1516,6 +1630,10 @@
                 "type": "string",
                 "minLength": 1,
                 "pattern": "^\\S(?:.*\\S)?$"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
               }
             },
             "required": [
@@ -1535,6 +1653,10 @@
         "description": {
           "type": "string",
           "description": "Optional editor/blueprint explanation. Does not affect execution."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
         }
       },
       "additionalProperties": false,
@@ -1687,6 +1809,10 @@
                 "type": "string",
                 "minLength": 1,
                 "pattern": "^\\S(?:.*\\S)?$"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
               }
             },
             "required": [

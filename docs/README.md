@@ -1,5 +1,7 @@
 # Character Schedule Editor
 
+任務巨集新增 [加權隨機候選](WEIGHTED_TASK_MACROS.md)：先檢查所有候選資格，再求值權重並抽選一個，沒有可抽選者時執行選填的後備動作。支援數字 expression、雙語編輯、YAML、runtime、模擬診斷與 checkpoint 恢復。
+
 第一次使用可先閱讀 [一頁式工具介紹](INTRODUCTION.md)（[English](INTRODUCTION.en.md)）。網頁右上角的「說明（?）」在載入專案前及各編輯模式都可開啟同一份介紹，內容跟隨介面語系。
 
 各編輯器支援可分享的 [編輯位置連結](EDITOR_LINKS.md)，包含模式、物件與周序列事件，並支援瀏覽器上一頁／下一頁及面板草稿保護。
@@ -14,7 +16,7 @@
 
 現行識別規則：name 為必填符號，display_name 留白時使用 name。YAML 保留 mapping，API 可直接依名稱定位，詳見 [NAMING.md](./NAMING.md)。
 
-可透過不含 UUID／圖示的 YAML 藍圖重建專案，支援文字運算式 parser、獨立 Schema、預覽與 MCP 匯入／匯出，見 [BLUEPRINT.md](./BLUEPRINT.md)。
+可透過不含 UUID、支援選填 icon 的 YAML 藍圖重建專案，支援文字運算式 parser、獨立 Schema、預覽與 MCP 匯入／匯出，見 [BLUEPRINT.md](./BLUEPRINT.md)。
 
 需要判斷自然語言需求如何由現有功能組合時，先讀 [系統能力總覽](./SYSTEM_SEMANTICS.md)，再讀唯一的 [Engine 執行語意契約](./ENGINE_SEMANTICS.md)，並由 [需求組合範例索引](./RECIPES.md) 選讀範例。YAML 寫法與 Engine 效果分開維護，避免僅憑 Schema 猜測執行規則。
 
@@ -117,7 +119,7 @@ npx.cmd playwright test
 - 時段行程、日行程、周行程與周序列共用一套 120 個 Tabler 活動圖示，以 `icon: "tabler:briefcase"` 等字串保存。點擊名稱前的圖示開啟方格選擇器，支援繁中／英文名稱搜尋與分類；套用才更新，取消／Esc 不修改，清除後使用預設圖示。時段編輯視窗內切換同一視窗，不疊加視窗。
 - 圖示選擇器最前方提供 8 種純色圓角方塊：紅、橙、黃、綠、青、藍、紫、灰，另有「純色」分類。以 `color:red`、`color:blue` 等 icon 字串保存，不使用圖片或網路資源，所有使用共用圖示的物件皆可選取。
 - 清單、日／周行程時段格、周行程的日引用、周序列的周引用與生效日行程，以及各引用選擇器都顯示圖示與名稱。引用來源的圖示更新後同步顯示；週內自訂日行程在建立時保留來源日的圖示。
-- 圖示 SVG 資料與中英文標籤隨 App 打包，無執行時圖示 API 請求，可離線使用；保留圓角色塊背景。舊資料缺少 Day／Week／Sequence 圖示時補上預設，舊名稱 `commute`／`work` 等提供對應圖示，未知名稱保留並顯示預設圖示。
+- 圖示 SVG 資料與中英文標籤隨 App 打包，無執行時圖示 API 請求，可離線使用；保留圓角色塊背景。參數、列舉選項也有圖示選取器。支援 `前景|背景色`、純色與六位十六進位色碼；未知名稱保留，以空白前景／預設背景顯示並提示警告。格式與 agent-kit 清單見 [ICONS.md](./ICONS.md)。
 - 圖示清單位於 `src/icons/catalog.js`；修改後執行 `npm.cmd run icons:build` 重建精選 SVG 資料。Tabler 與 Iconify 授權隨輸出附於 `public/licenses`／`dist/licenses`。
 - 匯出檔案包含 `project`、`slots`、`day_schedules`、`week_schedules`、`week_sequences` 與 `operand_nodes`；所有集合的 key 均為小寫 UUID。開發階段 `schema_version` 僅檢查為非空字串，不限制版本值。不提供舊 Condition 格式轉換，專案需包含 `operand_nodes` 並使用 Reference／Constant／Expression Operand。
 - 「變數空間定義」頁面管理 Group／Value 樹，支援搜尋並保留祖先路徑、展開收合、鍵盤導覽、新增、重新命名與父節點選擇。排序由變數清單工具列的上移／下移圖示，交換目前選取節點與相鄰同級節點；搜尋期間及到達首尾時停用對應按鈕。群組連同子樹移動，`order` 由 App 自動連續編號，右側不提供排序輸入。變數葉節點具有 `read_only` 屬性，新建預設可寫入。
@@ -188,7 +190,7 @@ npx.cmd playwright test
 
 ### 任務巨集
 
-「任務巨集」支援任務序列、分支任務與優先候選。三種模式共用可選的資格條件，預設收合，未設定表示無限制；資格通過後才執行內容。分支任務共用 `BranchRulesEditor`，優先候選可選任何巨集模式。各模式提供唯讀的「本巨集參數」，可在資格條件、內部 Expression 與呼叫參數中引用。
+「任務巨集」支援任務序列、分支任務、優先候選與加權隨機候選。四種模式共用可選的資格條件，預設收合，未設定表示無限制；資格通過後才執行內容。分支任務共用 `BranchRulesEditor`，優先候選可選任何巨集模式。各模式提供唯讀的「本巨集參數」，可在資格條件、內部 Expression 與呼叫參數中引用。
 
 時段行程、分支動作與任務序列步驟可選一般／內建任務或任意模式巨集；優先候選只能引用巨集。巨集可互相呼叫但禁止直接／間接循環。呼叫引數以呼叫者作用範圍解讀，再於被呼叫巨集自己的參數作用域檢查資格；候選選中後不重複求值，引用參數保持變數位置。
 
@@ -198,11 +200,11 @@ Schema 使用 `task_macros` 與 `task_macro_id`，開發階段不轉換舊 `task
 
 ### 內建變數操作任務
 
-固定提供「設定變數」、「增加數值」、「切換布林」、「重設初始值」。增加數值支援負增量與數字 expression；切換只接受可寫布林變數；重設使用 runtime 實際採用的初始化值。時段分支及三種任務巨集共用介面。四個範本的名稱、圖示、name 及參數名稱均可在環境模式修改，結構固定。詳細契約與匯出格式見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
+固定提供「設定變數」、「增加數值」、「切換布林」、「重設初始值」。增加數值支援負增量與數字 expression；切換只接受可寫布林變數；重設使用 runtime 實際採用的初始化值。時段分支及四種任務巨集共用介面。四個範本的名稱、圖示、name 及參數名稱均可在環境模式修改，結構固定。詳細契約與匯出格式見 [BUILTIN_VARIABLE_TASKS.md](./BUILTIN_VARIABLE_TASKS.md)。
 
 任務清單固定提供「設定變數」模板，與普通任務共用編輯面板。在環境模式可修改圖示、名稱、name 與兩個參數名稱；參數種類、數量及順序固定，新增、刪除、排序與型別控制停用，不提供複製或刪除模板。自訂名稱會同步到使用者模式，且不隨語系切換被覆蓋；未自訂名稱仍跟隨介面語系。
 
-設定保存於 builtin_tasks.set_variable；Runtime 以範本的 name 作為 task_key 連接環境提供的任務。時段行程與三種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
+設定保存於 builtin_tasks.set_variable；Runtime 以範本的 name 作為 task_key 連接環境提供的任務。時段行程與四種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
 
 資料為 `{builtin: "set_variable", target_variable_id, value}`，寫入位置與一般讀值引用分開。寫入中的變數不能改成唯讀或刪除，不相容的型別修改也會被拒絕。切換目標遇到不相容數值時先確認清除。engine 應先求值再寫入，編輯器不執行運算。
 

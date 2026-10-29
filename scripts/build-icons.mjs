@@ -16,3 +16,4 @@ await mkdir(new URL('../public/licenses/', import.meta.url), { recursive: true }
 await readFile(new URL('../public/licenses/tabler.txt', import.meta.url), 'utf8');
 await copyFile(new URL('../node_modules/@iconify/react/license.txt', import.meta.url), new URL('../public/licenses/iconify-react.txt', import.meta.url));
 console.log(`Bundled ${Object.keys(icons).length} offline activity icons and licenses.`);
+await import('./build-icon-guide.mjs');

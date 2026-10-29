@@ -60,6 +60,8 @@ Expression、Comparison、ALL／ANY 保留遞迴 AST。計算式巨集引用保�
 
 ## 任務與巨集
 
+加權隨機巨集使用 `{name, display_name, parameters, mode: "random", candidates: [{weight: NumericOperand, task: Action}], fallback: {task: Action} | null, eligibility?}`。資格先篩選全部候選，權重只對符合者求值，0 排除；正權重池抽一次，空池才呼叫後備。詳見 [WEIGHTED_TASK_MACROS.md](WEIGHTED_TASK_MACROS.md) 與 [ENGINE_SEMANTICS.md](ENGINE_SEMANTICS.md)。
+
 環境單一任務呼叫為 `{task_key: "...", arguments: [Operand, ...]}`。參數依該任務定義的參數陣列順序傳遞，空參數任務使用空陣列。環境依賴中附上 `{name, display_name, parameters: [{display_name, type}, ...]}`。參數名稱僅供除錯，位置與型別是 v1 契約；engine 應核對順序與型別。環境任務 UUID、參數 UUID 及實作不輸出。
 
 任務巨集保留 `{display_name, name, parameters, mode, steps | branches}`。巨集參數保留 `{id, display_name, type}`，呼叫保持 `{task_macro_id: UUID, arguments: {參數UUID: Operand}}`。這些 UUID 是檔案內局部契約，不要求環境知道巨集參數 ID。

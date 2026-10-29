@@ -61,7 +61,7 @@ for (const object of ['tasks.parameters', 'taskMacros.parameters']) {
 }
 add('tasks.builtins', 'list', false, {}, [], (p) => p.tasks.builtins.list());
 add('tasks.builtins', 'update', true, { id: text, values }, ['id', 'values'], (p, c) => p.tasks.builtins.update(c.id, c.values));
-add('taskMacros', 'setMode', true, { id: text, mode: { enum: ['sequence', 'branch', 'priority'] } }, ['id', 'mode'], (p, c) => p.taskMacros.setMode(c.id, c.mode));
+add('taskMacros', 'setMode', true, { id: text, mode: { enum: ['sequence', 'branch', 'priority', 'random'] } }, ['id', 'mode'], (p, c) => p.taskMacros.setMode(c.id, c.mode));
 add('taskMacros', 'moveEntry', true, { id: text, key: { enum: ['parameters', 'steps', 'branches', 'candidates'] }, index: integer, offset: integer }, ['id', 'key', 'index', 'offset'], (p, c) => p.taskMacros.moveEntry(c.id, c.key, c.index, c.offset));
 add('taskMacros', 'addStep', true, { id: text }, ['id'], (p, c) => p.taskMacros.addStep(c.id));
 add('taskMacros', 'duplicateStep', true, { id: text, index: integer }, ['id', 'index'], (p, c) => p.taskMacros.duplicateStep(c.id, c.index));

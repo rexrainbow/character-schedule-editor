@@ -5,13 +5,14 @@ import { branchOrderErrors, macroEntries, mapMacroEntries, slotEntries, mapSlotE
 import { taskDefinitionErrors } from './taskModel.js';
 
 export const createMacroBranch = () => ({ uid: crypto.randomUUID(), condition: null, task: { task_id: '', arguments: {} } });
-const modeContent = (mode) => mode === 'branch' ? { branches: [createMacroBranch()] } : mode === 'priority' ? { candidates: [] } : { steps: [] };
+const modeContent = (mode) => mode === 'branch' ? { branches: [createMacroBranch()] } : ['priority', 'random'].includes(mode) ? { candidates: [], ...(mode === 'random' ? { fallback: null } : {}) } : { steps: [] };
 export function createTaskMacro(name, mode = 'sequence') {
   if (!TASK_MACRO_MODES.includes(mode)) throw new Error('invalidMacroMode');
   return { id: crypto.randomUUID(), display_name: name, parameters: [], mode, ...modeContent(mode) };
 }
 export const createTaskStep = () => ({ id: crypto.randomUUID(), task: { task_id: '', arguments: {} } });
 export const createCandidate = () => ({ id: crypto.randomUUID(), task: { task_macro_id: '', arguments: {} } });
+export const createRandomCandidate = () => ({ id: crypto.randomUUID(), weight: { type: 'constant', value: 1 }, task: { task_id: '', arguments: {} } });
 export function normalizeTaskMacro(macro) {
   if (macro.mode !== 'conditional') return macro;
   const { condition, task, ...base } = structuredClone(macro);
@@ -31,7 +32,7 @@ export function macroUses(slots, id, macros = []) {
     ...macros.flatMap((macro) => macroEntries(macro).flatMap(({ entry, path, index }) => entry.task?.task_macro_id === id ? [{ slot: macro.display_name, ownerId: macro.id, allowedModes: allowedMacroModes(macro.mode), branch: index + 1, scope: macro.parameters, path: `${path}/task`, task: entry.task }] : []))];
 }
 export function macroParameterReferences(macro, id) {
-  return [...referencesIn(macro.eligibility, `/task_macros/${macro.id}/eligibility`, 'parameter_reference'), ...macroEntries(macro).flatMap(({ entry, path }) => [...referencesIn(entry.condition, `${path}/condition`, 'parameter_reference'), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => referencesIn(root.value, root.path, 'parameter_reference'))])].filter((ref) => ref.nodeId === id);
+  return [...referencesIn(macro.eligibility, `/task_macros/${macro.id}/eligibility`, 'parameter_reference'), ...macroEntries(macro).flatMap(({ entry, path }) => [...referencesIn(entry.condition, `${path}/condition`, 'parameter_reference'), ...referencesIn(entry.weight, `${path}/weight`, 'parameter_reference'), ...taskOperandRoots(entry.task, `${path}/task`).flatMap((root) => referencesIn(root.value, root.path, 'parameter_reference'))])].filter((ref) => ref.nodeId === id);
 }
 export function taskMacroDefinitionErrors(macros = []) {
   const errors = taskDefinitionErrors(macros).map((error) => ({ ...error, path: error.path.replace('/tasks/', '/task_macros/') }));
@@ -39,8 +40,8 @@ export function taskMacroDefinitionErrors(macros = []) {
     const path = `/task_macros/${macro.id}`;
     if (![...TASK_MACRO_MODES, 'conditional'].includes(macro.mode)) errors.push({ path: `${path}/mode`, key: 'invalidMacroMode' });
     if (macro.mode === 'branch' && !(Array.isArray(macro.branches) && macro.branches.length === 0)) errors.push(...branchOrderErrors(macro.branches, `${path}/branches`));
-    else if (['sequence', 'priority'].includes(macro.mode)) {
-      const key = macro.mode === 'priority' ? 'candidates' : 'steps';
+    else if (['sequence', 'priority', 'random'].includes(macro.mode)) {
+      const key = macro.mode === 'sequence' ? 'steps' : 'candidates';
       const seen = new Set();
       if (!Array.isArray(macro[key])) errors.push({ path: `${path}/${key}`, key: 'invalidTaskSteps' });
       for (const [index, step] of (Array.isArray(macro[key]) ? macro[key] : []).entries()) {
@@ -68,8 +69,8 @@ export function duplicateTaskMacro(macro) {
   next.id = crypto.randomUUID(); next.display_name += ' (副本)'; next.parameters.forEach((p) => { p.id = mapping.get(p.id); });
   for (const ref of referencesIn(next.eligibility, '', 'parameter_reference')) if (mapping.has(ref.nodeId)) operandAt(next.eligibility, ref.path.split('/').filter(Boolean)).parameter_id = mapping.get(ref.nodeId);
   for (const { entry } of macroEntries(next)) {
-    if (['sequence', 'priority'].includes(next.mode)) entry.id = crypto.randomUUID(); else if (next.mode === 'branch') entry.uid = crypto.randomUUID();
-    for (const value of [entry.condition, ...taskOperandRoots(entry.task).map((root) => root.value)]) for (const ref of referencesIn(value, '', 'parameter_reference')) if (mapping.has(ref.nodeId)) operandAt(value, ref.path.split('/').filter(Boolean)).parameter_id = mapping.get(ref.nodeId);
+    if (['sequence', 'priority', 'random'].includes(next.mode) && entry.id !== undefined) entry.id = crypto.randomUUID(); else if (next.mode === 'branch') entry.uid = crypto.randomUUID();
+    for (const value of [entry.condition, entry.weight, ...taskOperandRoots(entry.task).map((root) => root.value)]) for (const ref of referencesIn(value, '', 'parameter_reference')) if (mapping.has(ref.nodeId)) operandAt(value, ref.path.split('/').filter(Boolean)).parameter_id = mapping.get(ref.nodeId);
   }
   return next;
 }
@@ -83,7 +84,7 @@ export function changeMacroMode(draft, id, mode) {
   if (macro.mode === mode) return { draft, blocked: [] };
   const blocked = macroUses(draft.slots, id, draft.taskMacros).filter((use) => use.ownerId && !use.allowedModes.includes(mode));
   if (blocked.length) return { draft, blocked };
-  const { steps, branches, candidates, condition, task, ...base } = macro;
+  const { steps, branches, candidates, fallback, condition, task, ...base } = macro;
   const next = { ...base, mode, ...modeContent(mode) };
   return { draft: { ...draft, taskMacros: draft.taskMacros.map((item) => item.id === id ? next : item) }, blocked: [] };
 }

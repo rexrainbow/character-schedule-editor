@@ -27,9 +27,9 @@ for (const mobile of [false, true]) test(`event colors, overlapping markers and 
   const options = page.locator('.trend-event-options');
   await expect(options).toContainText('Cold (3)'); await expect(options).toContainText('Bonus (5)');
   await options.getByRole('checkbox', { name: 'Mark event: Cold', exact: true }).check();
-  await options.getByRole('combobox', { name: 'Event color: Cold', exact: true }).selectOption('color:red');
+  await options.getByRole('combobox', { name: 'Event color: Cold', exact: true }).selectOption('red');
   await options.getByRole('checkbox', { name: 'Mark event: Bonus', exact: true }).check();
-  await options.getByRole('combobox', { name: 'Event color: Bonus', exact: true }).selectOption('color:blue');
+  await options.getByRole('combobox', { name: 'Event color: Bonus', exact: true }).selectOption('blue');
   const chart = page.locator('.continuous-trend-figure').first();
   const first = chart.locator('.continuous-trend-point[data-day="1"]').first();
   await expect(first).toHaveAttribute('data-events', '2');
@@ -53,6 +53,6 @@ for (const mobile of [false, true]) test(`event colors, overlapping markers and 
   await page.getByRole('tab', { name: 'Weekly summaries', exact: true }).click();
   await page.getByRole('tab', { name: 'Trends', exact: true }).click();
   await expect(options.getByRole('checkbox', { name: 'Mark event: Cold', exact: true })).toBeChecked();
-  await expect(options.getByRole('combobox', { name: 'Event color: Cold', exact: true })).toHaveValue('color:red');
+  await expect(options.getByRole('combobox', { name: 'Event color: Cold', exact: true })).toHaveValue('red');
   expect(errors).toEqual([]);
 });

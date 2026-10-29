@@ -26,7 +26,7 @@ expressions:
     value: vars.money * 10
 ```
 
-mapping key 就是物件的 name，不需要在內容重複宣告 name，也不輸出 UUID／icon。初始輸入與編輯過程的匯出使用相同格式；符號不再由 display_name 重新推導。money 的顯示文字預設就是 money。
+mapping key 就是物件的 name，不需要在內容重複宣告 name，也不輸出 UUID。icon 可選填，格式見 [ICONS.md](../ICONS.md)。初始輸入與編輯過程的匯出使用相同格式；符號不再由 display_name 重新推導。money 的顯示文字預設就是 money。
 
 匯入保留所有 key，配置新 UUID，再重接引用；不是合併或更新目前專案。更名既有變數後，匯出會依同一個 UUID 找到新 name，因此運算式及任務目標同步更新。
 
