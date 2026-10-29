@@ -6,7 +6,7 @@ const noSubscribe = () => () => {}, noConnection = () => null;
 
 export default function useProject() {
   const ref = useRef(null);
-  if (!ref.current) ref.current = window.__SCHEDULE_CONNECTION__ ? createRemoteProjectClient(window.__SCHEDULE_CONNECTION__) : createProjectSession(undefined, { validation: 'draft' });
+  if (!ref.current) ref.current = window.__SCHEDULE_CONNECTION__ ? createRemoteProjectClient(window.__SCHEDULE_CONNECTION__) : createProjectSession(undefined, { validation: 'draft', includeExpressionFunctions: true });
   const project = ref.current;
   const draft = useSyncExternalStore(project.subscribe, project.getSnapshot, project.getSnapshot);
   const connection = useSyncExternalStore(project.subscribeConnection ?? noSubscribe, project.getConnectionState ?? noConnection, noConnection);

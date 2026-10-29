@@ -50,7 +50,7 @@ for (const action of ['list', 'get', 'references', 'create', 'update', 'replace'
 for (const object of ['variables', 'expressions', 'enums']) add(object, 'move', true, { id: text, parentId: nullableId, position: { type: 'integer', minimum: 0 } }, ['id', 'parentId', 'position'], (p, c) => p[object].move(c.id, c.parentId, c.position));
 for (const object of ['variables', 'expressions']) add(object, 'unset', true, { id: text, keys: { type: 'array', items: text } }, ['id', 'keys'], (p, c) => p[object].unset(c.id, c.keys));
 add('variables', 'addProgress', true, {}, [], (p) => p.variables.addProgress());
-add('expressions', 'setDefinition', true, { id: text, definition: values, valueType: { enum: ['number', 'boolean'] } }, ['id', 'definition', 'valueType'], (p, c) => p.expressions.setDefinition(c.id, c.definition, c.valueType));
+add('expressions', 'setDefinition', true, { id: text, definition: values, valueType: { enum: ['number', 'string', 'boolean'] } }, ['id', 'definition', 'valueType'], (p, c) => p.expressions.setDefinition(c.id, c.definition, c.valueType));
 for (const object of ['tasks.parameters', 'taskMacros.parameters']) {
   const owner = object.split('.')[0];
   for (const action of ['add', 'update', 'remove', 'move', 'references']) {
@@ -127,11 +127,11 @@ function resolveCommand(project, input) {
     for (const [key, group] of Object.entries(refs)) if (value[key] != null) value[key] = find(group, value[key]);
     if (value.slotIds) value.slotIds = value.slotIds.map((id) => find('slots', id));
     if (value.days && !Array.isArray(value.days)) value.days = Object.fromEntries(Object.entries(value.days).map(([key, id]) => [key, find('days', id)]));
-    if (value.arguments && (value.task_id || value.task_macro_id)) {
-      const target = [...draft.tasks, ...draft.taskMacros].find((item) => item.id === (value.task_id ?? value.task_macro_id));
+    if (value.arguments && (value.task_id || value.task_macro_id || value.expression_macro_id)) {
+      const target = [...draft.tasks, ...draft.taskMacros, ...groups.expressions].find((item) => item.id === (value.task_id ?? value.task_macro_id ?? value.expression_macro_id));
       value.arguments = Object.fromEntries(Object.entries(value.arguments).map(([key, arg]) => [find(target?.parameters ?? [], key), arg]));
     }
-    if (value.type === 'parameter_reference') { const parameters = owner?.parameters ?? groups.taskMacros.find((item) => item.id === c.id)?.parameters ?? c.values?.parameters ?? []; value.parameter_id = find(parameters, value.parameter_id); }
+    if (value.type === 'parameter_reference') { const parameters = owner?.parameters ?? [...groups.taskMacros, ...groups.expressions].find((item) => item.id === c.id)?.parameters ?? c.values?.parameters ?? []; value.parameter_id = find(parameters, value.parameter_id); }
     for (const child of Object.values(value)) walk(child);
   }
   if (c.values) {
@@ -139,6 +139,7 @@ function resolveCommand(project, input) {
     if (c.values.parameters) c.values.parameters = c.values.parameters.map((item) => { const next = { ...item, symbol: item.name ?? item.symbol }; delete next.name; return next; });
     walk(c.values);
   }
+  if (c.definition) walk(c.definition);
   return c;
 }
 export function executeCommand(project, command) {

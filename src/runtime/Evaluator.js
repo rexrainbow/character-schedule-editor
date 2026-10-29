@@ -1,6 +1,6 @@
 import { Diagnostics } from './Diagnostics.js';
 import { clampVariable } from '../core/variableBounds.js';
-import { fail } from './utils.js';
+import { fail, random } from './utils.js';
 
 export class Evaluator {
   constructor(program, state, context = {}, emit = () => {}, diagnostics = new Diagnostics(false)) { this.program = program; this.state = state; this.context = context; this.emit = emit; this.stack = new Set(); this.operations = 0; this.diagnostics = diagnostics; }
@@ -19,9 +19,16 @@ export class Evaluator {
     else if (value?.type === 'expression_macro_reference') {
       const id = value.expression_macro_id, definition = this.program.get('expressions', id);
       if (this.stack.has(id)) fail('computedCycle');
+      const args = Object.create(null);
+      for (const p of definition.parameters ?? []) {
+        const input = value.arguments?.[p.id];
+        if (p.variadic) { if (!Array.isArray(input) || !input.length) fail('expressionArgumentsRequired'); args[p.id] = input.map((arg, i) => this.operand(arg, scope, depth + 1, `${path}/arguments/${p.id}/${i}`)); }
+        else { args[p.id] = this.operand(input, scope, depth + 1, `${path}/arguments/${p.id}`); if (typeof args[p.id] !== p.type) fail('parameterTypeMismatch'); }
+      }
+      if (Object.keys(value.arguments ?? {}).some((key) => !definition.parameters?.some((p) => p.id === key))) fail('unknownParameter');
       this.stack.add(id);
-      try { result = this.computed(definition.definition, depth + 1, `/expression_macros/${id}/definition`); } finally { this.stack.delete(id); }
-      if (typeof result !== definition.value_type) fail('computedResultMismatch');
+      try { result = this.computed(definition.definition, depth + 1, `/expression_macros/${id}/definition`, args, definition); } finally { this.stack.delete(id); }
+      if (definition.value_type !== 'any' && typeof result !== definition.value_type) fail('computedResultMismatch');
     } else if (value?.type === 'expression') {
       const a = this.operand(value.operand_a, scope, depth + 1, `${path}/operand_a`), b = this.operand(value.operand_b, scope, depth + 1, `${path}/operand_b`);
       if (typeof a !== 'number' || typeof b !== 'number') fail('numericOperandRequired');
@@ -60,20 +67,36 @@ export class Evaluator {
     } else fail('invalidCondition');
     return result;
   }
-  computed(definition, depth, path = '') {
+  computed(definition, depth, path = '', scope = {}, owner = {}) {
     this.guard(depth);
-    if (definition.kind === 'number') return this.operand(definition.expression, {}, depth + 1, `${path}/expression`);
-    if (definition.kind === 'boolean') return this.condition(definition.condition, {}, depth + 1, `${path}/condition`);
+    if (definition.kind === 'builtin') {
+      const values = (owner.parameters ?? []).map((p) => scope[p.id]);
+      let result, draw;
+      if (definition.builtin === 'randomRange') {
+        const [min, max] = values;
+        if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) fail('invalidRandomRange');
+        if (min === max) result = min;
+        else { draw = random(this.state); result = min * (1 - draw) + max * draw; if (result >= max) result = min; }
+      } else if (definition.builtin === 'randomItem') {
+        const items = values[0];
+        if (!Array.isArray(items) || !items.length || items.some((item) => !['number', 'string', 'boolean'].includes(typeof item) || typeof item !== typeof items[0])) fail('operandTypeMismatch');
+        draw = random(this.state); result = items[Math.floor(draw * items.length)];
+      } else fail('invalidDefinition');
+      this.diagnostics.note('expression.random', () => ({ builtin: definition.builtin, arguments: values, draw, result, path }));
+      return result;
+    }
+    if (definition.kind === 'number' || definition.kind === 'string') return this.operand(definition.expression, scope, depth + 1, `${path}/expression`);
+    if (definition.kind === 'boolean') return this.condition(definition.condition, scope, depth + 1, `${path}/condition`);
     if (definition.kind === 'branch') {
-      if (!this.diagnostics.enabled) { for (const [index, branch] of definition.branches.entries()) if (this.condition(branch.condition, {}, depth + 1, `${path}/branches/${index}/condition`)) return this.computed(branch.result, depth + 1, `${path}/branches/${index}/result`); fail('invalidDefinition'); }
+      if (!this.diagnostics.enabled) { for (const [index, branch] of definition.branches.entries()) if (this.condition(branch.condition, scope, depth + 1, `${path}/branches/${index}/condition`)) return this.computed(branch.result, depth + 1, `${path}/branches/${index}/result`, scope, owner); fail('invalidDefinition'); }
       let selected = false, result;
       definition.branches.forEach((branch, index) => {
         const details = () => ({ condition: branch.condition, index: index + 1, isElse: branch.condition === null, unconditional: definition.branches.length === 1 && branch.condition === null, path: `${path}/branches/${index}` });
         if (selected) { this.diagnostics.skipped('branch', details); return; }
         this.diagnostics.begin('branch', details);
-        const matched = this.condition(branch.condition, {}, depth + 1, `${path}/branches/${index}/condition`);
+        const matched = this.condition(branch.condition, scope, depth + 1, `${path}/branches/${index}/condition`);
         if (matched) {
-          selected = true; result = this.computed(branch.result, depth + 1, `${path}/branches/${index}/result`);
+          selected = true; result = this.computed(branch.result, depth + 1, `${path}/branches/${index}/result`, scope, owner);
           this.diagnostics.note('return', () => ({ value: result, path: `${path}/branches/${index}/result` }));
         } else this.diagnostics.note('skipped', () => ({ role: 'return' }));
         this.diagnostics.end('branch', () => ({ result: matched }));

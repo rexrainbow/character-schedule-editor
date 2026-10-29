@@ -41,14 +41,17 @@ test('startup chooses project import or a new project with an optional environme
   const saved = await savedProject(page);
   expect(saved.environment).toEqual(environment.environment); expect(saved.tasks).toEqual(environment.tasks);
   await switchMode(page, 'environment');
-  expect(await exportEnvironment(page)).toEqual(environment);
-  expect(await exportEnvironment(page)).toEqual(environment);
+  const exported = await exportEnvironment(page);
+  expect(exported).toEqual({ ...environment, expression_macros: exported.expression_macros });
+  expect(Object.values(exported.expression_macros).map((node) => node.definition.builtin).sort()).toEqual(['randomItem', 'randomRange']);
+  expect(await exportEnvironment(page)).toEqual(exported);
 });
 
 test('environment replacement previews incompatibilities and cancel preserves the whole project', async ({ page }) => {
   const { project, environment } = fixtures();
   await page.goto('/'); await page.locator('.app-header input[type=file]').first().setInputFiles(file(project));
   await switchMode(page, 'environment');
+  const baseline = await savedProject(page);
   const input = page.locator('.app-header input[type=file]').nth(1);
   const incompatible = structuredClone(environment); incompatible.settings.slots_per_day = 3;
   await input.setInputFiles(file(incompatible));
@@ -56,7 +59,7 @@ test('environment replacement previews incompatibilities and cancel preserves th
   await expect(dialog).toContainText('Slots per day must match');
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  expect(await savedProject(page)).toEqual(project);
+  expect(await savedProject(page)).toEqual(baseline);
   const replacement = structuredClone(environment); replacement.environment.display_name = 'Updated engine'; replacement.environment.version = '2';
   await input.setInputFiles(file(replacement));
   await expect(dialog.getByRole('button', { name: 'Apply', exact: true })).toBeEnabled();
@@ -65,6 +68,7 @@ test('environment replacement previews incompatibilities and cancel preserves th
   const saved = await savedProject(page);
   expect(saved.environment.display_name).toBe('Updated engine'); expect(saved.slots).toEqual(project.slots);
   expect(saved.project.name).toBe(project.project.name);
+  expect(saved.expression_macros).toEqual(baseline.expression_macros);
 });
 
 test('environment settings persist a stable ID and slots lock once day schedules exist', async ({ page }) => {

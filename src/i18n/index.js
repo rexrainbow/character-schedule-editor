@@ -592,3 +592,28 @@ Object.assign(messages['zh-TW'], {
   eventIntervalError: '週期必須為大於 0 的安全整數。',
   icons_all: '全部', icons_work: '工作與學習', icons_life: '日常生活', icons_leisure: '娛樂與運動', icons_health: '健康醫療', icons_travel: '交通與地點', icons_schedule: '行程與時間',
 });
+
+Object.assign(messages.en, {
+  expressionFunction_randomRange: 'Random range', expressionFunction_randomItem: 'Random item',
+  expressionParam_min: 'Minimum', expressionParam_max: 'Maximum', expressionParam_items: 'Candidates',
+  expressionFunctionHint_randomRange: 'Returns a random number from minimum (inclusive) to maximum (exclusive). Equal bounds return that value without drawing. Uses the runtime seed.',
+  expressionFunctionHint_randomItem: 'Choose one candidate with equal probability. Candidates must share a number, string or Boolean type. Uses the runtime seed.',
+  expressionParametersHint: 'Arguments are evaluated once per call, in parameter order. Parameters are local values; they do not modify the variable space.',
+  expressionVariadicHint: 'The caller can add or remove candidates; at least one is required.',
+  expressionArgumentsRequired: 'Fill in every expression argument and provide at least one candidate.',
+  expressionParameterInUse: 'This parameter is used in the definition. Remove its references first.',
+  expressionCallArguments: 'Expression arguments', addExpressionCandidate: 'Add candidate', removeExpressionCandidate: 'Remove candidate',
+  type_any: 'Same type as candidates', stringDefinition: 'String expression', invalidRandomRange: 'Minimum must not exceed maximum; both must be finite numbers.',
+});
+Object.assign(messages['zh-TW'], {
+  expressionFunction_randomRange: '隨機範圍', expressionFunction_randomItem: '隨機選項',
+  expressionParam_min: '最小值', expressionParam_max: '最大值', expressionParam_items: '候選項目',
+  expressionFunctionHint_randomRange: '回傳最小值（含）至最大值（不含）之間的隨機數值。兩者相同時直接回傳該值，不抽亂數。使用 runtime 亂數種子。',
+  expressionFunctionHint_randomItem: '等機率選取一個候選。候選須同為數字、文字或布林。使用 runtime 亂數種子。',
+  expressionParametersHint: '每次呼叫依參數順序計算引數，各計算一次。參數是巨集內的區域值，不會修改變數空間。',
+  expressionVariadicHint: '呼叫處可新增、移除候選，至少保留一個。',
+  expressionArgumentsRequired: '請填入全部計算式引數，候選至少需要一個。',
+  expressionParameterInUse: '定義正在使用此參數，請先移除引用。',
+  expressionCallArguments: '計算式引數', addExpressionCandidate: '新增候選', removeExpressionCandidate: '移除候選',
+  type_any: '與候選相同型別', stringDefinition: '文字計算式', invalidRandomRange: '最小值不可大於最大值，且兩者必須為有限數字。',
+});

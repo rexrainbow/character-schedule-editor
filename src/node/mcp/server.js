@@ -20,6 +20,7 @@ export function createMcpServer(service) {
     'system-semantics': { file: '../../../docs/SYSTEM_SEMANTICS.md', description: 'Capability overview and requirement-to-feature map. Read before choosing a recipe.' },
     'engine-semantics': { file: '../../../docs/ENGINE_SEMANTICS.md', description: 'Canonical execution contract: candidates, conditions, event priority, writes/truncation, interruption, reset timing and checkpoint recovery. Read with the blueprint schema.' },
     blueprint: { file: '../../../docs/BLUEPRINT.md', description: 'YAML syntax, expression grammar and declarative rebuild. Execution rules are in schedule://guide/engine-semantics.' },
+    'expression-functions': { file: '../../../docs/EXPRESSION_FUNCTIONS.md', description: 'Parameterized numeric/string/Boolean expressions, randomRange/randomItem, local argument scope, seeded draws and checkpoint behavior.' },
     'blueprint-example': { file: '../../../docs/recipes/examples/life-simulation.yaml', mimeType: 'application/yaml', description: 'Rebuildable life/payroll example with one infinitely repeated week.' },
   };
   for (const [name, guide] of Object.entries(guides)) {

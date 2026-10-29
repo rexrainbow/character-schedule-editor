@@ -50,7 +50,9 @@ test('unconditional slots, task macros and computed branches omit ELSE while con
 });
 
 test('simulation inputs, repeated runs, explicit apply and reset never modify the project', async ({ page }) => {
-  const { draft } = builtinVariableFixture(), project = await load(page, draft);
+  const { draft } = builtinVariableFixture(); await load(page, draft);
+  const baselineDownload = page.waitForEvent('download'); await exportProject(page);
+  const project = JSON.parse(await readFile(await (await baselineDownload).path(), 'utf8'));
   await expect(page.locator('.app-shell')).toHaveAttribute('data-mode', 'simulation');
   await page.getByRole('spinbutton', { name: 'Engine.Counter', exact: true }).fill('20');
   await page.getByRole('spinbutton', { name: 'Engine.Readonly', exact: true }).fill('45');

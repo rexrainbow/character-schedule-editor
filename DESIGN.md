@@ -94,6 +94,8 @@ Reuse existing native selects when the OS popup is acceptable, the shared Dialog
 
 ### Iconography
 
+Parameterized expressions reuse task parameter rows (icon, persistent name, display label, description and primitive type) above their definition. Builtin environment functions lock their structural signature while retaining editable display metadata. Call arguments use the existing operand selector's single modal and Back/root navigation; argument paths carry their own expected type instead of assuming every nested operand is numeric. Variadic randomItem candidates use the same full-width add action and icon-only remove controls as existing candidate editors.
+
 Lucide for controls; the existing local icon catalog for user objects. Icon-only actions need an accessible name.
 
 All named definitions, task/macro parameters and enum options use the shared `IconField` and `SlotIcon`. The title row remains icon, persistent name, display label; parameter titles use the same compact layout. `src/icons/catalog.js` owns the eight background colors and offline foregrounds; `appearance.js` owns composition, fallback and contrast. The shared picker adds background/hex controls without changing Apply/Cancel semantics. Runtime output excludes icons at every depth; Blueprint preserves optional icons. Generated `docs/ICONS.md` and `src/icons/manifest.json` feed the agent kit from this same catalog.

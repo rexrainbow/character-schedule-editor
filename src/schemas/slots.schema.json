@@ -1753,6 +1753,9 @@
         },
         {
           "$ref": "#/$defs/branched_computed_definition"
+        },
+        {
+          "$ref": "#/$defs/builtin_computed_definition"
         }
       ]
     },
@@ -2468,7 +2471,9 @@
         "value_type": {
           "enum": [
             "number",
-            "boolean"
+            "string",
+            "boolean",
+            "any"
           ]
         },
         "definition": {
@@ -2492,6 +2497,12 @@
         "description": {
           "type": "string",
           "description": "Optional editor/blueprint explanation. Does not affect execution."
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expression_parameter"
+          }
         }
       },
       "additionalProperties": false,
@@ -2511,7 +2522,8 @@
                   "kind": {
                     "enum": [
                       "number",
-                      "branch"
+                      "branch",
+                      "builtin"
                     ]
                   },
                   "branches": {
@@ -2521,6 +2533,43 @@
                           "properties": {
                             "kind": {
                               "const": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "string",
+                      "branch",
+                      "builtin"
+                    ]
+                  },
+                  "branches": {
+                    "items": {
+                      "properties": {
+                        "result": {
+                          "properties": {
+                            "kind": {
+                              "const": "string"
                             }
                           }
                         }
@@ -2547,7 +2596,8 @@
                   "kind": {
                     "enum": [
                       "boolean",
-                      "branch"
+                      "branch",
+                      "builtin"
                     ]
                   },
                   "branches": {
@@ -2582,6 +2632,26 @@
         },
         "expression_macro_id": {
           "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/scoped_operand"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/scoped_operand"
+                },
+                "minItems": 1
+              }
+            ]
+          }
         }
       },
       "additionalProperties": false
@@ -2894,7 +2964,7 @@
               "const": "number"
             },
             "expression": {
-              "$ref": "#/$defs/numeric_operand"
+              "$ref": "#/$defs/scoped_numeric_operand"
             }
           },
           "additionalProperties": false
@@ -2910,7 +2980,23 @@
               "const": "boolean"
             },
             "condition": {
-              "$ref": "#/$defs/condition"
+              "$ref": "#/$defs/scoped_condition"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "expression"
+          ],
+          "properties": {
+            "kind": {
+              "const": "string"
+            },
+            "expression": {
+              "$ref": "#/$defs/scoped_operand"
             }
           },
           "additionalProperties": false
@@ -2927,7 +3013,7 @@
         "condition": {
           "oneOf": [
             {
-              "$ref": "#/$defs/condition"
+              "$ref": "#/$defs/scoped_condition"
             },
             {
               "type": "null"
@@ -4338,6 +4424,65 @@
         "mode",
         "candidates",
         "name"
+      ],
+      "additionalProperties": false
+    },
+    "expression_parameter": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional editor/blueprint explanation. Does not affect execution."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional local icon: tabler:name|background, palette name, or #RRGGBB."
+        },
+        "variadic": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "builtin_computed_definition": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "builtin"
+        },
+        "builtin": {
+          "enum": [
+            "randomRange",
+            "randomItem"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "builtin"
       ],
       "additionalProperties": false
     }

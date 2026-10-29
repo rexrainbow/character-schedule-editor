@@ -2,7 +2,7 @@
 export class BlueprintError extends Error {
   constructor(message, path = '') { super(message); this.code = 'invalidBlueprint'; this.path = path; }
 }
-export function parseExpression(source, resolve, { condition = false, path = '' } = {}) {
+export function parseExpression(source, resolve, { condition = false, path = '', parametersOf = () => [] } = {}) {
   const fail = (message) => { throw new BlueprintError(message, path); };
   if (typeof source !== 'string' || !source.trim() || source.length > 16000) fail('Expected an expression string of 1–16000 characters.');
   const tokens = []; let offset = 0;
@@ -45,7 +45,14 @@ export function parseExpression(source, resolve, { condition = false, path = '' 
       const match = /^(vars|expr|params)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(token ?? '');
       if (!match) fail(`Unknown expression token ${token ?? '<end>'}. Use vars.*, expr.* or params.*.`);
       const [, namespace, name] = match, id = resolve(namespace, name, path);
-      left = namespace === 'vars' ? { type: 'reference', reference_id: id } : namespace === 'expr' ? { type: 'expression_macro_reference', expression_macro_id: id } : { type: 'parameter_reference', parameter_id: id };
+      if (namespace === 'expr' && tokens[index] === '(') {
+        take('('); const args = [];
+        if (tokens[index] !== ')') { args.push(scalar(expression())); while (tokens[index] === ',') { index++; args.push(scalar(expression())); } }
+        take(')'); const parameters = parametersOf(name), arguments_ = {}; let position = 0;
+        for (const p of parameters) { if (p.variadic) { arguments_[p.id] = args.slice(position); position = args.length; } else arguments_[p.id] = args[position++]; }
+        if (position !== args.length || parameters.some((p) => p.variadic ? !arguments_[p.id].length : arguments_[p.id] === undefined)) fail(`Wrong argument count for ${name}.`);
+        left = { type: 'expression_macro_reference', expression_macro_id: id, arguments: arguments_ };
+      } else left = namespace === 'vars' ? { type: 'reference', reference_id: id } : namespace === 'expr' ? { type: 'expression_macro_reference', expression_macro_id: id } : { type: 'parameter_reference', parameter_id: id };
     }
     while (precedence[tokens[index]] !== undefined && precedence[tokens[index]] >= min) {
       const operator = tokens[index++], right = expression(precedence[operator] + 1);
@@ -65,7 +72,12 @@ export function formatExpression(value, symbol) {
   if (value.type === 'constant') return JSON.stringify(value.value);
   if (value.type === 'expression') return `(${formatExpression(value.operand_a, symbol)} ${value.operator} ${formatExpression(value.operand_b, symbol)})`;
   if (value.type === 'reference') return `vars.${symbol('vars', value.reference_id)}`;
-  if (value.type === 'expression_macro_reference') return `expr.${symbol('expr', value.expression_macro_id)}`;
+  if (value.type === 'expression_macro_reference') {
+    const name = `expr.${symbol('expr', value.expression_macro_id)}`;
+    if (value.arguments === undefined) return name;
+    const args = symbol('expression_parameters', value.expression_macro_id).flatMap((p) => p.variadic ? value.arguments[p.id] : [value.arguments[p.id]]);
+    return `${name}(${args.map((arg) => formatExpression(arg, symbol)).join(', ')})`;
+  }
   if (value.type === 'parameter_reference') return `params.${symbol('params', value.parameter_id)}`;
   if (value.type === 'event_property') {
     const event = value.event.type === 'current_event_reference' ? '@current' : value.event.type === 'parameter_reference' ? `@param:${symbol('params', value.event.parameter_id)}` : symbol('events', value.event.event_group_id);

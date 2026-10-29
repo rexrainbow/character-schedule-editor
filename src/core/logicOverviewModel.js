@@ -1,3 +1,4 @@
+import { localizeExpressionFunctions } from './builtinLabels.js';
 import { descriptionComments } from './descriptions.js';
 import { isComputed, macroEligibility, nodePath } from './operandModel.js';
 import { builtinTaskDefinition, isBuiltinFlowTask } from './builtinTaskModel.js';
@@ -12,6 +13,7 @@ export function taskMacroLogicText(macro, options) {
 }
 
 function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, events = [], days = [], depth = 'summary', showDescriptions = true, t }, rootMacro) {
+  nodes = localizeExpressionFunctions(nodes, t);
   const limit = depth === 'all' ? 64 : depth === 'one' ? 1 : 0;
   const lines = [], taskStack = new Set(), expressionStack = new Set();
   let operations = 0, truncated = false;
@@ -31,11 +33,12 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
     if (value?.type === 'expression_macro_reference') {
       const id = value.expression_macro_id, node = nodes[id];
       if (!node || !isComputed(node)) return missing();
-      const name = node.display_name || missing();
+      const args = Object.fromEntries((node.parameters ?? []).map((p) => [p.id, p.variadic ? (value.arguments?.[p.id] ?? []).map((arg) => operand(arg, scope, remaining, level + 1)).join(', ') : operand(value.arguments?.[p.id], scope, remaining, level + 1)]));
+      const name = (node.display_name || missing()) + ((node.parameters ?? []).length ? '(' + Object.values(args).join(', ') + ')' : '');
       if (!remaining) return name;
       if (expressionStack.has(id)) return `${name} [${t('logicCycle')}]`;
       expressionStack.add(id);
-      const text = definition(node.definition, scope, remaining - 1, level + 1);
+      const text = definition(node.definition, args, remaining - 1, level + 1);
       expressionStack.delete(id);
       const notes = showDescriptions ? descriptionComments(node.description) : [];
       const content = [...notes, text].join('\n');
@@ -56,7 +59,8 @@ function logicText(slot, { nodes = {}, tasks = [], macros = [], builtinTasks, ev
       const branches = (value.branches ?? []).map((item, index) => `${showDescriptions && item.description?.trim() ? descriptionComments(item.description).join('\n') + '\n' : ''}${item.condition === null ? 'ELSE' : `${index ? 'ELSE IF' : 'IF'} (${condition(item.condition, scope, remaining, level + 1)})`} → ${definition(item.result, scope, remaining, level + 1)}`);
       return branches.join(branches.some((text) => text.includes('\n')) ? '\n' : '; ') || t('logicNoActions');
     }
-    return value?.kind === 'number' ? operand(value.expression, scope, remaining, level + 1) : condition(value?.condition, scope, remaining, level + 1);
+    if (value?.kind === 'builtin') return `${value.builtin}(${Object.values(scope).join(', ')})`;
+    return value?.kind !== 'boolean' ? operand(value?.expression, scope, remaining, level + 1) : condition(value?.condition, scope, remaining, level + 1);
   }
   function invocation(use, scope, remaining) {
     const macro = macros.find((item) => item.id === use?.task_macro_id && item.id), task = tasks.find((item) => item.id === use?.task_id && item.id);

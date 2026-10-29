@@ -2,6 +2,7 @@ import { parseDocument, stringify } from 'yaml';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { compileProject, projectToDraft, validateDocument } from '../model.js';
 import { blueprintSchema } from './schema.js';
+import { addExpressionFunctions } from '../expressionFunctions.js';
 import { BlueprintError, parseExpression, formatExpression } from './expression.js';
 
 export { blueprintSchema, parseExpression, formatExpression };
@@ -23,6 +24,10 @@ export function importBlueprint(text) {
     if (yaml.errors.length || yaml.warnings.length) reject([...yaml.errors, ...yaml.warnings].map((error) => error.message).join('\n'));
     const input = yaml.toJS({ maxAliasCount: 0 });
     if (!validate(input)) return { data: null, errors: validate.errors.map((error) => ({ code: 'blueprintSchema', path: error.instancePath, message: error.message, params: error.params })) };
+    if (/\bexpr\.(randomRange|randomItem)\s*\(/.test(text)) {
+      input.expressions ??= {};
+      for (const node of Object.values(addExpressionFunctions({}))) if (!input.expressions[node.symbol]) input.expressions[node.symbol] = { display_name: node.symbol, icon: node.icon, scope: 'environment', type: node.value_type, builtin: node.definition.builtin, parameters: Object.fromEntries(node.parameters.map((p) => [p.symbol, { type: p.type, ...(p.variadic ? { variadic: true } : {}) }])) };
+    }
     const ids = Object.fromEntries(['vars', 'expr', 'tasks', 'macros', 'slots', 'days', 'weeks', 'sequences', 'enums', 'events'].map((key) => [key, new Map()]));
     const groups = { variables: 'vars', expressions: 'expr', tasks: 'tasks', task_macros: 'macros', slots: 'slots', days: 'days', weeks: 'weeks', sequences: 'sequences', enums: 'enums' };
     for (const [key, group] of entries(groups)) for (const [symbol] of entries(input[key])) ids[group].set(symbol, crypto.randomUUID());
@@ -36,7 +41,7 @@ export function importBlueprint(text) {
       return id;
     }
     const parameterIds = new Map();
-    for (const group of ['tasks', 'task_macros']) for (const [key, item] of entries(input[group])) parameterIds.set(`${group}:${key}`, new Map(entries(item.parameters).map(([name]) => [name, crypto.randomUUID()])));
+    for (const group of ['tasks', 'task_macros', 'expressions']) for (const [key, item] of entries(input[group])) parameterIds.set(`${group}:${key}`, new Map(entries(item.parameters).map(([name]) => [name, crypto.randomUUID()])));
     function diagnostics(errors) {
       const roots = { operand_nodes: ['variables', 'vars'], expression_macros: ['expressions', 'expr'], tasks: ['tasks', 'tasks'], task_macros: ['task_macros', 'macros'], slots: ['slots', 'slots'], day_schedules: ['days', 'days'], week_schedules: ['weeks', 'weeks'], week_sequences: ['sequences', 'sequences'], enum_definitions: ['enums', 'enums'] };
       return errors.map((error) => {
@@ -55,7 +60,7 @@ export function importBlueprint(text) {
         return { ...error, code: error.code ?? error.key ?? 'invalidBlueprint', path, message: error.message ?? `Compiled blueprint: ${error.key ?? 'invalid data'}` };
       });
     }
-    function operand(value, path, params, condition = false) { return parseExpression(value, (group, key) => resolve(group, key, path, params), { path, condition }); }
+    function operand(value, path, params, condition = false) { return parseExpression(value, (group, key) => resolve(group, key, path, params), { path, condition, parametersOf: (name) => entries(input.expressions?.[name]?.parameters).map(([key, p]) => ({ id: parameterIds.get(`expressions:${name}`)?.get(key), variadic: p.variadic })) }); }
     function eventRef(value, path, params) {
       if (value.event) return { type: 'event_reference', event_group_id: resolve('events', value.event, path) };
       if (value.parameter) return { type: 'parameter_reference', parameter_id: resolve('params', value.parameter, path, params) };
@@ -87,7 +92,7 @@ export function importBlueprint(text) {
     }
     function parameters(value, group, key) {
       const params = parameterIds.get(`${group}:${key}`);
-      return entries(value.parameters).map(([name, item]) => present({ ...metadataIn(item, name), id: params.get(name), type: item.type, value_type: item.value_type, access: item.access, event_kind: item.event_kind, options: item.options?.map((option) => present({ display_name: option.display_name ?? option.value, icon: option.icon, value: option.value })), enum_id: item.enum ? resolve('enums', item.enum, `/${group}/${key}/parameters/${name}`) : undefined }));
+      return entries(value.parameters).map(([name, item]) => present({ ...metadataIn(item, name), id: params.get(name), type: item.type, ...(item.variadic ? { variadic: true } : {}), value_type: item.value_type, access: item.access, event_kind: item.event_kind, options: item.options?.map((option) => present({ display_name: option.display_name ?? option.value, icon: option.icon, value: option.value })), enum_id: item.enum ? resolve('enums', item.enum, `/${group}/${key}/parameters/${name}`) : undefined }));
     }
     const branches = (items, path, params) => (items ?? []).map((item, index) => ({ ...(item.description === undefined ? {} : { description: item.description }), condition: item.when === null ? null : operand(item.when, `${path}/${index}/when`, params, true), task: action(item.run, `${path}/${index}/run`, params) }));
     const doc = {
@@ -99,10 +104,11 @@ export function importBlueprint(text) {
     doc.operand_nodes = Object.fromEntries(entries(input.variables).map(([key, item], index) => [resolve('vars', key), present({ ...metadataIn(item, key), node_type: item.kind ?? 'value', scope: item.scope ?? 'application', parent_id: item.parent ? resolve('vars', item.parent, `/variables/${key}/parent`) : null, order: item.order ?? index, ...(item.kind === 'group' ? {} : { value_type: item.type ?? 'number', read_only: item.read_only ?? false, initial_value: item.initial ?? (item.type === 'string' ? '' : item.type === 'boolean' ? false : 0), min_value: item.min, max_value: item.max, integer_only: item.integer }) })]));
     if (input.enums) doc.enum_definitions = Object.fromEntries(entries(input.enums).map(([key, item], index) => [resolve('enums', key), present({ ...metadataIn(item, key), node_type: item.kind ?? 'enum', scope: item.scope ?? 'application', parent_id: item.parent ? resolve('enums', item.parent, `/enums/${key}/parent`) : null, order: item.order ?? index, options: item.options?.map((option) => present({ display_name: option.display_name ?? option.value, icon: option.icon, value: option.value })) })]));
     doc.expression_macros = Object.fromEntries(entries(input.expressions).map(([key, item]) => {
-      const path = `/expressions/${key}`, result = (value, location) => item.type === 'number' ? { kind: 'number', expression: operand(value, location) } : { kind: 'boolean', condition: operand(value, location, undefined, true) };
-      if ((item.value !== undefined) === (item.branches !== undefined)) reject('Specify exactly one of value or branches.', path);
-      const definition = item.branches ? { kind: 'branch', branches: item.branches.map((branch, index) => ({ ...(branch.description === undefined ? {} : { description: branch.description }), condition: branch.when === null ? null : operand(branch.when, `${path}/branches/${index}/when`, undefined, true), result: result(branch.value, `${path}/branches/${index}/value`) })) } : result(item.value, `${path}/value`);
-      return [resolve('expr', key), { ...metadataIn(item, key), scope: item.scope ?? 'application', value_type: item.type, definition }];
+      const path = `/expressions/${key}`, params = parameterIds.get(`expressions:${key}`);
+      const result = (value, location) => item.type !== 'boolean' ? { kind: item.type, expression: operand(value, location, params) } : { kind: 'boolean', condition: operand(value, location, params, true) };
+      if ([item.value, item.branches, item.builtin].filter((value) => value !== undefined).length !== 1) reject('Specify exactly one of value, branches or builtin.', path);
+      const definition = item.builtin ? { kind: 'builtin', builtin: item.builtin } : item.branches ? { kind: 'branch', branches: item.branches.map((branch, index) => ({ ...(branch.description === undefined ? {} : { description: branch.description }), condition: branch.when === null ? null : operand(branch.when, `${path}/branches/${index}/when`, params, true), result: result(branch.value, `${path}/branches/${index}/value`) })) } : result(item.value, `${path}/value`);
+      return [resolve('expr', key), { ...metadataIn(item, key), scope: item.scope ?? 'application', value_type: item.type, ...(item.parameters === undefined ? {} : { parameters: parameters(item, 'expressions', key) }), definition }];
     }));
     doc.tasks = Object.fromEntries(entries(input.tasks).map(([key, item]) => [resolve('tasks', key), { ...metadataIn(item, key), parameters: parameters(item, 'tasks', key) }]));
     doc.task_macros = Object.fromEntries(entries(input.task_macros).map(([key, item]) => {
@@ -147,8 +153,8 @@ export function exportBlueprint(draft) {
     const groups = { vars: 'operand_nodes', expr: 'expression_macros', tasks: 'tasks', macros: 'task_macros', slots: 'slots', days: 'day_schedules', weeks: 'week_schedules', sequences: 'week_sequences', enums: 'enum_definitions' };
     for (const [group, key] of entries(groups)) symbols[group] = allocate(group, entries(doc[key]));
     symbols.events = allocate('event', Object.values(doc.week_sequences ?? {}).flatMap((sequence) => (sequence.event_groups ?? []).map((event) => [event.id, event])));
-    for (const key of ['tasks', 'task_macros']) for (const [id, item] of entries(doc[key])) paramsByOwner.set(id, allocate('param', item.parameters.map((parameter) => [parameter.id, parameter])));
-    function symbol(group, id, params) { const value = (group === 'params' ? params : symbols[group])?.get(id); if (!value) reject(`Cannot resolve ${group} reference.`); return value; }
+    for (const key of ['tasks', 'task_macros', 'expression_macros']) for (const [id, item] of entries(doc[key])) paramsByOwner.set(id, allocate('param', (item.parameters ?? []).map((parameter) => [parameter.id, parameter])));
+    function symbol(group, id, params) { if (group === 'expression_parameters') return doc.expression_macros[id]?.parameters ?? []; const value = (group === 'params' ? params : symbols[group])?.get(id); if (!value) reject(`Cannot resolve ${group} reference.`); return value; }
     const operand = (value, params) => formatExpression(value, (group, id) => symbol(group, id, params));
     function eventRef(value, params) {
       return value.type === 'current_event_reference' ? { current_event: true } : value.type === 'parameter_reference' ? { parameter: symbol('params', value.parameter_id, params) } : { event: symbol('events', value.event_group_id) };
@@ -168,16 +174,16 @@ export function exportBlueprint(draft) {
       if (value.builtin === 'adjust_probability_event') return { builtin: value.builtin, event: eventRef(value.event, params), property: typeof value.property === 'string' ? value.property : { parameter: symbol('params', value.property.parameter_id, params) }, operation: typeof value.operation === 'string' ? value.operation : { parameter: symbol('params', value.operation.parameter_id, params) }, value: operand(value.value, params) };
       return present({ builtin: value.builtin, target: symbol('vars', value.target_variable_id), value: value.value === undefined ? undefined : operand(value.value, params), random_amplitude: value.random_amplitude === undefined ? undefined : operand(value.random_amplitude, params) });
     }
-    function parameters(item, id) { return Object.fromEntries(item.parameters.map((parameter) => [symbol('params', parameter.id, paramsByOwner.get(id)), present({ ...metadataOut(parameter), type: parameter.type, value_type: parameter.value_type, access: parameter.access, event_kind: parameter.event_kind, enum: parameter.enum_id ? symbol('enums', parameter.enum_id) : undefined, options: parameter.options?.map((option) => present({ display_name: option.display_name, icon: option.icon?.trim() ? option.icon : undefined, value: option.value })) })])); }
+    function parameters(item, id) { return Object.fromEntries((item.parameters ?? []).map((parameter) => [symbol('params', parameter.id, paramsByOwner.get(id)), present({ ...metadataOut(parameter), type: parameter.type, ...(parameter.variadic ? { variadic: true } : {}), value_type: parameter.value_type, access: parameter.access, event_kind: parameter.event_kind, enum: parameter.enum_id ? symbol('enums', parameter.enum_id) : undefined, options: parameter.options?.map((option) => present({ display_name: option.display_name, icon: option.icon?.trim() ? option.icon : undefined, value: option.value })) })])); }
     const branches = (items, params) => items.map((item) => ({ ...(item.description?.trim() ? { description: item.description } : {}), when: item.condition === null ? null : operand(item.condition, params), run: action(item.task, params) }));
     const collection = (group, fn) => Object.fromEntries(entries(doc[groups[group]]).map(([id, item]) => [symbol(group, id), fn(item, id)]));
     const output = {
       project: { name: doc.project.name, slots_per_day: doc.project.settings.slots_per_day },
       ...present({ environment: doc.environment ? { name: doc.environment.display_name, version: doc.environment.version, ...(doc.environment.icon === undefined ? {} : { icon: doc.environment.icon }) } : undefined }),
       variables: collection('vars', (item) => present({ ...metadataOut(item), scope: item.scope ?? 'environment', kind: item.node_type, parent: item.parent_id ? symbol('vars', item.parent_id) : null, order: item.order, type: item.value_type, initial: item.node_type === 'value' ? item.initial_value ?? (item.value_type === 'string' ? '' : item.value_type === 'boolean' ? false : 0) : undefined, min: item.min_value, max: item.max_value, integer: item.integer_only, read_only: item.read_only })),
-      expressions: collection('expr', (item) => {
-        const result = (definition) => operand(definition.kind === 'number' ? definition.expression : definition.condition);
-        return { ...metadataOut(item), scope: item.scope ?? 'application', type: item.value_type, ...(item.definition.kind === 'branch' ? { branches: item.definition.branches.map((branch) => ({ ...(branch.description?.trim() ? { description: branch.description } : {}), when: branch.condition === null ? null : operand(branch.condition), value: result(branch.result) })) } : { value: result(item.definition) }) };
+      expressions: collection('expr', (item, id) => {
+        const params = paramsByOwner.get(id), result = (definition) => operand(definition.kind !== 'boolean' ? definition.expression : definition.condition, params);
+        return { ...metadataOut(item), scope: item.scope ?? 'application', type: item.value_type, ...(item.parameters === undefined ? {} : { parameters: parameters(item, id) }), ...(item.definition.kind === 'builtin' ? { builtin: item.definition.builtin } : item.definition.kind === 'branch' ? { branches: item.definition.branches.map((branch) => ({ ...(branch.description?.trim() ? { description: branch.description } : {}), when: branch.condition === null ? null : operand(branch.condition, params), value: result(branch.result) })) } : { value: result(item.definition) }) };
       }),
       tasks: collection('tasks', (item, id) => ({ ...metadataOut(item), parameters: parameters(item, id) })),
       task_macros: collection('macros', (item, id) => {

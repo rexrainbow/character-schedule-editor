@@ -60,7 +60,7 @@ test('parameter and enum icons share composition, contrast, cancel and project/B
 test('fixed builtin option icons remain editable and the picker fits a narrow Traditional Chinese screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await load(page); await navigate(page, 'tasks');
-  await page.getByRole('button', { name: 'adjust_probability_event', exact: true }).click();
+  await page.getByRole('button', { name: 'Adjust probability event', exact: true }).click();
   const operation = page.locator('.parameter-row').nth(2);
   await expect(operation.getByRole('combobox', { name: 'Parameter type', exact: true })).toBeDisabled();
   await choose(page, operation.locator('.enum-options-preview .icon-field').first(), 'Green');

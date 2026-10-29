@@ -38,7 +38,7 @@ export class ExecutionMachine {
             args = evaluator.arguments(use, definition, frame.scope, `${path}/task`);
             if (use.task_macro_id) matched = evaluator.condition(definition.eligibility ?? null, args, 0, `/task_macros/${use.task_macro_id}/eligibility`);
           } else {
-            // Freeze pure builtin inputs, without sampling randomness or applying effects.
+            // Freeze builtin inputs, including expression-function draws; defer the operation's random offset and effects.
             const value = (operand, suffix) => ({ type: 'constant', value: evaluator.operand(operand, frame.scope, 0, `${path}/task/${suffix}`) });
             for (const key of ['value', 'random_amplitude']) if (use[key] !== undefined) use[key] = value(use[key], key);
             if (use.date) use.date.offset = value(use.date.offset, 'date/offset');

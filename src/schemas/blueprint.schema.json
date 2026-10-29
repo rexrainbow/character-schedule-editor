@@ -597,7 +597,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 16000,
-      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
     },
     "action": {
       "oneOf": [
@@ -624,7 +624,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -710,7 +710,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -797,13 +797,13 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "random_amplitude": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -930,7 +930,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -968,7 +968,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                     },
                     "weekday": {
                       "enum": [
@@ -1077,7 +1077,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "object",
@@ -1163,7 +1163,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "object",
@@ -1255,7 +1255,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -1344,7 +1344,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -1434,13 +1434,13 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "random_amplitude": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "description": {
                   "type": "string"
@@ -1573,7 +1573,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "description": {
                   "type": "string"
@@ -1614,7 +1614,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                     },
                     "weekday": {
                       "enum": [
@@ -1726,7 +1726,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "object",
@@ -1815,7 +1815,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "object",
@@ -1911,7 +1911,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -1977,7 +1977,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2006,7 +2006,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "object",
@@ -2072,7 +2072,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2102,13 +2102,13 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "random_amplitude": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "description": {
                   "type": "string"
@@ -2117,7 +2117,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2148,7 +2148,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2253,7 +2253,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 },
                 "description": {
                   "type": "string"
@@ -2262,7 +2262,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2300,7 +2300,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                     },
                     "weekday": {
                       "enum": [
@@ -2382,7 +2382,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                 }
               },
               "required": [
@@ -2466,6 +2466,37 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
           "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "expressionParameter": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+        },
+        "description": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Optional human label. Blank displays the catalog key (persistent name)."
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "variadic": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2642,14 +2673,33 @@
         "type": {
           "enum": [
             "number",
-            "boolean"
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/expressionParameter"
+          }
+        },
+        "builtin": {
+          "enum": [
+            "randomRange",
+            "randomItem"
           ]
         },
         "value": {
           "type": "string",
           "minLength": 1,
           "maxLength": 16000,
-          "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+          "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
         },
         "branches": {
           "type": "array",
@@ -2665,7 +2715,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "null"
@@ -2677,7 +2727,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 16000,
-                "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
               }
             },
             "required": [
@@ -2693,7 +2743,7 @@
         "type"
       ],
       "additionalProperties": false,
-      "description": "Evaluated against current state on every reference. Branches return only the first matching result; no state storage or implicit accumulation."
+      "description": "Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. any/variadic are reserved for randomItem. See EXPRESSION_FUNCTIONS.md."
     },
     "macro": {
       "type": "object",
@@ -2734,7 +2784,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 16000,
-              "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+              "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
             },
             {
               "type": "null"
@@ -2762,7 +2812,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "null"
@@ -2863,7 +2913,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                   },
                   {
                     "type": "null"
@@ -3025,7 +3075,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
                       },
                       {
                         "type": "null"

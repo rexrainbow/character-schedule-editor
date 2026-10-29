@@ -1,3 +1,4 @@
+import { localizeExpressionFunctions } from '../core/builtinLabels.js';
 import { formatCondition, formatOperand, nodePath } from '../core/operandModel.js';
 import { builtinTaskDefinition } from '../core/builtinTaskModel.js';
 import { eventDateLabel, positionDate } from '../core/sequenceEvents.js';
@@ -10,8 +11,8 @@ export function phaseLabel(context, t) {
 /** Presentation-only subscriber. Runtime owns all decisions and never retains these records. */
 export class TraceCollector {
   constructor(draft, t, { standalone = false } = {}) {
-    this.draft = draft; this.t = t; this.standalone = standalone; this.trace = []; this.calls = []; this.nodes = new Map();
-    this.parameters = [...draft.tasks, ...draft.taskMacros].flatMap((owner) => owner.parameters);
+    this.draft = { ...draft, operandNodes: localizeExpressionFunctions(draft.operandNodes, t) }; this.t = t; this.standalone = standalone; this.trace = []; this.calls = []; this.nodes = new Map();
+    this.parameters = [...draft.tasks, ...draft.taskMacros, ...Object.values(this.draft.operandNodes).filter((node) => node.source === 'computed')].flatMap((owner) => owner.parameters ?? []);
   }
   accept(record) {
     const t = this.t, parent = this.nodes.get(record.parentId);

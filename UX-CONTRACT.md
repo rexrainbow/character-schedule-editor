@@ -2,6 +2,10 @@
 
 ## Canonical UI Map
 
+Expression parameter values are local per invocation and reuse the canonical operand picker. Back returns directly to the parent operand, including nested call arguments; Cancel/Escape discard that picker draft. Builtin randomRange/randomItem signatures are fixed in environment mode and read-only in user mode. Custom expression parameters remain editable in their owning mode. Static previews never run expressions or advance random state.
+
+Random functions are provisioned at application-session startup, project load/reset and environment import in both the standalone browser and local service. They appear directly in the environment expression list without a separate install action. Preserve existing builtin UUIDs and custom labels; protect user-defined expressions when a default symbol collides.
+
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 | --- | --- | --- | --- | --- |
 | Select/Listbox | Native select; existing authored day and icon pickers | Existing editor controls and i18n provider | Native for simple values; authored for rich objects | Browser simulation and day simulation tests |
@@ -75,5 +79,7 @@ Week references own execution counts: once, finite positive total, or infinite o
 - Expand all events removes the row limit for inspection. It is local presentation state and does not change project data.
 
 ## Migration boundaries
+
+Builtin task and random-expression default names, including parameter labels, follow the current interface locale in lists, selectors and summaries. Custom labels remain unchanged. Locale changes do not modify project data, UUIDs, symbols or simulation inputs; clearing a custom label restores the translated default.
 
 This change preserves the existing visual system and editor flows. Native confirmation calls in unrelated legacy editors are not a newly approved pattern; replace them through the shared Dialog when those workflows are migrated. No financial or external engine action is executed by simulation.

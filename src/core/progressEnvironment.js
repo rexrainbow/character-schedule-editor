@@ -1,3 +1,4 @@
+import { addExpressionFunctions } from './expressionFunctions.js';
 // The engine supplies these values as one consistent execution snapshot.
 export function addProgressDefinitions(nodes, slotsPerDay, t) {
   const next = structuredClone(nodes);
@@ -20,5 +21,5 @@ export function addProgressDefinitions(nodes, slotsPerDay, t) {
   for (const [name, label, a, comparator, b] of [['is_first_slot', 'progressFirstSlot', ref('current_slot'), '==', { type: 'constant', value: 1 }], ['is_weekend', 'progressWeekend', ref('current_weekday'), '>=', { type: 'constant', value: 6 }], ['is_last_week', 'progressLastWeek', ref('current_week'), '==', ref('total_weeks')]]) {
     ensure(`schedule_${name}`, { display_name: t(label), icon: 'tabler:calculator', source: 'computed', node_type: 'value', parent_id: null, order: 0, value_type: 'boolean', definition: { kind: 'boolean', condition: { kind: 'comparison', operand_a: a, comparator, operand_b: b } } });
   }
-  return next;
+  return addExpressionFunctions(next, t);
 }

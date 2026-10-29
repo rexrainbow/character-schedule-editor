@@ -951,8 +951,16 @@
         "value_type": {
           "enum": [
             "number",
-            "boolean"
+            "string",
+            "boolean",
+            "any"
           ]
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expression_parameter"
+          }
         },
         "definition": {
           "$ref": "#/$defs/computed_definition"
@@ -980,7 +988,8 @@
                   "kind": {
                     "enum": [
                       "number",
-                      "branch"
+                      "branch",
+                      "builtin"
                     ]
                   },
                   "branches": {
@@ -990,6 +999,43 @@
                           "properties": {
                             "kind": {
                               "const": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "string",
+                      "branch",
+                      "builtin"
+                    ]
+                  },
+                  "branches": {
+                    "items": {
+                      "properties": {
+                        "result": {
+                          "properties": {
+                            "kind": {
+                              "const": "string"
                             }
                           }
                         }
@@ -1016,7 +1062,8 @@
                   "kind": {
                     "enum": [
                       "boolean",
-                      "branch"
+                      "branch",
+                      "builtin"
                     ]
                   },
                   "branches": {
@@ -1039,6 +1086,38 @@
         }
       ]
     },
+    "expression_parameter": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "variadic": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "computed_definition": {
       "oneOf": [
         {
@@ -1046,6 +1125,9 @@
         },
         {
           "$ref": "#/$defs/branched_computed_definition"
+        },
+        {
+          "$ref": "#/$defs/builtin_computed_definition"
         }
       ]
     },
@@ -1062,7 +1144,7 @@
               "const": "number"
             },
             "expression": {
-              "$ref": "#/$defs/numeric_operand"
+              "$ref": "#/$defs/scoped_numeric_operand"
             }
           },
           "additionalProperties": false
@@ -1078,14 +1160,30 @@
               "const": "boolean"
             },
             "condition": {
-              "$ref": "#/$defs/condition"
+              "$ref": "#/$defs/scoped_condition"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "expression"
+          ],
+          "properties": {
+            "kind": {
+              "const": "string"
+            },
+            "expression": {
+              "$ref": "#/$defs/scoped_operand"
             }
           },
           "additionalProperties": false
         }
       ]
     },
-    "numeric_operand": {
+    "scoped_numeric_operand": {
       "oneOf": [
         {
           "type": "object",
@@ -1104,6 +1202,9 @@
           "additionalProperties": false
         },
         {
+          "$ref": "#/$defs/parameter_reference_operand"
+        },
+        {
           "type": "object",
           "required": [
             "type",
@@ -1120,7 +1221,7 @@
           "additionalProperties": false
         },
         {
-          "$ref": "#/$defs/expression_operand"
+          "$ref": "#/$defs/scoped_expression_operand"
         },
         {
           "$ref": "#/$defs/expression_macro_reference"
@@ -1133,7 +1234,23 @@
         }
       ]
     },
-    "expression_operand": {
+    "parameter_reference_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "parameter_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "parameter_reference"
+        },
+        "parameter_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_expression_operand": {
       "type": "object",
       "required": [
         "type",
@@ -1155,10 +1272,10 @@
           ]
         },
         "operand_a": {
-          "$ref": "#/$defs/numeric_operand"
+          "$ref": "#/$defs/scoped_numeric_operand"
         },
         "operand_b": {
-          "$ref": "#/$defs/numeric_operand"
+          "$ref": "#/$defs/scoped_numeric_operand"
         }
       },
       "additionalProperties": false
@@ -1175,6 +1292,87 @@
         },
         "expression_macro_id": {
           "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/scoped_operand"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/scoped_operand"
+                },
+                "minItems": 1
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_operand": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference_operand"
+        },
+        {
+          "$ref": "#/$defs/parameter_reference_operand"
+        },
+        {
+          "$ref": "#/$defs/constant_operand"
+        },
+        {
+          "$ref": "#/$defs/scoped_expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        },
+        {
+          "$ref": "#/$defs/environment_reference"
+        }
+      ]
+    },
+    "reference_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "reference_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "reference"
+        },
+        "reference_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "constant_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "const": "constant"
+        },
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ]
         }
       },
       "additionalProperties": false
@@ -1244,22 +1442,6 @@
       ],
       "additionalProperties": false
     },
-    "parameter_reference_operand": {
-      "type": "object",
-      "required": [
-        "type",
-        "parameter_id"
-      ],
-      "properties": {
-        "type": {
-          "const": "parameter_reference"
-        },
-        "parameter_id": {
-          "$ref": "#/$defs/uuid"
-        }
-      },
-      "additionalProperties": false
-    },
     "environment_reference": {
       "type": "object",
       "properties": {
@@ -1278,17 +1460,17 @@
       ],
       "additionalProperties": false
     },
-    "condition": {
+    "scoped_condition": {
       "oneOf": [
         {
-          "$ref": "#/$defs/conditionGroup"
+          "$ref": "#/$defs/scoped_conditionGroup"
         },
         {
-          "$ref": "#/$defs/conditionComparison"
+          "$ref": "#/$defs/scoped_conditionComparison"
         }
       ]
     },
-    "conditionGroup": {
+    "scoped_conditionGroup": {
       "type": "object",
       "required": [
         "kind",
@@ -1309,13 +1491,13 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/condition"
+            "$ref": "#/$defs/scoped_condition"
           }
         }
       },
       "additionalProperties": false
     },
-    "conditionComparison": {
+    "scoped_conditionComparison": {
       "type": "object",
       "required": [
         "kind",
@@ -1325,7 +1507,7 @@
       ],
       "properties": {
         "operand_a": {
-          "$ref": "#/$defs/operand"
+          "$ref": "#/$defs/scoped_operand"
         },
         "comparator": {
           "type": "string",
@@ -1339,68 +1521,10 @@
           ]
         },
         "operand_b": {
-          "$ref": "#/$defs/operand"
+          "$ref": "#/$defs/scoped_operand"
         },
         "kind": {
           "const": "comparison"
-        }
-      },
-      "additionalProperties": false
-    },
-    "operand": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/reference_operand"
-        },
-        {
-          "$ref": "#/$defs/constant_operand"
-        },
-        {
-          "$ref": "#/$defs/expression_operand"
-        },
-        {
-          "$ref": "#/$defs/expression_macro_reference"
-        },
-        {
-          "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
-        }
-      ]
-    },
-    "reference_operand": {
-      "type": "object",
-      "required": [
-        "type",
-        "reference_id"
-      ],
-      "properties": {
-        "type": {
-          "const": "reference"
-        },
-        "reference_id": {
-          "$ref": "#/$defs/uuid"
-        }
-      },
-      "additionalProperties": false
-    },
-    "constant_operand": {
-      "type": "object",
-      "required": [
-        "type",
-        "value"
-      ],
-      "properties": {
-        "type": {
-          "const": "constant"
-        },
-        "value": {
-          "type": [
-            "number",
-            "string",
-            "boolean"
-          ]
         }
       },
       "additionalProperties": false
@@ -1448,7 +1572,7 @@
         "condition": {
           "oneOf": [
             {
-              "$ref": "#/$defs/condition"
+              "$ref": "#/$defs/scoped_condition"
             },
             {
               "type": "null"
@@ -1459,6 +1583,25 @@
           "$ref": "#/$defs/scalar_computed_definition"
         }
       },
+      "additionalProperties": false
+    },
+    "builtin_computed_definition": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "builtin"
+        },
+        "builtin": {
+          "enum": [
+            "randomRange",
+            "randomItem"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "builtin"
+      ],
       "additionalProperties": false
     },
     "runtime_macro": {
@@ -1916,112 +2059,6 @@
         }
       ]
     },
-    "scoped_operand": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/reference_operand"
-        },
-        {
-          "$ref": "#/$defs/parameter_reference_operand"
-        },
-        {
-          "$ref": "#/$defs/constant_operand"
-        },
-        {
-          "$ref": "#/$defs/scoped_expression_operand"
-        },
-        {
-          "$ref": "#/$defs/expression_macro_reference"
-        },
-        {
-          "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
-        }
-      ]
-    },
-    "scoped_expression_operand": {
-      "type": "object",
-      "required": [
-        "type",
-        "operator",
-        "operand_a",
-        "operand_b"
-      ],
-      "properties": {
-        "type": {
-          "const": "expression"
-        },
-        "operator": {
-          "type": "string",
-          "enum": [
-            "+",
-            "-",
-            "*",
-            "/"
-          ]
-        },
-        "operand_a": {
-          "$ref": "#/$defs/scoped_numeric_operand"
-        },
-        "operand_b": {
-          "$ref": "#/$defs/scoped_numeric_operand"
-        }
-      },
-      "additionalProperties": false
-    },
-    "scoped_numeric_operand": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "type",
-            "reference_id"
-          ],
-          "properties": {
-            "type": {
-              "const": "reference"
-            },
-            "reference_id": {
-              "$ref": "#/$defs/uuid"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "$ref": "#/$defs/parameter_reference_operand"
-        },
-        {
-          "type": "object",
-          "required": [
-            "type",
-            "value"
-          ],
-          "properties": {
-            "type": {
-              "const": "constant"
-            },
-            "value": {
-              "type": "number"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "$ref": "#/$defs/scoped_expression_operand"
-        },
-        {
-          "$ref": "#/$defs/expression_macro_reference"
-        },
-        {
-          "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
-        }
-      ]
-    },
     "runtime_variable_reference": {
       "oneOf": [
         {
@@ -2384,75 +2421,6 @@
       },
       "additionalProperties": false
     },
-    "scoped_condition": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/scoped_conditionGroup"
-        },
-        {
-          "$ref": "#/$defs/scoped_conditionComparison"
-        }
-      ]
-    },
-    "scoped_conditionGroup": {
-      "type": "object",
-      "required": [
-        "kind",
-        "mode",
-        "items"
-      ],
-      "properties": {
-        "kind": {
-          "const": "group"
-        },
-        "mode": {
-          "enum": [
-            "ALL",
-            "ANY"
-          ]
-        },
-        "items": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/scoped_condition"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "scoped_conditionComparison": {
-      "type": "object",
-      "required": [
-        "kind",
-        "operand_a",
-        "comparator",
-        "operand_b"
-      ],
-      "properties": {
-        "operand_a": {
-          "$ref": "#/$defs/scoped_operand"
-        },
-        "comparator": {
-          "type": "string",
-          "enum": [
-            "==",
-            "!=",
-            "<",
-            "<=",
-            ">",
-            ">="
-          ]
-        },
-        "operand_b": {
-          "$ref": "#/$defs/scoped_operand"
-        },
-        "kind": {
-          "const": "comparison"
-        }
-      },
-      "additionalProperties": false
-    },
     "runtime_branch": {
       "type": "object",
       "properties": {
@@ -2689,6 +2657,175 @@
         "condition"
       ],
       "additionalProperties": false
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/conditionGroup"
+        },
+        {
+          "$ref": "#/$defs/conditionComparison"
+        }
+      ]
+    },
+    "conditionGroup": {
+      "type": "object",
+      "required": [
+        "kind",
+        "mode",
+        "items"
+      ],
+      "properties": {
+        "kind": {
+          "const": "group"
+        },
+        "mode": {
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "conditionComparison": {
+      "type": "object",
+      "required": [
+        "kind",
+        "operand_a",
+        "comparator",
+        "operand_b"
+      ],
+      "properties": {
+        "operand_a": {
+          "$ref": "#/$defs/operand"
+        },
+        "comparator": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">="
+          ]
+        },
+        "operand_b": {
+          "$ref": "#/$defs/operand"
+        },
+        "kind": {
+          "const": "comparison"
+        }
+      },
+      "additionalProperties": false
+    },
+    "operand": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference_operand"
+        },
+        {
+          "$ref": "#/$defs/constant_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        },
+        {
+          "$ref": "#/$defs/environment_reference"
+        }
+      ]
+    },
+    "expression_operand": {
+      "type": "object",
+      "required": [
+        "type",
+        "operator",
+        "operand_a",
+        "operand_b"
+      ],
+      "properties": {
+        "type": {
+          "const": "expression"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "+",
+            "-",
+            "*",
+            "/"
+          ]
+        },
+        "operand_a": {
+          "$ref": "#/$defs/numeric_operand"
+        },
+        "operand_b": {
+          "$ref": "#/$defs/numeric_operand"
+        }
+      },
+      "additionalProperties": false
+    },
+    "numeric_operand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "reference_id"
+          ],
+          "properties": {
+            "type": {
+              "const": "reference"
+            },
+            "reference_id": {
+              "$ref": "#/$defs/uuid"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "const": "constant"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/expression_operand"
+        },
+        {
+          "$ref": "#/$defs/expression_macro_reference"
+        },
+        {
+          "$ref": "#/$defs/event_property_operand"
+        },
+        {
+          "$ref": "#/$defs/environment_reference"
+        }
+      ]
     },
     "runtime_week": {
       "type": "object",

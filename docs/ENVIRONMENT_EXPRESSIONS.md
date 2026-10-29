@@ -4,13 +4,15 @@
 
 環境層巨集同樣支援分支計算式；條件與每個回傳結果均只允許環境依賴，並隨環境檔保存、載入與重連。格式與轉換操作見 [COMPUTED_BRANCHES.md](./COMPUTED_BRANCHES.md)。
 
+兩層計算式巨集都支援固定參數與文字回傳。randomRange、randomItem 在專案啟動、載入與環境匯入時自動補齊，直接列於環境計算式巨集；使用者層可直接引用。固定內建參數只開放顯示資訊修改，完整契約見 [EXPRESSION_FUNCTIONS.md](EXPRESSION_FUNCTIONS.md)。
+
 計算式巨集新增 `scope: "environment" | "application"`，省略時視為 application。專案仍以同一個 `expression_macros` UUID 字典保存兩層巨集。巨集是計算定義，不會在變數空間建立儲存欄位。
 
 環境模式新增「環境層計算式巨集」頁面，沿用數字 Expression／布林 ALL、ANY 條件式編輯器，支援新增、複製、刪除、圖示、名稱與 name。使用者模式的計算式巨集頁可瀏覽環境巨集，其定義不可修改或複製；新增及修改作用於應用層。
 
 環境巨集只能引用環境變數與環境巨集；應用巨集可引用兩層。選擇器依此過濾，匯入與提交驗證也會檢查依賴方向、型別、遺失引用與循環。兩層巨集名稱在共用集合內保持唯一，參照仍用 UUID。
 
-環境檔新增 `expression_macros`，只包含環境巨集，保留 UUID、名稱、圖示、scope、name 與定義。匯入至新專案時採用該環境的完整定義，不額外合併預設範本。替換既有環境時，巨集與變數同樣依環境 UUID 或唯一 name 重連應用內容的引用；型別不符、引用缺漏或循環則拒絕套用，保持原專案。
+環境檔新增 `expression_macros`，只包含環境巨集，保留 UUID、名稱、圖示、scope、name 與定義。匯入至新專案時採用該環境的完整定義，不額外合併行程進度範本；系統會補齊兩個內建隨機函數。替換既有環境時，巨集與變數同樣依環境 UUID 或唯一 name 重連應用內容的引用；固定內建函數亦可依 builtin 身分及參數位置重連。型別不符、引用缺漏或循環則拒絕套用，保持原專案。
 
 Runtime 使用同一個 expression_macros 字典，完整輸出環境與應用巨集；保留 name、display_name、型別及定義，移除 scope 和 icon。巨集間引用保留 expression_macro_id，定義中的環境變數引用使用 name。Engine 可依 UUID 求值，兩層不需不同的運算機制。
 

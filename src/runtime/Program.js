@@ -56,7 +56,7 @@ export class Program {
         else if (key === 'enum_id') output[key] = ref('enums', item);
         else if (key === 'day_schedule_id') output[key] = ref('days', item);
         else if (key === 'arguments') {
-          const target = source[value.task_macro_id ? 'macros' : 'tasks'].find((owner) => owner.id === (value.task_macro_id ?? value.task_id));
+          const target = source[value.expression_macro_id ? 'expressions' : value.task_macro_id ? 'macros' : 'tasks'].find((owner) => owner.id === (value.expression_macro_id ?? value.task_macro_id ?? value.task_id));
           const parameters = new Map((target?.parameters ?? []).map((p) => [p.id, referenceMode === 'uuid' ? p.id : p.symbol]));
           output.arguments = Object.fromEntries(Object.entries(item).map(([id, arg]) => [parameters.get(id) ?? fail('missingParameter', { ref: id }), transform(arg, local)]));
         } else output[key] = transform(item, local);

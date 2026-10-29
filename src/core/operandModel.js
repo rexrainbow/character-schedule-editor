@@ -1,3 +1,4 @@
+import { expressionParameterErrors } from './expressionFunctions.js';
 import { descriptionComments } from './descriptions.js';
 import { symbolBase, normalizeSymbols } from './symbols.js';
 import { scheduleTaskErrors } from './scheduledEvents.js';
@@ -31,6 +32,7 @@ export function operandType(operand, nodes, parameters = []) {
   if (operand?.type === 'parameter_reference') return parameterValueType(parameters.find((p) => p.id === operand.parameter_id)) ?? null;
   if (operand?.type === 'expression' || operand?.type === 'event_property') return 'number';
   if (operand?.type === 'constant') return ['number', 'string', 'boolean'].includes(typeof operand.value) ? typeof operand.value : null;
+  if (operand?.type === 'expression_macro_reference' && nodes?.[operand.expression_macro_id]?.value_type === 'any') { const p = nodes[operand.expression_macro_id].parameters?.[0]; return operandType(operand.arguments?.[p?.id]?.[0], nodes, parameters); }
   const node = nodes?.[operand?.type === 'expression_macro_reference' ? operand.expression_macro_id : operand?.reference_id];
   return node?.node_type === 'value' && (operand?.type === 'expression_macro_reference' ? isComputed(node) : operand?.type === 'reference' && !isComputed(node)) ? node.value_type : null;
 }
@@ -40,7 +42,7 @@ export function operandAt(root, path) { return path.reduce((node, key) => node?.
 export function replaceOperand(root, path, value) {
   if (!path.length) return value;
   const next = { ...root }; let target = next, original = root;
-  for (const key of path.slice(0, -1)) { target[key] = { ...original[key] }; target = target[key]; original = original[key]; }
+  for (const key of path.slice(0, -1)) { target[key] = Array.isArray(original[key]) ? [...original[key]] : { ...original[key] }; target = target[key]; original = original[key]; }
   target[path.at(-1)] = value;
   return next;
 }
@@ -52,7 +54,7 @@ export function formatOperand(value, nodes, missing = '?', parameters = [], para
     if (item?.type === 'event_property') { output.push(`Event.${item.property}`); continue; }
     if (item?.type === 'expression') pending.push(')', item.operand_b, ` ${item.operator} `, item.operand_a, '(');
     else if ((item?.type === 'reference' || item?.type === 'variable_reference')) output.push(nodePath(nodes, item.reference_id) || missing);
-    else if (item?.type === 'expression_macro_reference') output.push(nodePath(nodes, item.expression_macro_id) || missing);
+    else if (item?.type === 'expression_macro_reference') { const macro = nodes[item.expression_macro_id], args = (macro?.parameters ?? []).flatMap((p) => p.variadic ? item.arguments?.[p.id] ?? [] : [item.arguments?.[p.id]]); output.push((nodePath(nodes, item.expression_macro_id) || missing) + (args.length ? '(' + args.map((arg) => formatOperand(arg, nodes, missing, parameters, parameterPrefix)).join(', ') + ')' : '')); }
     else if (item?.type === 'parameter_reference') { const p = parameters.find((p) => p.id === item.parameter_id); output.push(p ? `${parameterPrefix}.${p.display_name}` : missing); }
     else if (item?.type === 'constant' && ['number','string','boolean'].includes(typeof item.value) && (typeof item.value !== 'number' || Number.isFinite(item.value))) output.push(typeof item.value === 'string' ? JSON.stringify(item.value) : String(item.value));
     else output.push(missing);
@@ -78,7 +80,22 @@ export function operandErrors(operand, nodes, path = '', numericOnly = false, pa
       else if (['variable_reference', 'event_reference'].includes(type)) report('variableReferenceAsValue');
       else if (numberRequired && type !== 'number') report('numericOperandRequired');
     } else if (op.type === 'reference' || op.type === 'expression_macro_reference') {
-      const type = operandType(op, nodes);
+      const type = operandType(op, nodes, parameters);
+      if (op.type === 'expression_macro_reference') {
+        const macro = nodes[op.expression_macro_id];
+        for (const p of macro?.parameters ?? []) {
+          const args = p.variadic ? op.arguments?.[p.id] : [op.arguments?.[p.id]];
+          if (!Array.isArray(args) || !args.length) report('expressionArgumentsRequired', `/arguments/${p.id}`);
+          else for (const [i, arg] of args.entries()) {
+            const argPath = `${location}/arguments/${p.id}${p.variadic ? '/' + i : ''}`;
+            errors.push(...operandErrors(arg, nodes, argPath, p.type === 'number', parameters));
+            const argType = operandType(arg, nodes, parameters);
+            if (argType && p.type !== 'any' && argType !== p.type) errors.push({ path: argPath, key: 'parameterTypeMismatch' });
+            if (p.type === 'any' && argType && operandType(args[0], nodes, parameters) !== argType) errors.push({ path: argPath, key: 'operandTypeMismatch' });
+          }
+        }
+        for (const id of Object.keys(op.arguments ?? {})) if (!macro?.parameters?.some((p) => p.id === id)) report('unknownParameter', `/arguments/${id}`);
+      }
       const key = op.type === 'reference' ? 'reference_id' : 'expression_macro_id';
       if (!op[key]) report('chooseOperand', `/${key}`);
       else if (!type) report('missingOperand', `/${key}`);
@@ -218,13 +235,22 @@ export function referencesIn(value, path = '', referenceKind = 'reference') {
     else if (item.type === 'event_property') pending.push({ value: item.event, path: `${location}/event` });
     else if (item.kind === 'group' && Array.isArray(item.items)) item.items.forEach((entry, i) => pending.push({ value: entry, path: `${location}/items/${i}` }));
     else if (item.type === 'expression' || item.kind === 'comparison') for (const key of ['operand_a','operand_b']) pending.push({ value: item[key], path: `${location}/${key}` });
+    if (item.type === 'expression_macro_reference') for (const [id, argument] of Object.entries(item.arguments ?? {})) {
+      if (Array.isArray(argument)) argument.forEach((value, index) => pending.push({ value, path: `${location}/arguments/${id}/${index}` }));
+      else pending.push({ value: argument, path: `${location}/arguments/${id}` });
+    }
   }
   return result;
 }
 export const isComputed = (node) => node?.node_type === 'value' && node.source === 'computed';
 export const variableNodes = (nodes) => Object.fromEntries(Object.entries(nodes).filter(([, node]) => !isComputed(node)));
 export const expressionNodes = (nodes) => Object.fromEntries(Object.entries(nodes).filter(([, node]) => isComputed(node)));
-export const referenceOperand = (id, nodes) => isComputed(nodes[id]) ? { type: 'expression_macro_reference', expression_macro_id: id } : { type: 'reference', reference_id: id };
+export function referenceOperand(id, nodes, expectedType) {
+  if (!isComputed(nodes[id])) return { type: 'reference', reference_id: id };
+  const parameters = nodes[id].parameters ?? [];
+  const argument = (type) => ({ type: 'constant', value: type === 'number' ? 0 : type === 'boolean' ? false : '' });
+  return { type: 'expression_macro_reference', expression_macro_id: id, ...(parameters.length ? { arguments: Object.fromEntries(parameters.map((p) => [p.id, p.variadic ? [argument(expectedType ?? 'string')] : argument(p.type)])) } : {}) };
+}
 export function documentNodes(data) {
   const variables = data?.operand_nodes && typeof data.operand_nodes === 'object' && !Array.isArray(data.operand_nodes) ? structuredClone(data.operand_nodes) : {};
   const macros = data?.expression_macros && typeof data.expression_macros === 'object' && !Array.isArray(data.expression_macros) ? data.expression_macros : {};
@@ -234,7 +260,7 @@ export function documentNodes(data) {
 export function serializeNodes(nodes) {
   return {
     operand_nodes: Object.fromEntries(Object.entries(variableNodes(nodes)).map(([id, node]) => { const { source, ...value } = node; return [id, { ...structuredClone(value), ...(node.node_type === 'value' ? { read_only: node.read_only ?? false } : {}) }]; })),
-    expression_macros: Object.fromEntries(Object.entries(expressionNodes(nodes)).map(([id, node]) => [id, structuredClone({ display_name: node.display_name, ...engineMetadata(node), ...(node.icon === undefined ? {} : { icon: node.icon }), ...(node.scope === undefined ? {} : { scope: node.scope }), value_type: node.value_type, definition: node.definition })])),
+    expression_macros: Object.fromEntries(Object.entries(expressionNodes(nodes)).map(([id, node]) => [id, structuredClone({ display_name: node.display_name, ...engineMetadata(node), ...(node.icon === undefined ? {} : { icon: node.icon }), ...(node.scope === undefined ? {} : { scope: node.scope }), value_type: node.value_type, ...(node.parameters === undefined ? {} : { parameters: node.parameters }), definition: node.definition })])),
   };
 }
 export function expressionNameErrors(nodes) {
@@ -319,20 +345,22 @@ export function computedErrors(nodes = {}) {
   for (const [id, node] of Object.entries(nodes)) {
     if (!isComputed(node)) continue;
     const path = `/expression_macros/${id}/definition`;
+    errors.push(...expressionParameterErrors(node, `/expression_macros/${id}`));
+    const scope = node.parameters ?? [];
     function checkScalar(definition, location, lazy = false) {
-      if (!['number', 'boolean'].includes(definition?.kind)) { errors.push({ path: location, key: 'invalidDefinition' }); return; }
+      if (!['number', 'string', 'boolean'].includes(definition?.kind)) { errors.push({ path: location, key: 'invalidDefinition' }); return; }
       if (node.value_type !== definition.kind) errors.push({ path: location, key: 'computedResultMismatch' });
-      const found = definition.kind === 'number' ? operandErrors(definition.expression, nodes, `${location}/expression`, true) : !definition.condition ? [{ path: `${location}/condition`, key: 'invalidCondition' }] : conditionErrors(definition.condition, nodes, `${location}/condition`);
+      const found = definition.kind !== 'boolean' ? [...operandErrors(definition.expression, nodes, `${location}/expression`, definition.kind === 'number', scope), ...(operandType(definition.expression, nodes, scope) && operandType(definition.expression, nodes, scope) !== node.value_type ? [{ path: location, key: 'computedResultMismatch' }] : [])] : !definition.condition ? [{ path: `${location}/condition`, key: 'invalidCondition' }] : conditionErrors(definition.condition, nodes, `${location}/condition`, scope);
       errors.push(...found.filter((error) => !lazy || error.key !== 'divisionByZero'));
     }
     if (node.definition?.kind === 'branch') {
       errors.push(...branchOrderErrors(node.definition.branches, `${path}/branches`));
       for (const [index, branch] of (Array.isArray(node.definition.branches) ? node.definition.branches : []).entries()) {
         if (branch?.condition === undefined) errors.push({ path: `${path}/branches/${index}/condition`, key: 'invalidCondition' });
-        else errors.push(...conditionErrors(branch.condition, nodes, `${path}/branches/${index}/condition`).filter((error) => error.key !== 'divisionByZero'));
+        else errors.push(...conditionErrors(branch.condition, nodes, `${path}/branches/${index}/condition`, scope).filter((error) => error.key !== 'divisionByZero'));
         checkScalar(branch?.result, `${path}/branches/${index}/result`, true);
       }
-    } else checkScalar(node.definition, path);
+    } else if (node.definition?.kind !== 'builtin') checkScalar(node.definition, path);
     const refs = definitionRoots(node, id).flatMap((root) => referencesIn(root.value, root.path));
     if (expressionScope(node) === 'environment') for (const ref of refs) if (nodes[ref.nodeId] && nodeScope(nodes[ref.nodeId]) !== 'environment') errors.push({ path: `${ref.path}/${ref.key}`, key: 'environmentExpressionDependency' });
     edges.set(id, refs.filter((ref) => isComputed(nodes[ref.nodeId])));
@@ -353,11 +381,12 @@ export function computedErrors(nodes = {}) {
   return errors;
 }
 export function defaultDefinition(kind) {
-  return kind === 'number' ? { kind, expression: { type: 'constant', value: 0 } } : { kind: 'boolean', condition: { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', operand_a: { type: 'constant', value: 0 }, comparator: '==', operand_b: { type: 'constant', value: 0 } }] } };
+  return kind !== 'boolean' ? { kind, expression: { type: 'constant', value: kind === 'string' ? '' : 0 } } : { kind: 'boolean', condition: { kind: 'group', mode: 'ALL', items: [{ kind: 'comparison', operand_a: { type: 'constant', value: 0 }, comparator: '==', operand_b: { type: 'constant', value: 0 } }] } };
 }
-export function formatComputedDefinition(definition, nodes, missing = '?') {
-  if (definition?.kind === 'branch') return (definition.branches ?? []).map((branch, index) => `${descriptionComments(branch.description).length ? descriptionComments(branch.description).join('\n') + '\n' : ''}${branch.condition === null ? 'ELSE' : index === 0 ? 'IF' : 'ELSE IF'}${branch.condition === null ? '' : ` ${formatCondition(branch.condition, nodes, missing)}`} → ${formatComputedDefinition(branch.result, nodes, missing)}`).join('\n');
-  return definition?.kind === 'number' ? formatOperand(definition.expression, nodes, missing) : formatCondition(definition?.condition, nodes, missing);
+export function formatComputedDefinition(definition, nodes, missing = '?', parameters = []) {
+  if (definition?.kind === 'branch') return (definition.branches ?? []).map((branch, index) => `${descriptionComments(branch.description).length ? descriptionComments(branch.description).join('\n') + '\n' : ''}${branch.condition === null ? 'ELSE' : index === 0 ? 'IF' : 'ELSE IF'}${branch.condition === null ? '' : ` ${formatCondition(branch.condition, nodes, missing, parameters)}`} → ${formatComputedDefinition(branch.result, nodes, missing, parameters)}`).join('\n');
+  if (definition?.kind === 'builtin') return `${definition.builtin}(${parameters.map((p) => p.display_name + (p.variadic ? '...' : '')).join(', ')})`;
+  return definition?.kind !== 'boolean' ? formatOperand(definition?.expression, nodes, missing, parameters) : formatCondition(definition?.condition, nodes, missing, parameters);
 }
 export function changeComputedMode(definition, mode, keepIndex = null) {
   if (mode === 'branch') return definition.kind === 'branch' ? structuredClone(definition) : { kind: 'branch', branches: [{ condition: null, result: structuredClone(definition) }] };
@@ -451,7 +480,11 @@ export function moveOperandNode(nodes, id, parent, position) {
 }
 export function duplicateOperandSubtree(nodes, id) {
   if (!nodes[id]) throw new Error('missingOperand');
-  if (isComputed(nodes[id])) { const result = addComputedNode(nodes, null, `${nodes[id].display_name} (\u526f\u672c)`); result.nodes[result.id] = { ...clearEngineKey(nodes[id]), display_name: result.nodes[result.id].display_name }; result.nodes[result.id] = normalizeSymbols({ operandNodes: result.nodes }).operandNodes[result.id]; return result; }
+  if (isComputed(nodes[id])) { const result = addComputedNode(nodes, null, `${nodes[id].display_name} (\u526f\u672c)`); result.nodes[result.id] = { ...clearEngineKey(nodes[id]), display_name: result.nodes[result.id].display_name }; const copied = structuredClone(result.nodes[result.id]), mapping = new Map((copied.parameters ?? []).map((p) => [p.id, crypto.randomUUID()]));
+    if (copied.parameters) copied.parameters = copied.parameters.map((p) => ({ ...p, id: mapping.get(p.id) }));
+    for (const root of definitionRoots(copied, result.id)) for (const ref of referencesIn(root.value, '', 'parameter_reference')) { const target = operandAt(root.value, ref.path.split('/').filter(Boolean)); target.parameter_id = mapping.get(ref.nodeId) ?? ref.nodeId; }
+    result.nodes[result.id] = copied;
+    result.nodes[result.id] = normalizeSymbols({ operandNodes: result.nodes }).operandNodes[result.id]; return result; }
   const ids = subtreeIds(nodes, id), mapping = new Map([...ids].map((key) => [key, crypto.randomUUID()]));
   const next = { ...nodes }, source = nodes[id];
   const names = new Set(childrenOf(nodes, source.parent_id, variableScope(source)).map(([, n]) => n.display_name.trim()));

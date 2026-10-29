@@ -1,3 +1,5 @@
+import { usesDefaultBuiltinLabel, expressionParameterRole } from './builtinLabels.js';
+
 export const symbolPattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
 export function symbolBase(value, fallback = 'item') {
   const base = String(value ?? '').replace(/[^A-Za-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
@@ -25,6 +27,11 @@ export function normalizeSymbols(input) {
   }
   const computed = Object.values(draft.operandNodes ?? {}).filter((item) => item.source === 'computed');
   collection(Object.values(draft.operandNodes ?? {}).filter((item) => item.source !== 'computed'), 'variable');
+  for (const node of computed) if (node.definition?.kind === 'builtin') {
+    const builtin = node.definition.builtin;
+    if (usesDefaultBuiltinLabel(node, `expressionFunction_${builtin}`, builtin)) node.display_name = '';
+    for (const [index, p] of (node.parameters ?? []).entries()) { const role = expressionParameterRole(builtin, index); if (usesDefaultBuiltinLabel(p, `expressionParam_${role}`, role)) p.display_name = ''; }
+  }
   collection(computed, 'expression'); collection(Object.values(draft.enumNodes ?? {}), 'enum');
   const builtinNames = ['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable', 'release_slot', 'adjust_probability_event', 'schedule_event'];
   draft.builtinTasks ??= {};
@@ -33,7 +40,7 @@ export function normalizeSymbols(input) {
   collection(draft.tasks ?? [], 'task', 'display_name', builtinNames.map((name) => draft.builtinTasks[name]?.symbol ?? name));
   for (const key of ['slots', 'days', 'weeks', 'sequences']) collection(draft[key] ?? [], key.slice(0, -1), 'name');
   collection(draft.taskMacros ?? [], 'macro');
-  for (const owner of [...(draft.tasks ?? []), ...(draft.taskMacros ?? [])]) collection(owner.parameters ?? [], 'parameter');
+  for (const owner of [...(draft.tasks ?? []), ...(draft.taskMacros ?? []), ...Object.entries(draft.operandNodes ?? {}).filter(([, node]) => node.source === 'computed').map(([id, node]) => ({ ...node, id }))]) collection(owner.parameters ?? [], 'parameter');
   collection((draft.sequences ?? []).flatMap((sequence) => sequence.eventGroups ?? []), 'event');
   return draft;
 }
@@ -47,7 +54,7 @@ export function symbolErrors(draft) {
     ...Object.fromEntries(['slots', 'days', 'weeks', 'sequences'].map((key) => [key, (draft[key] ?? []).map((item) => [item.id, item])])),
     events: (draft.sequences ?? []).flatMap((sequence) => (sequence.eventGroups ?? []).map((item) => [item.id, item])),
   };
-  for (const owner of [...(draft.tasks ?? []), ...(draft.taskMacros ?? [])]) groups[`parameters/${owner.id}`] = (Array.isArray(owner.parameters) ? owner.parameters : []).filter(Boolean).map((item) => [item.id, item]);
+  for (const owner of [...(draft.tasks ?? []), ...(draft.taskMacros ?? []), ...Object.entries(draft.operandNodes ?? {}).filter(([, node]) => node.source === 'computed').map(([id, node]) => ({ ...node, id }))]) groups[`parameters/${owner.id}`] = (Array.isArray(owner.parameters) ? owner.parameters : []).filter(Boolean).map((item) => [item.id, item]);
   const builtinRoles = { set_variable: ['target', 'value'], increment_variable: ['target', 'value', 'random_amplitude'], toggle_variable: ['target'], reset_variable: ['target'], release_slot: ['condition'], adjust_probability_event: ['event', 'property', 'operation', 'value'], schedule_event: ['display_name', 'date_mode', 'offset', 'weekday', 'day_source', 'execution_mode', 'priority'] };
   for (const [kind, roles] of Object.entries(builtinRoles)) groups[`parameters/builtin_${kind}`] = roles.map((role) => [role, { symbol: draft.builtinTasks?.[kind]?.parameters?.[role]?.symbol ?? role }]);
   const errors = [];

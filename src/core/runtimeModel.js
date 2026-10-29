@@ -59,6 +59,7 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   function operand(value) {
     if (value.type === 'reference') return variable(value.reference_id);
+    if (value.type === 'expression_macro_reference') return { ...value, ...(value.arguments === undefined ? {} : { arguments: Object.fromEntries(Object.entries(value.arguments).map(([id, arg]) => [id, Array.isArray(arg) ? arg.map(operand) : operand(arg)])) }) };
     if (value.type === 'expression') return { type: 'expression', operator: value.operator, operand_a: operand(value.operand_a), operand_b: operand(value.operand_b) };
     return structuredClone(value);
   }
@@ -68,7 +69,8 @@ export function compileRuntime(draft, t = translator('en')) {
   }
   function computedDefinition(value) {
     if (value.kind === 'branch') return { kind: 'branch', branches: value.branches.map((branch) => ({ condition: condition(branch.condition), result: computedDefinition(branch.result) })) };
-    return value.kind === 'number' ? { kind: 'number', expression: operand(value.expression) } : { kind: 'boolean', condition: condition(value.condition) };
+    if (value.kind === 'builtin') return structuredClone(value);
+    return value.kind !== 'boolean' ? { kind: value.kind, expression: operand(value.expression) } : { kind: 'boolean', condition: condition(value.condition) };
   }
   function argument(value, parameter) {
     if (parameter?.type !== 'variable_reference' || value.type === 'parameter_reference') return operand(value);
@@ -121,7 +123,7 @@ export function compileRuntime(draft, t = translator('en')) {
     environment_requirements: { variables: [], tasks: [] },
     environment_variables: tree(null, 'environment'),
     application_variables: tree(),
-    expression_macros: Object.fromEntries(Object.entries(nodes).filter(([, node]) => isComputed(node)).map(([id, node]) => [id, { ...metadata(node), value_type: node.value_type, definition: computedDefinition(node.definition) }])),
+    expression_macros: Object.fromEntries(Object.entries(nodes).filter(([, node]) => isComputed(node)).map(([id, node]) => [id, { ...metadata(node), value_type: node.value_type, ...(node.parameters === undefined ? {} : { parameters: node.parameters.map((p) => ({ id: p.id, symbol: p.symbol ?? p.id, display_name: p.display_name, type: p.type, ...(p.variadic ? { variadic: true } : {}) })) }), definition: computedDefinition(node.definition) }])),
     task_macros: Object.fromEntries(draft.taskMacros.map((value) => { const macro = normalizeTaskMacro(value); return [macro.id, { ...metadata(macro), parameters: macro.parameters.map((p) => ({ id: p.id, symbol: p.symbol ?? p.id, display_name: p.display_name, type: p.type, ...contract(p) })), mode: macro.mode, ...(macro.eligibility == null ? {} : { eligibility: condition(macro.eligibility) }), ...(macro.mode === 'sequence' ? { steps: macro.steps.map((step) => task(step.task)) } : macro.mode === 'branch' ? { branches: branches(macro.branches) } : macro.mode === 'random' ? { candidates: macro.candidates.map((entry) => ({ weight: operand(entry.weight), task: task(entry.task) })), fallback: macro.fallback ? { task: task(macro.fallback.task) } : null } : { candidates: macro.candidates.map((entry) => task(entry.task)) }) }]; })),
     slots: Object.fromEntries(draft.slots.map((slot) => [slot.id, { ...metadata(slot), ...(isPrioritySlot(slot) ? { mode: 'priority', candidates: slot.candidates.map((entry) => task(entry.task)) } : { branches: branches(slot.branches) }) }])),
     days: Object.fromEntries(draft.days.filter((item) => item.scope !== 'week_private').map((item) => [item.id, day(item)])),

@@ -1,9 +1,10 @@
 import { sequenceRepeatErrors } from './sequenceExecution.js';
-import { normalizeSymbols, symbolErrors } from './symbols.js';
+import { addExpressionFunctions } from './expressionFunctions.js';
+import { normalizeSymbols, symbolErrors, namedData } from './symbols.js';
 import { scheduledDayReferences } from './scheduledEvents.js';
 import { eventDayIds } from './eventDaySource.js';
 import { slotReleaseErrors, slotReleaseReferences } from './slotRelease.js';
-import { subtreeIds } from './operandModel.js';
+import { subtreeIds, serializeNodes } from './operandModel.js';
 // Platform-independent project editing. No React, browser storage or filesystem APIs.
 import { createProject, createSlot, duplicateSlot, createDay, duplicateDay, compileProject, projectToDraft, validateDocument, deleteSlotAndReferences, assignCell, applySlotEdit, referenceCount } from './model.js';
 import { createWeek, duplicateWeek, deleteWeek, deleteSharedDay, setWeekDay, changeWeekCell, dayReferenceCount } from './weekModel.js';
@@ -17,7 +18,7 @@ import { createTask, duplicateTask, deleteTask, taskUses, createParameter, chang
 import { createTaskMacro, duplicateTaskMacro, deleteTaskMacro, changeMacroMode, changeMacroParameterType, deleteMacroParameter, macroUses, createTaskStep, macroParameterReferences } from './taskMacroModel.js';
 import { builtinTaskDefinitions, changeBuiltinDefinition } from './builtinTaskModel.js';
 import { addProgressDefinitions } from './progressEnvironment.js';
-import { compileEnvironment, prepareEnvironmentImport, createProjectWithEnvironment } from './environmentModel.js';
+import { compileEnvironment, prepareEnvironmentImport, createProjectWithEnvironment, environmentNodes, validateEnvironment } from './environmentModel.js';
 import { compileRuntime } from './runtimeModel.js';
 import { engineKeyEntries, engineKeyConflicts } from './engineKeyModel.js';
 import { translator } from '../i18n/index.js';
@@ -74,10 +75,11 @@ function scopeErrors(before, after, mode) {
     const next = after.tasks.find((item) => item.id === task.id);
     if (next) for (const parameter of task.parameters) if (!next.parameters.some((p) => p.id === parameter.id)) permitted = deleteParameter(permitted, task.id, parameter.id);
   }
+  if (mode === 'environment') for (const [id, node] of Object.entries(before.operandNodes)) { const next = after.operandNodes[id]; if (isComputed(node) && next && (node.parameters ?? []).some((p) => !(next.parameters ?? []).some((q) => q.id === p.id))) { permitted = clone(permitted); pruneExpressionCalls(permitted, id, next.parameters ?? []); } }
   const locked = mode === 'user' ? ['tasks', 'builtinTasks', 'environment'] : ['slots', 'days', 'weeks', 'sequences', 'taskMacros'];
   for (const key of locked) if (!equal(permitted[key], after[key])) errors.push(issue('projectModeLocked', `/${key}`));
   for (const collection of ['operandNodes', 'enumNodes']) {
-    const left = before[collection] ?? {}, right = after[collection] ?? {};
+    const left = permitted[collection] ?? {}, right = after[collection] ?? {};
     for (const id of new Set([...Object.keys(left), ...Object.keys(right)])) {
       const scopes = [left[id], right[id]].filter(Boolean).map((node) => collection === 'enumNodes' ? enumScope(node) : nodeScope(node));
       if (scopes.some((scope) => scope !== (mode === 'user' ? 'application' : 'environment')) && !equal(left[id], right[id])) errors.push(issue('projectModeLocked', `/${collection}/${id}`, { objectId: id }));
@@ -126,12 +128,28 @@ function transitionErrors(before, after, mode) {
   return errors;
 }
 
+function pruneExpressionCalls(draft, id, parameters) {
+  const allowed = new Set(parameters.map((p) => p.id));
+  function visit(value) {
+    if (!value || typeof value !== 'object') return;
+    if (value.type === 'expression_macro_reference' && value.expression_macro_id === id && value.arguments) value.arguments = Object.fromEntries(Object.entries(value.arguments).filter(([key]) => allowed.has(key)));
+    Object.values(value).forEach(visit);
+  }
+  visit(draft);
+}
 /** Creates a stable, synchronous store. Strict by default; GUI uses validation:'draft'. */
-export function createProjectSession(initial = createProject(), { mode = 'user', validation = 'strict', t = translator('en') } = {}) {
+export function createProjectSession(initial = createProject(), { mode = 'user', validation = 'strict', t = translator('en'), includeExpressionFunctions = false } = {}) {
   if (!['user', 'environment', 'simulation', 'all'].includes(mode)) throw new Error('invalidProjectMode');
   if (!['strict', 'draft'].includes(validation)) throw new Error('invalidProjectValidation');
-  let snapshot = freeze(normalizeSymbols(initial)), currentMode = mode, revision = 0, batching = false, failures = [], changes = [];
+  const initialize = (draft) => normalizeSymbols(includeExpressionFunctions ? { ...draft, operandNodes: addExpressionFunctions(draft.operandNodes ?? {}, t) } : draft);
+  let snapshot = freeze(initialize(initial)), currentMode = mode, revision = 0, batching = false, failures = [], changes = [];
   const listeners = new Set();
+  function initializeEnvironment(data) {
+    if (!includeExpressionFunctions || validateEnvironment(data).length) return data;
+    const nodes = environmentNodes(data);
+    for (const [id, node] of Object.entries(snapshot.operandNodes)) if (node.definition?.kind === 'builtin' && !Object.values(nodes).some((next) => next.definition?.builtin === node.definition.builtin) && !nodes[id] && !Object.values(nodes).some((next) => next.source === 'computed' && next.symbol === node.symbol)) nodes[id] = clone(node);
+    return { ...data, ...namedData(serializeNodes(addExpressionFunctions(nodes, t))) };
+  }
   function publish() { for (const listener of [...listeners]) { try { listener(); } catch { /* A view cannot invalidate a completed edit. */ } } }
   function validationErrors(next) { try { return compileProject(next).errors; } catch (error) { return [issue('invalidProjectStructure', '', { detail: error.message })]; } }
   function warnings(next) {
@@ -146,7 +164,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
   function apply(action, transform, policyMode = currentMode) {
     try {
       const transformed = transform(snapshot);
-      const next = normalizeSymbols(transformed.draft), value = transformed.value;
+      const next = includeExpressionFunctions && ['environment.import', 'project.loadDocument', 'project.reset'].includes(action) ? initialize(transformed.draft) : normalizeSymbols(transformed.draft), value = transformed.value;
       checkShape(next);
       const errors = batching ? [] : [...transitionErrors(snapshot, next, policyMode), ...(validation === 'strict' ? validationErrors(next) : [])];
       if (errors.length) { if (batching) failures.push(...errors); return result(false, null, errors); }
@@ -194,10 +212,18 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       }),
       update: (id, patch) => apply(`${key}.update`, (draft) => {
         const original = get(draft, id); let nodes = draft.operandNodes;
+        if (computed && original.definition?.kind === 'builtin') {
+          const signature = (parameters) => parameters.map((p) => ({ id: p.id, type: p.type, variadic: !!p.variadic }));
+          if (patch.parameters && !equal(signature(original.parameters), signature(patch.parameters)) || patch.definition && !equal(patch.definition, original.definition) || patch.value_type && patch.value_type !== original.value_type || patch.scope && patch.scope !== original.scope) fail('protectedProjectField', `/expression_macros/${id}`);
+        }
         if (!computed && patch.value_type !== undefined && patch.value_type !== original.value_type) nodes = checked(changeOperandType(nodes, draft.slots, id, patch.value_type, draft.tasks, draft.taskMacros));
         if (!computed && patch.read_only !== undefined && patch.read_only !== original.read_only) nodes = checked(changeReadOnly(nodes, draft.slots, id, patch.read_only, draft.taskMacros, draft.tasks));
         const { id: ignored, ...values } = patch;
-        return nodesResult(draft, { ...nodes, [id]: { ...nodes[id], ...clone(values) } }, id);
+        const next = { ...draft, operandNodes: { ...nodes, [id]: { ...nodes[id], ...clone(values) } } };
+        if (computed && patch.parameters && (original.parameters ?? []).some((p) => !patch.parameters.some((q) => q.id === p.id))) {
+          const cleaned = clone(next); pruneExpressionCalls(cleaned, id, patch.parameters); return { draft: cleaned, value: { ...cleaned.operandNodes[id], id } };
+        }
+        return { draft: next, value: { ...next.operandNodes[id], id } };
       }),
       replaceNodes: (nodes) => api.replaceDraft({ ...snapshot, operandNodes: nodes }),
       unset: (id, keys) => apply(`${key}.unset`, (draft) => { const node = clone(get(draft, id)); for (const field of keys) { if (['id', 'node_type', 'source', 'scope', 'parent_id'].includes(field)) fail('protectedProjectField', `/operand_nodes/${id}/${field}`); delete node[field]; } return nodesResult(draft, { ...draft.operandNodes, [id]: node }, id); }),
@@ -205,7 +231,7 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       remove: (id) => apply(`${key}.remove`, (draft) => { get(draft, id); return { draft: { ...draft, operandNodes: deleteOperandNode(draft.operandNodes, draft.slots, id, draft.taskMacros, draft.tasks) }, value: { id } }; }),
       references: (id) => { get(snapshot, id); return clone([...subtreeReferences(snapshot.operandNodes, snapshot.slots, id, snapshot.taskMacros, snapshot.tasks), ...slotReleaseReferences(snapshot, subtreeIds(snapshot.operandNodes, id))]); },
       move: (id, parentId, position) => apply(`${key}.move`, (draft) => { get(draft, id); return nodesResult(draft, moveOperandNode(draft.operandNodes, id, parentId, position), id); }),
-      setDefinition: (id, definition, valueType) => apply(`${key}.setDefinition`, (draft) => { get(draft, id); return nodesResult(draft, checked(applyComputedDefinition(draft.operandNodes, draft.slots, id, definition, draft.tasks, draft.taskMacros, valueType)), id); }),
+      setDefinition: (id, definition, valueType) => apply(`${key}.setDefinition`, (draft) => { const original = get(draft, id); if (original.definition?.kind === 'builtin') fail('protectedProjectField', `/expression_macros/${id}/definition`); return nodesResult(draft, checked(applyComputedDefinition(draft.operandNodes, draft.slots, id, definition, draft.tasks, draft.taskMacros, valueType)), id); }),
     };
   }
   function parameters(key, id) {
@@ -242,9 +268,9 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
     loadDocument: (data) => {
       const errors = validateDocument(data); if (errors.length) return result(false, null, errors);
       if (batching) return apply('project.loadDocument', () => ({ draft: projectToDraft(data) }));
-      snapshot = freeze(projectToDraft(data)); changes = []; revision++; publish(); return result(true);
+      snapshot = freeze(initialize(projectToDraft(data))); changes = []; revision++; publish(); return result(true);
     },
-    reset: (draft = createProject()) => { if (batching) return apply('project.reset', () => ({ draft })); const errors = validation === 'strict' ? validationErrors(draft) : []; if (errors.length) return result(false, null, errors); snapshot = freeze(normalizeSymbols(draft)); changes = []; revision++; publish(); return result(true); },
+    reset: (draft = createProject()) => { if (batching) return apply('project.reset', () => ({ draft })); const errors = validation === 'strict' ? validationErrors(draft) : []; if (errors.length) return result(false, null, errors); snapshot = freeze(initialize(draft)); changes = []; revision++; publish(); return result(true); },
     toDocument: () => compileProject(snapshot),
     exportRuntime: () => compileRuntime(snapshot, t),
     exportEnvironment: () => compileEnvironment(snapshot),
@@ -277,9 +303,9 @@ export function createProjectSession(initial = createProject(), { mode = 'user',
       }),
     },
     environment: {
-      previewImport: (data) => prepareEnvironmentImport(snapshot, data),
+      previewImport: (data) => prepareEnvironmentImport(snapshot, initializeEnvironment(data)),
       update: (environment, count) => apply('environment.update', (draft) => { if (count !== draft.project.settings.slots_per_day && draft.days.length) fail('settingsLocked'); return { draft: { ...draft, environment: clone(environment), project: { ...draft.project, settings: { slots_per_day: count } } } }; }),
-      import: (data) => apply('environment.import', (draft) => { if (!['environment', 'all'].includes(currentMode)) fail('projectModeLocked', '/environment'); const result = prepareEnvironmentImport(draft, data); if (result.errors.length) { const error = new Error('environmentImportInvalid'); error.issues = result.errors; throw error; } return { draft: result.draft }; }, 'all'),
+      import: (data) => apply('environment.import', (draft) => { if (!['environment', 'all'].includes(currentMode)) fail('projectModeLocked', '/environment'); const result = prepareEnvironmentImport(draft, initializeEnvironment(data)); if (result.errors.length) { const error = new Error('environmentImportInvalid'); error.issues = result.errors; throw error; } return { draft: result.draft }; }, 'all'),
     },
   };
   api.slots = collection('slots', (d, name) => createSlot(d.slots, name), (d, item) => duplicateSlot(d.slots, item), deleteSlotAndReferences);

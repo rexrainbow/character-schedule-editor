@@ -7,7 +7,7 @@ import { addComputedNode, addOperandNode, isComputed, computedErrors, applyCompu
 import { addProgressDefinitions } from '../src/core/progressEnvironment.js';
 import { translator } from '../src/i18n/index.js';
 
-test('new default environments include six read-only progress variables and three scoped boolean macros', () => {
+test('new default environments include six read-only progress variables, three Boolean macros and two random functions', () => {
   for (const locale of ['en', 'zh-TW']) {
     const t = translator(locale), draft = createProjectWithEnvironment('Progress', 3, null, undefined, t);
     const nodes = draft.operandNodes, values = Object.values(nodes).filter((n) => !isComputed(n) && n.node_type === 'value');
@@ -15,11 +15,11 @@ test('new default environments include six read-only progress variables and thre
     assert.ok(values.some((n) => n.display_name === t('progressWeek')));
     const [dayId, day] = Object.entries(nodes).find(([, n]) => n.symbol === 'schedule_current_day');
     assert.equal(day.display_name, t('progressDay')); assert.equal(day.initial_value, 1);
-    assert.equal(Object.values(nodes).filter(isComputed).length, 3);
+    assert.equal(Object.values(nodes).filter(isComputed).length, 5);
     assert.deepEqual(addProgressDefinitions(nodes, 3, t), nodes, 're-adding preserves UUIDs and definitions');
     const project = compileProject(draft); assert.deepEqual(project.errors, []);
     assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-    const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(Object.keys(env.data.expression_macros).length, 3);
+    const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(Object.keys(env.data.expression_macros).length, 5);
     assert.equal(env.data.operand_nodes[dayId].initial_value, 1);
     const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
     const [id] = Object.entries(nodes).find(([, n]) => n.symbol === 'schedule_is_first_slot');

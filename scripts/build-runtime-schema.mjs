@@ -37,7 +37,7 @@ defs.runtime_action = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), 
 defs.runtime_step = { oneOf: [ref('runtime_task'), ref('runtime_assignment'), ref('runtime_target_operation'), ref('runtime_event_adjustment'), ref('runtime_scheduled_event'), ref('scoped_task_macro_use')] };
 defs.runtime_branch = obj({ condition: { oneOf: [ref('scoped_condition'), { type: 'null' }] }, task: ref('runtime_action') });
 defs.runtime_slot = { oneOf: [entity({ branches: arr(ref('runtime_branch')) }, ['branches']), entity({ mode: { const: 'priority' }, candidates: arr(ref('scoped_task_macro_use')) }, ['mode', 'candidates'])] };
-defs.runtime_expression = entity({ value_type: { enum: ['number', 'boolean'] }, definition: ref('computed_definition') }, ['value_type', 'definition']);
+defs.runtime_expression = entity({ value_type: { enum: ['number', 'string', 'boolean', 'any'] }, parameters: arr(ref('expression_parameter')), definition: ref('computed_definition') }, ['value_type', 'definition']);
 defs.runtime_expression.allOf = structuredClone(defs.expression_macro.allOf);
 defs.runtime_macro = { oneOf: [
   entity({ parameters: arr(ref('task_parameter')), mode: { const: 'sequence' }, steps: arr(ref('runtime_step')) }, ['parameters', 'mode', 'steps']),

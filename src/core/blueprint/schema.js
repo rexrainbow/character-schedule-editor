@@ -11,7 +11,7 @@ const catalog = (items) => ({ type: 'object', propertyNames: symbol, additionalP
 const icon = { type: 'string', description: 'Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors.' };
 const metadata = { icon, description: string, display_name: { type: 'string', description: 'Optional human label. Blank displays the catalog key (persistent name).' } };
 const scope = enumeration('application', 'environment');
-const expr = { type: 'string', minLength: 1, maxLength: 16000, description: 'Restricted expression: vars.symbol, expr.symbol, params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression.' };
+const expr = { type: 'string', minLength: 1, maxLength: 16000, description: 'Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression.' };
 const condition = { ...nullable(expr), description: 'null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3.' };
 const weekday = enumeration('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
 const nonnegative = { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER };
@@ -37,9 +37,10 @@ const commonLogic = { ...metadata, mode: enumeration('sequence', 'branch', 'prio
 const defs = {
   expression: expr, action: choice(invocation, builtin), invocation, step: described(choice(invocation, builtin)), candidate: described(invocation), weightedCandidate,
   parameter: object({ ...metadata, type: enumeration('number', 'string', 'boolean', 'variable_reference', 'event_reference', 'enum'), value_type: enumeration('number', 'string', 'boolean', 'any'), access: enumeration('read', 'write', 'read_write'), event_kind: enumeration('any', 'probability'), options: array(object({ display_name: string, icon, value: string }, ['value'])), enum: symbol }, ['type']),
+  expressionParameter: object({ ...metadata, type: enumeration('number', 'string', 'boolean', 'any'), variadic: boolean }, ['type']),
   variable: object({ ...metadata, scope, kind: enumeration('group', 'value'), parent: nullable(symbol), order: nonnegative, type: enumeration('number', 'string', 'boolean'), initial: { type: ['number', 'string', 'boolean'] }, min: number, max: number, integer: boolean, read_only: boolean }),
   enum: object({ ...metadata, scope, kind: enumeration('group', 'enum'), parent: nullable(symbol), order: nonnegative, options: array(object({ display_name: string, icon, value: string }, ['value'])) }),
-  computed: object({ ...metadata, scope, type: enumeration('number', 'boolean'), value: expr, branches: { ...array(object({ description: string, when: condition, value: expr }, ['when', 'value'])), minItems: 1 } }, ['type']),
+  computed: object({ ...metadata, scope, type: enumeration('number', 'string', 'boolean', 'any'), parameters: catalog(ref('expressionParameter')), builtin: enumeration('randomRange', 'randomItem'), value: expr, branches: { ...array(object({ description: string, when: condition, value: expr }, ['when', 'value'])), minItems: 1 } }, ['type']),
   macro: object(commonLogic),
   slot: object({ ...metadata, mode: enumeration('branch', 'priority'), branches: array(branch), candidates: array(ref('candidate')) }),
   day: object({ ...metadata, scope: enumeration('shared', 'week_private'), owner: object({ week: symbol, weekday }, ['week', 'weekday']), slots: array(nullable(symbol)), start: nullable(symbol), end: nullable(symbol), hooks: array(object({ start: nullable(symbol), end: nullable(symbol) })), releases: array(nullable(object({ when: condition }))), tags: array(string), purposes: array(enumeration('main', 'overlay', 'interrupt')) }),
@@ -54,7 +55,7 @@ branch.description = 'Select the first matching branch. A selected action whose 
 defs.candidate.description = 'Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated.';
 defs.macro.description = 'Sequence, branch, priority or weighted random macro. Random evaluates arguments/eligibility, then eligible weights, then draws once; fallback runs only if the pool is empty. See ENGINE_SEMANTICS.md section 3.';
 defs.macro.allOf = [{ if: { properties: { mode: { const: 'random' } }, required: ['mode'] }, then: {}, else: { properties: { candidates: array(ref('candidate')), fallback: false } } }];
-defs.computed.description = 'Evaluated against current state on every reference. Branches return only the first matching result; no state storage or implicit accumulation.';
+defs.computed.description = 'Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. any/variadic are reserved for randomItem. See EXPRESSION_FUNCTIONS.md.';
 defs.variable.properties.initial.description = 'Constant validated before runtime creation. Default reset baseline comes from Program initial values; simulation input overrides do not redefine it.';
 defs.variable.properties.integer = { ...boolean, description: 'Writes truncate toward zero, then clamp to optional min/max. Intermediate arithmetic is not truncated. Initial values must already satisfy integer constraints.' };
 defs.variable.properties.min = { ...number, description: 'Optional inclusive lower bound applied on every successful write, not once at macro/day end.' };

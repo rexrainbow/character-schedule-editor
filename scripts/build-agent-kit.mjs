@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'agent-kit');
 const portable = (value) => value.split(path.sep).join('/');
 const manifest = new Map([
-  ...['INTRODUCTION', 'INTRODUCTION.en', 'BLUEPRINT', 'ENGINE_SEMANTICS', 'SYSTEM_SEMANTICS', 'NAMING', 'RECIPES']
+  ...['INTRODUCTION', 'INTRODUCTION.en', 'BLUEPRINT', 'ENGINE_SEMANTICS', 'SYSTEM_SEMANTICS', 'NAMING', 'RECIPES', 'EXPRESSION_FUNCTIONS']
     .map((name) => [`docs/${name}.md`, `docs/${name}.md`]),
   ['src/schemas/blueprint.schema.json', 'schemas/blueprint.schema.json'],
   ['docs/recipes/examples/life-simulation.yaml', 'examples/life-simulation.yaml'],

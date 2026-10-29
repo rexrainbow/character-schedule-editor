@@ -3,7 +3,7 @@ import { priorityMacroFixture } from '../priorityMacroFixture.js';
 import { compileProject, createDay } from '../../src/core/model.js';
 import { navigate } from './navigation.js';
 // The fixture supplies custom persistent builtin names with blank display labels.
-// Those names remain the display fallback in both interface locales.
+// Builtin display defaults follow the interface locale independently of persistent names.
 import { translator } from '../../src/i18n/index.js';
 async function load(page) {
   const fixture = priorityMacroFixture(), day = createDay(fixture.draft, 'Routine'); day.slotIds[0] = fixture.slot.id; fixture.draft.days = [day];
@@ -18,19 +18,19 @@ test('overview starts collapsed, expands nested priorities, updates with edits a
   await toggle.click(); await expect(text).toHaveText('Choose activity');
   await page.getByRole('combobox', { name: 'Expansion depth', exact: true }).selectOption('one');
   await expect(text).toContainText('IF (Engine.Counter >= 20) → Eligible increase (Amount: 20)');
-  await expect(text).not.toContainText('engine_increment_variable');
+  await expect(text).not.toContainText('Increase value');
   await page.getByRole('combobox', { name: 'Expansion depth', exact: true }).selectOption('all');
-  await expect(text).toContainText('engine_increment_variable (Engine.Counter, 20)');
+  await expect(text).toContainText('Increase value (Engine.Counter, 20)');
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:reset_variable');
-  await expect(text).toContainText('engine_reset_variable');
+  await expect(text).toContainText('Reset initial value');
   await expect(text).not.toContainText('ELSE →');
   await expect(page.locator('option[value="builtin:schedule_takeover"]')).toHaveCount(0);
   await toggle.click(); await expect(text).toHaveCount(0); await toggle.click();
   await page.reload(); await load(page); await navigate(page, 'slots');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('combobox', { name: 'Expansion depth', exact: true })).toHaveValue('all');
-  await expect(text).toContainText('engine_increment_variable (Engine.Counter, 20)');
+  await expect(text).toContainText('Increase value (Engine.Counter, 20)');
 });
 
 test('Chinese mobile day-cell editor shows the same overview without committing draft changes', async ({ page }) => {
@@ -45,11 +45,11 @@ test('Chinese mobile day-cell editor shows the same overview without committing 
   expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   page.once('dialog', (nativeDialog) => nativeDialog.accept());
   await dialog.getByRole('combobox', { name: t('task'), exact: true }).selectOption('builtin:reset_variable');
-  await expect(dialog.locator('.logic-overview pre')).toContainText('engine_reset_variable');
+  await expect(dialog.locator('.logic-overview pre')).toContainText(t('resetVariable'));
   await dialog.getByRole('button', { name: t('back'), exact: true }).click();
   await page.keyboard.press('Escape'); await navigate(page, 'slots', 'zh-TW');
   await expect(page.locator('.logic-overview pre')).toContainText('Choose activity');
-  await expect(page.locator('.logic-overview pre')).not.toContainText('engine_reset_variable');
+  await expect(page.locator('.logic-overview pre')).not.toContainText(t('resetVariable'));
 });
 
 test('macro overview follows selection and edits with shared depth controls in English and Chinese mobile', async ({ page }) => {
@@ -57,20 +57,20 @@ test('macro overview follows selection and edits with shared depth controls in E
   const toggle = page.getByRole('button', { name: 'Logic overview', exact: true }), text = page.locator('.logic-overview pre');
   await expect(toggle).toHaveAttribute('aria-expanded', 'false'); await toggle.click();
   await expect(text).toContainText('IF (Engine.Counter >= Amount)');
-  await expect(text).toContainText('engine_increment_variable (Engine.Counter, Amount)');
+  await expect(text).toContainText('Increase value (Engine.Counter, Amount)');
   await page.locator('.operand-sidebar').getByRole('button', { name: /Choose activity/ }).click();
-  await expect(text).toContainText('Eligible increase (Amount: 20)'); await expect(text).not.toContainText('engine_increment_variable');
+  await expect(text).toContainText('Eligible increase (Amount: 20)'); await expect(text).not.toContainText('Increase value');
   const depth = page.getByRole('combobox', { name: 'Expansion depth', exact: true });
-  await depth.selectOption('one'); await expect(text).toContainText('engine_increment_variable (Engine.Counter, 20)');
+  await depth.selectOption('one'); await expect(text).toContainText('Increase value (Engine.Counter, 20)');
   await depth.selectOption('all');
   await page.locator('.operand-sidebar').getByRole('button', { name: /Eligible increase/ }).click();
   await page.getByRole('textbox', { name: 'Parameter name', exact: true }).fill('Energy cost');
   await expect(text).toContainText('IF (Engine.Counter >= Energy cost)');
-  await expect(text).toContainText('engine_increment_variable (Engine.Counter, Energy cost)');
+  await expect(text).toContainText('Increase value (Engine.Counter, Energy cost)');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-TW'); const t = translator('zh-TW');
   await expect(page.getByRole('combobox', { name: t('logicDepth'), exact: true })).toHaveValue('all');
-  await expect(text).toContainText('engine_increment_variable');
+  await expect(text).toContainText(t('incrementVariable'));
   await text.scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/macro-logic-overview-mobile.png' });

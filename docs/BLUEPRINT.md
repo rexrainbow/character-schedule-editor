@@ -26,7 +26,7 @@ Schema 來源為 `src/core/blueprint/schema.js`，不直接引用或改造專案
 | project | name、slots_per_day（預設 3） |
 | environment | 選填 name、version；身分 UUID 重新產生，不檢查版本相容 |
 | variables | 變數與群組：display_name、scope、kind、parent、order、type、initial、min、max、integer、read_only |
-| expressions | 計算式巨集：display_name、scope、type、value 或 branches |
+| expressions | 計算式巨集：display_name、scope、type、parameters、value／branches／builtin |
 | tasks | 環境任務介面：display_name、parameters |
 | task_macros | display_name、parameters、eligibility、mode，以及 steps／branches／candidates |
 | slots | display_name、branches；或 mode: priority 與 candidates；省略邏輯是空活動 |
@@ -72,7 +72,8 @@ expressions:
 | --- | --- |
 | vars.stamina | 變數葉節點，群組不可求值 |
 | expr.weekly_pay | 計算式巨集回傳值 |
-| params.amount | 目前任務巨集的局部參數 |
+| expr.recovery(8, 16) | 帶引數的計算式巨集呼叫，依宣告順序對應參數 |
+| params.amount | 目前任務巨集或計算式巨集自己的局部參數 |
 | 10、-3.5、1e2、true、false | 數字／布林常數 |
 | `"rain"` | JSON 雙引號字串常數；外層 YAML 可用單引號包住 |
 | +、-、*、/、括號 | 數字運算；乘除先於加減，同優先權左結合 |
@@ -90,6 +91,8 @@ expressions:
 Parser 不執行 JavaScript；沒有 eval、任意函數、陣列索引或任意物件存取。單一運算式限制 16,000 字元、4,000 tokens、64 層。YAML 限 4 MB，拒絕重複 key、自訂 tag 與 alias 展開。
 
 ## 動作、參數與分支
+
+計算式巨集可有固定 number／string／boolean 參數，回傳型別也支援文字。環境內建 `expr.randomRange(min, max)` 與 `expr.randomItem(...)` 使用共用 seeded RNG；初始藍圖未宣告這兩個預設函數時，匯入器會依呼叫補入環境定義。內部引數仍以 UUID 綁定，匯出再依參數順序組成文字呼叫。格式與完整語意見 [EXPRESSION_FUNCTIONS.md](EXPRESSION_FUNCTIONS.md)。
 
 ```yaml
 task_macros:

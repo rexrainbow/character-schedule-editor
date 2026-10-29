@@ -63,6 +63,12 @@ export function prepareEnvironmentImport(draft, environment) {
   const applicationEnums = Object.fromEntries(Object.entries(oldEnums).filter(([, node]) => enumScope(node) === 'application'));
   for (const id of Object.keys(importedEnums)) if (Object.hasOwn(applicationEnums, id)) errors.push({ path: `/enum_definitions/${id}`, key: 'duplicateId' });
   function match(old, id, candidates, path) {
+    if (old?.definition?.kind === 'builtin') {
+      const builtins = candidates.filter((item) => item.definition?.builtin === old.definition.builtin);
+      const target = builtins.find((item) => sameIdentity && item.id === id || keyOf(item) === keyOf(old)) ?? (builtins.length === 1 ? builtins[0] : null);
+      if (target) return target;
+      errors.push({ path, key: builtins.length ? 'environmentAmbiguousReference' : 'environmentMissingReference', field: old.display_name }); return null;
+    }
     const direct = sameIdentity ? candidates.find((item) => item.id === id) : null;
     if (direct) return direct;
     const matches = keyOf(old) ? candidates.filter((item) => keyOf(item) === keyOf(old)) : [];
@@ -83,7 +89,15 @@ export function prepareEnvironmentImport(draft, environment) {
   }
   function walk(value, path) {
     if (!value || typeof value !== 'object') return;
-    if (value.type === 'expression_macro_reference') value.expression_macro_id = variable(value.expression_macro_id, `${path}/expression_macro_id`);
+    if (value.type === 'expression_macro_reference') {
+      const old = oldNodes[value.expression_macro_id], id = variable(value.expression_macro_id, `${path}/expression_macro_id`), target = newNodes[id];
+      if (old && nodeScope(old) === 'environment' && target && value.arguments) {
+        const bindings = (old.parameters ?? []).map((p, index) => ({ old: p, next: old.definition?.kind === 'builtin' && target.definition?.builtin === old.definition.builtin ? target.parameters?.[index] : (target.parameters ?? []).find((q) => sameIdentity && p.id === q.id) ?? (target.parameters ?? []).find((q) => keyOf(p) === keyOf(q)) }));
+        if (bindings.some((pair) => !pair.next || pair.next.type !== pair.old.type || !!pair.next.variadic !== !!pair.old.variadic) || (target.parameters ?? []).length !== bindings.length) errors.push({ path, key: 'environmentIncompatibleReference', field: old.display_name });
+        else value.arguments = Object.fromEntries(bindings.map((pair) => [pair.next.id, value.arguments[pair.old.id]]));
+      }
+      value.expression_macro_id = id;
+    }
     if (value.type === 'reference' || value.type === 'variable_reference') value.reference_id = variable(value.reference_id, `${path}/reference_id`);
     // Reconnect every fixed variable operation, including target-only calls.
     if (isBuiltinVariableTask(value)) value.target_variable_id = variable(value.target_variable_id, `${path}/target_variable_id`, true);

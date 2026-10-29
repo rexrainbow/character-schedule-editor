@@ -1,6 +1,6 @@
 # 計算式巨集的分支模式
 
-環境層與應用層計算式巨集均支援單一／分支模式，結果型別維持 number 或 boolean，與模式分開設定。
+環境層與應用層計算式巨集均支援單一／分支模式，結果型別為 number、string 或 boolean，與模式分開設定。兩層也可宣告自己的參數，見 [EXPRESSION_FUNCTIONS.md](EXPRESSION_FUNCTIONS.md)。
 
 單一模式沿用 `{kind: "number", expression: Operand}` 或 `{kind: "boolean", condition: Condition}`。分支模式為：
 
@@ -27,7 +27,7 @@
 
 分支由上而下，第一個成立者回傳結果；必須有且只有一個最後的 ELSE，內容不可為空。condition 為 null 表示 ELSE，不是回傳 null。所有 result 的 kind 必須符合巨集的 value_type。
 
-每個 result 沿用單一計算式定義，因此數字使用 Operand 編輯器，布林使用比較式及 ALL／ANY 編輯器。第一版不允許 result 內直接再放 branch，複雜組合可引用其他計算式巨集。條件、排序及新增／刪除沿用共用 BranchRulesEditor，結果區取代任務選單。
+每個 result 沿用單一計算式定義，因此數字與文字使用相應型別的 Operand 編輯器，布林使用比較式及 ALL／ANY 編輯器。result 內不直接再放 branch，複雜組合可引用其他計算式巨集。條件、排序及新增／刪除沿用共用 BranchRulesEditor，結果區取代任務選單。條件與結果都可引用本巨集參數。
 
 ## 模式與型別轉換
 

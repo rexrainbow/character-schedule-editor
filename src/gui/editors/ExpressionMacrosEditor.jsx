@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { localizeExpressionFunctions } from '../../core/builtinLabels.js';
 import { editProject } from '../../core/projectApi.js';
 import { EngineKeyWarning } from '../components/EngineKeyField.jsx';
 import SlotIcon from '../components/SlotIcon.jsx';
@@ -8,7 +10,7 @@ import { expressionNodes, expressionScope } from '../../core/operandModel.js';
 import { IconButton } from '../components/ui.jsx';
 
 export default function ExpressionMacrosEditor({ draft, onChange, t, view, onViewChange, scope = 'application' }) {
-  const nodes = draft.operandNodes;
+  const nodes = useMemo(() => localizeExpressionFunctions(draft.operandNodes, t), [draft.operandNodes, t]);
   const macros = Object.fromEntries(Object.entries(expressionNodes(nodes)).filter(([, node]) => scope === 'application' || expressionScope(node) === scope));
   const [selected, setSelected, search, setSearch] = useEditorView(view, onViewChange, Object.keys(macros)[0] ?? null);
   const locked = !!macros[selected] && expressionScope(macros[selected]) !== scope;

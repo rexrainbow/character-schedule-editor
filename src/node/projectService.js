@@ -9,7 +9,7 @@ import { importBlueprint } from '../core/blueprint/index.js';
 /** One authoritative project per service; all requests, including I/O, are queued. */
 export async function createProjectService({ root = process.cwd(), mode = 'user', language = 'en' } = {}) {
   const files = await createProjectFiles(root);
-  const session = createProjectSession(undefined, { mode, validation: 'draft', t: translator(language) });
+  const session = createProjectSession(undefined, { mode, validation: 'draft', t: translator(language), includeExpressionFunctions: true });
   const instanceId = crypto.randomUUID();
   let webUrl = null;
   let revision = 0, file = null, fileHash, baseline = stringifyWire(session.getSnapshot()), queue = Promise.resolve();
