@@ -73,8 +73,8 @@ test('runtime exports optional guards for every macro mode, and invalid guards r
   const { draft, priority, slot, readonly } = priorityMacroFixture();
   priority.eligibility = { kind: 'comparison', operand_a: { type: 'expression', operator: '/', operand_a: constant(1), operand_b: reference(readonly) }, comparator: '>', operand_b: constant(0) };
   const branch = createTaskMacro('Guarded branch', 'branch'); branch.eligibility = comparison(true); branch.branches = []; draft.taskMacros.push(branch);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.ok(runtime.data.task_macros[priority.id].eligibility); assert.ok(runtime.data.task_macros[branch.id].eligibility);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.ok(runtime.data.macros[priority.id].eligibility); assert.ok(runtime.data.macros[branch.id].eligibility);
   const failed = simulateSlot(draft, slot.id, { ...simulationInitialValues(draft), [readonly]: 0 });
   assert.equal(failed.errors[0].path, `/task_macros/${priority.id}/eligibility/operand_a/operand_b`);
   const data = compileProject(draft).data; data.task_macros[branch.id].eligibility = { type: 'constant', value: true }; assert.ok(validateDocument(data).length);

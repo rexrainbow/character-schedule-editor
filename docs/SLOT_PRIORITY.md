@@ -30,6 +30,6 @@
 
 ## Runtime 與模擬
 
-Runtime 時段行程保留 `mode: "priority"`，candidates 直接為 `{task_macro_id, arguments}` 呼叫陣列，省略編輯器候選 id 與 task 包裝。project 與 runtime schema 均驗證對應形狀。
+Runtime Program 保留 `mode: "priority"`，candidates 元素為 `{id, task: {task_macro_id, arguments}}`。name 模式使用 candidates_0 等局部 id；巨集與參數引用也是名稱。project 與 runtime Schema 分別驗證各自格式，詳見 [RUNTIME.md](RUNTIME.md)。
 
 單一時段及周序列全天模擬共用同一個候選求值函式。紀錄使用 `/slots/{id}/candidates/{index}/task` 位置，全天執行仍繼承事件優先權及流程控制上下文。時段選取清單的摘要與搜尋也包含候選巨集名稱。

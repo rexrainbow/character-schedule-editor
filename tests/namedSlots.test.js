@@ -10,7 +10,7 @@ test('named activities with no branches round-trip, duplicate, export and simula
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const copy = duplicateSlot(draft.slots, slot); assert.notEqual(copy.id, slot.id); assert.deepEqual(copy.branches, []);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
   assert.equal(runtime.data.slots[slot.id].display_name, 'Rest'); assert.deepEqual(runtime.data.slots[slot.id].branches, []);
   const result = simulateSlot(draft, slot.id);

@@ -20,9 +20,9 @@ test('inline priority slots round-trip and export ordered macro calls without cr
   const { draft, slot } = fixture(), original = structuredClone(draft), project = compileProject(draft);
   assert.deepEqual(project.errors, []); assert.equal(project.data.slots[slot.id].mode, 'priority'); assert.equal(project.data.slots[slot.id].branches, undefined);
   assert.deepEqual(compileProject(projectToDraft(project.data)), project); assert.deepEqual(draft, original);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.slots[slot.id].candidates.length, 3); assert.equal(runtime.data.slots[slot.id].candidates[0].id, undefined);
-  assert.equal(runtime.data.slots[slot.id].candidates[0].task_macro_id, slot.candidates[0].task.task_macro_id);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.slots[slot.id].candidates.length, 3); assert.equal(runtime.data.slots[slot.id].candidates[0].id, slot.candidates[0].id);
+  assert.equal(runtime.data.slots[slot.id].candidates[0].task.task_macro_id, slot.candidates[0].task.task_macro_id);
   assert.equal(runtime.data.slots[slot.id].branches, undefined);
   assert.match(taskSummary(slot, '?', draft.tasks, draft.taskMacros), /Eligible increase/);
   const copy = duplicateSlot(draft.slots, slot); assert.notEqual(copy.id, slot.id); assert.notEqual(copy.candidates[0].id, slot.candidates[0].id); assert.equal(copy.candidates[0].task.task_macro_id, slot.candidates[0].task.task_macro_id);

@@ -21,13 +21,13 @@ test('new default environments include six read-only progress variables, three B
     assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
     const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(Object.keys(env.data.expression_macros).length, 5);
     assert.equal(env.data.operand_nodes[dayId].initial_value, 1);
-    const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+    const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
     const [id] = Object.entries(nodes).find(([, n]) => n.symbol === 'schedule_is_first_slot');
-    const macro = runtime.data.expression_macros[id];
+    const macro = runtime.data.expressions[id];
     assert.equal(macro.display_name, t('progressFirstSlot'));
-    assert.deepEqual(macro.definition.condition.operand_a, { type: 'environment_reference', name: 'schedule_current_slot' });
-    assert.equal(macro.scope, undefined); assert.equal(runtime.data.environment_variables[0].children.length, 6);
-    assert.ok(runtime.data.environment_variables[0].children.some((n) => n.name === 'schedule_current_day' && n.initial_value === 1 && n.read_only));
+    assert.deepEqual(macro.definition.condition.operand_a, { type: 'reference', reference_id: Object.keys(nodes).find((id) => nodes[id].symbol === 'schedule_current_slot') });
+    assert.equal(macro.scope, 'environment'); assert.equal(Object.values(runtime.data.variables).filter((n) => n.node_type === 'value').length, 6);
+    assert.ok(Object.values(runtime.data.variables).some((n) => n.name === 'schedule_current_day' && n.initial_value === 1 && n.read_only));
   }
 });
 
@@ -54,7 +54,7 @@ test('environment expressions cannot depend on application data; application exp
   const user = addComputedNode(draft.operandNodes, null, 'Ready'); draft.operandNodes = user.nodes;
   draft.operandNodes[user.id] = { ...draft.operandNodes[user.id], value_type: 'boolean', definition: { kind: 'boolean', condition: { kind: 'comparison', operand_a: { type: 'expression_macro_reference', expression_macro_id: envId }, comparator: '==', operand_b: { type: 'constant', value: true } } } };
   assert.deepEqual(compileProject(draft).errors, []);
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
   assert.equal(compileEnvironment(draft).data.expression_macros[user.id], undefined);
   draft.operandNodes[envId].definition = { kind: 'boolean', condition: { kind: 'comparison', operand_a: { type: 'expression_macro_reference', expression_macro_id: user.id }, comparator: '==', operand_b: { type: 'constant', value: true } } };
   assert.ok(computedErrors(draft.operandNodes).some((e) => e.key === 'environmentExpressionDependency'));

@@ -8,16 +8,16 @@ import { evaluateSimulationExpressions, simulateSlot, simulationInitialValues } 
 import { computedBranchFixture, constant, numeric, boolean } from './computedBranchFixture.js';
 
 test('numeric and boolean branch definitions preserve project/environment/runtime structure and typed results', () => {
-  const { draft, reward, later } = computedBranchFixture();
+  const { draft, reward, later, weekday } = computedBranchFixture();
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const environment = compileEnvironment(draft); assert.deepEqual(environment.errors, []);
   assert.equal(environment.data.expression_macros[reward], undefined);
   assert.deepEqual(createProjectWithEnvironment('Imported', 3, environment.data).operandNodes[later].definition, draft.operandNodes[later].definition);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.expression_macros[reward].definition.branches[0].condition.operand_a.name, 'schedule_current_weekday');
-  const invalid = structuredClone(runtime.data); invalid.expression_macros[reward].definition.branches[0].result = boolean(true);
+  assert.equal(runtime.data.expressions[reward].definition.branches[0].condition.operand_a.reference_id, weekday);
+  const invalid = structuredClone(runtime.data); invalid.expressions[reward].definition.branches[0].result = boolean(true);
   assert.ok(validateRuntimeDocument(invalid).length);
 });
 
@@ -58,7 +58,7 @@ test('simulation lazily returns the first matching value and reports only select
   const values = { ...simulationInitialValues(draft), [weekday]: 6, [currentSlot]: 2 };
   draft.operandNodes[reward].definition.branches[1].result.expression = { type: 'expression', operator: '/', operand_a: constant(1), operand_b: constant(0) };
   assert.deepEqual(compileProject(draft).errors, [], 'potential runtime failure in an unselected result is allowed');
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
   const computed = evaluateSimulationExpressions(draft, values); assert.equal(computed[reward].value, 5); assert.equal(computed[later].value, true);
   const result = simulateSlot(draft, slot.id, values); assert.deepEqual(result.errors, []); assert.equal(result.state[balance], 5);
   const json = JSON.stringify(result.trace); assert.ok(json.includes('Return value')); assert.ok(json.includes('skipped'));

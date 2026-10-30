@@ -1,0 +1,28 @@
+export const messages = {
+  en: {
+    title: 'Runtime demo', language: 'Language', load: 'Load runtime JSON', sequence: 'Week sequence', seed: 'Random seed',
+    importHint: 'In the editor, choose Export → Runtime data (JSON), then load that file here.',
+    reset: 'Reset run', resetHint: 'Each click runs one day. Reset clears the log and restores the initial state; then you can change the sequence or seed.',
+    first: 'Run first day', next: 'Run next day', running: 'Running…', ended: 'Sequence finished', failed: 'Execution stopped',
+    log: 'Task log', logHint: 'External tasks are recorded without running engine actions. Builtin operations still update runtime state.',
+    noFile: 'No file loaded', empty: 'Load a schedule to begin.', noSequence: 'This file has no week sequences.', emptySequence: 'This sequence has no executable days.',
+    ready: 'Ready to run', loading: 'Loading…', done: 'Day {day} completed · {count} tasks', day: 'Day {day}',
+    date: 'Week {week} · {weekday}', noTasks: 'No tasks ran this day.', recorded: 'Recorded only',
+    loadError: 'Could not load the file. Choose runtime data (JSON) exported by the editor.',
+    runError: 'Execution stopped. Completed tasks remain in the log. Reset the run or load corrected data.',
+    more: 'Show {count} more tasks',
+  },
+  'zh-TW': {
+    title: 'Runtime 示範', language: '語言', load: '載入執行資料', sequence: '周序列', seed: '亂數種子',
+    importHint: '從編輯器「匯出 → 執行資料（JSON）」下載檔案，再於此載入。',
+    reset: '重設執行', resetHint: '每次點擊執行一天。重設會清除紀錄並還原初始狀態，之後可修改周序列或種子。',
+    first: '執行第一天', next: '執行下一天', running: '執行中…', ended: '行程已結束', failed: '執行已停止',
+    log: '任務紀錄', logHint: '外部任務僅記錄呼叫，不執行引擎動作；內建操作仍會更新 runtime 狀態。',
+    noFile: '尚未載入檔案', empty: '載入一份行程，即可開始執行。', noSequence: '此檔案沒有周序列。', emptySequence: '此周序列沒有可執行的日期。',
+    ready: '準備執行', loading: '載入中…', done: 'Day {day} 已完成・{count} 個任務', day: 'Day {day}',
+    date: '第 {week} 周・{weekday}', noTasks: '本日沒有執行任務。', recorded: '僅記錄',
+    loadError: '無法載入檔案。請選擇編輯器匯出的執行資料（JSON）。',
+    runError: '執行停止，已完成的任務保留於紀錄。請重設執行或載入修正後的資料。',
+    more: '再顯示 {count} 個任務',
+  },
+};

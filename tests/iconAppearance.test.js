@@ -57,7 +57,7 @@ test('Blueprint preserves every entity, parameter, option and builtin icon throu
   assert.deepEqual(output.builtins.adjust_probability_event.parameter_option_icons, iconBlueprint.builtins.adjust_probability_event.parameter_option_icons);
   const text = good(exportBlueprint(initial.draft)).data;
   assert.equal(good(exportBlueprint(good(importBlueprint(text)).draft)).data, text);
-  const runtime = good(compileRuntime(initial.draft)).data;
+  const runtime = good(compileRuntime(initial.draft, { referenceMode: 'uuid' })).data;
   function noIcons(value) { if (!value || typeof value !== 'object') return; assert.ok(!Object.hasOwn(value, 'icon')); Object.values(value).forEach(noIcons); }
   noIcons(runtime);
   const environment = good(compileEnvironment(initial.draft)).data;

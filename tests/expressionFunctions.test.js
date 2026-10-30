@@ -23,7 +23,7 @@ test('parameterized string/number/branch definitions and environment functions r
   assert.equal(good(exportBlueprint(good(importBlueprint(yaml)).draft)).data, yaml);
   assert.match(yaml, /expr\.twice\(expr\.randomRange\(1, 3\)\)/);
   assert.match(yaml, /builtin: randomItem/);
-  good(compileRuntime(initial));
+  good(compileRuntime(initial, { referenceMode: 'uuid' }));
   const environment = good(compileEnvironment(initial)).data;
   assert.equal(Object.keys(environment.expression_macros).length, 2);
   const source = Object.entries(initial.operandNodes).find(([, node]) => node.symbol === 'twice');

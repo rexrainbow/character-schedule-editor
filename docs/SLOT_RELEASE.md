@@ -50,6 +50,6 @@
 
 條件為遞迴 Condition；沒有任務巨集的區域參數。複製日行程及周內自訂日行程保留設定；條件引用參與刪除、型別變更、事件引用及環境匯入重連檢查。
 
-Runtime 將元素轉成 `{task_key, flow_control: "release_slot", condition}`，存放於相同的日行程欄位。環境變數引用使用 `{type: "environment_reference", name: ...}`。固定內建範本只有 condition 一個參數，可修改 name、display_name、圖示及參數顯示名稱；task_key 的內容為範本的 name。
+Runtime Program 將元素保存為 `{builtin: "release_slot", condition}`，位於日行程 slotReleases。變數引用使用 reference_id，其值在預設 name 模式下就是名稱。固定範本仍只有 condition 一個參數，顯示／契約設定保存在 builtins。格式見 [RUNTIME.md](RUNTIME.md)。
 
 專案、環境與 runtime Schema 均支援放行規則。Markdown 報告列出容器執行方式，並在日行程各時段開始下方輸出放行規則。

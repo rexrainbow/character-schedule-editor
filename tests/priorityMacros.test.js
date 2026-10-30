@@ -49,11 +49,11 @@ test('empty, unmatched and selected empty actions finish without fallback; visit
 test('new macro modes round-trip and runtime exports shared conditions, scoped arguments and ordered candidates', () => {
   const { draft, priority, eligible, amount } = priorityMacroFixture();
   const project = compileProject(draft); assert.deepEqual(project.errors, []); assert.deepEqual(compileProject(projectToDraft(project.data)), project);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.task_macros[eligible.id].mode, 'sequence'); assert.equal(runtime.data.task_macros[eligible.id].eligibility.operand_a.type, 'environment_reference');
-  assert.equal(runtime.data.task_macros[eligible.id].steps[0].value.parameter_id, amount.id);
-  assert.equal(runtime.data.task_macros[priority.id].candidates.length, 3); assert.equal(runtime.data.task_macros[priority.id].candidates[0].id, undefined);
-  assert.equal(runtime.data.task_macros[priority.id].candidates[0].task_macro_id, eligible.id);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.macros[eligible.id].mode, 'sequence'); assert.equal(runtime.data.macros[eligible.id].eligibility.operand_a.type, 'reference');
+  assert.equal(runtime.data.macros[eligible.id].steps[0].task.value.parameter_id, amount.id);
+  assert.equal(runtime.data.macros[priority.id].candidates.length, 3); assert.equal(runtime.data.macros[priority.id].candidates[0].id, priority.candidates[0].id);
+  assert.equal(runtime.data.macros[priority.id].candidates[0].task.task_macro_id, eligible.id);
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []); assert.equal(env.data.task_macros, undefined);
   const imported = prepareEnvironmentImport(draft, env.data); assert.deepEqual(imported.errors, []); assert.deepEqual(imported.draft.taskMacros, draft.taskMacros);
 });

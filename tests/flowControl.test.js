@@ -73,9 +73,9 @@ test('release rules round-trip on days, runtime contracts have one parameter and
   const { draft, sequence, days, macro } = flowControlFixture({ executionMode: 'interrupt_main' }); days.High.slotReleases = [createRelease(), null, null];
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(projectToDraft(project.data).days.find((d) => d.id === days.High.id).slotReleases, days.High.slotReleases);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.days[days.High.id].slot_releases[0].flow_control, 'release_slot');
-  assert.equal(runtime.data.environment_requirements.tasks.find((t) => t.name === 'control_release').parameters.length, 1);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.equal(runtime.data.days[days.High.id].slotReleases[0].builtin, 'release_slot');
+  assert.equal(runtime.data.builtins.release_slot.symbol, 'control_release');
   const bad = structuredClone(project.data); bad.task_macros[macro.id].steps[0].task = createRelease(); assert.ok(validateDocument(bad).length);
   for (const patch of [{ execution_mode: 'unknown' }, { priority: -1 }, { takeovers: {} }]) {
     const invalid = structuredClone(project.data); Object.assign(invalid.week_sequences[sequence.id].event_groups[0], patch); assert.ok(validateDocument(invalid).length);
@@ -87,7 +87,7 @@ test('day release references protect deletion/types and reconnect imported envir
   const { draft, days, number } = flowControlFixture(); days.High.slotReleases = [{ ...createRelease(), condition: compare(reference(number), constant(10), '>') }, null, null];
   const session = createProjectSession(draft); assert.ok(session.variables.references(number).some((r) => r.path.includes('/slot_releases/')));
   assert.equal(session.variables.remove(number).ok, false); assert.equal(session.variables.update(number, { value_type: 'string' }).ok, false);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.equal(runtime.data.days[days.High.id].slot_releases[0].condition.operand_a.type, 'environment_reference');
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.equal(runtime.data.days[days.High.id].slotReleases[0].condition.operand_a.type, 'reference');
   const env = compileEnvironment(draft).data, newId = crypto.randomUUID(); env.operand_nodes[newId] = env.operand_nodes[number]; delete env.operand_nodes[number];
   const imported = prepareEnvironmentImport(draft, env); assert.deepEqual(imported.errors, []);
   assert.equal(imported.draft.days.find((d) => d.id === days.High.id).slotReleases[0].condition.operand_a.reference_id, newId);

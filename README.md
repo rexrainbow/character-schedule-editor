@@ -2,6 +2,8 @@
 
 [Open the Web App](https://rexrainbow.github.io/character-schedule-editor/dist/)
 
+[Open the Runtime Demo](https://rexrainbow.github.io/character-schedule-editor/dist/runtime-demo/) to load exported runtime JSON and run one day at a time. The task log lists completed calls while variables and event state carry over to the next day.
+
 ## Purpose
 
 Character Schedule Editor is a visual tool for designing character routines and the tasks they perform. Build reusable slot schedules, arrange them into days and weeks, and combine weeks into longer sequences. Use variables and conditional rules to adapt activities to a character's state, then export the resulting data for a game engine or other runtime.

@@ -37,12 +37,12 @@ Runtime 呼叫沿用特殊目標介面：
 
 ```json
 {
-  "task_key": "increment_variable",
-  "target": { "type": "environment_reference", "name": "energy" },
+  "builtin": "increment_variable",
+  "target_variable_id": "energy",
   "value": { "type": "constant", "value": -10 }
 }
 ```
 
-切換與重設的 runtime 呼叫省略 value。目標也可為應用變數 `{type: "reference", reference_id: UUID}`。Runtime 不輸出 builtin 識別或固定操作碼，engine 依使用者填寫的 task_key 實作相對應契約。
+切換與重設省略 value。統一的 Runtime Program 保留 builtin 操作種類，由 runtime 執行；target_variable_id 在預設 name 模式下就是變數名稱，環境與應用層使用相同引用。
 
-實際使用的範本列入 environment_requirements.tasks，task_key 使用範本的 name；名稱依任務命名空間檢查唯一性。增加及切換的環境變數依賴標記 read_write；重設標記 write；同一變數的多處使用會合併權限。執行規則見 [ENGINE_SEMANTICS.md](./ENGINE_SEMANTICS.md)。
+自訂契約名稱與顯示設定保存於 Program 的 builtins，沒有另一份 environment_requirements 清單。寫入仍須遵守型別、唯讀及引用參數權限。格式見 [RUNTIME.md](RUNTIME.md)，執行規則見 [ENGINE_SEMANTICS.md](ENGINE_SEMANTICS.md)。

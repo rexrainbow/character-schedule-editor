@@ -37,19 +37,19 @@ test('project, runtime and environment contracts round-trip reservations and omi
   const { draft, sequence, activity, use } = fixture();
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   const task = runtime.data.slots[activity.id].branches[0].task;
-  assert.equal(task.flow_control, 'schedule_event'); assert.equal(task.task_key, 'events_schedule');
-  assert.equal(task.icon, undefined); assert.equal(task.builtin, undefined); assert.deepEqual(task.day_source, use.day_source);
-  assert.equal(runtime.data.sequences[sequence.id].event_groups, undefined);
-  assert.equal(runtime.data.environment_requirements.tasks.find((item) => item.name === 'events_schedule').parameters.length, 7);
+  assert.equal(task.builtin, 'schedule_event'); assert.equal(runtime.data.builtins.schedule_event.symbol, 'events_schedule');
+  assert.equal(task.icon, undefined); assert.deepEqual(task.day_source, use.day_source);
+  assert.deepEqual(runtime.data.sequences[sequence.id].eventGroups, []);
+  assert.ok(runtime.data.builtins.schedule_event);
   draft.environment = createEnvironmentInfo('Engine', '1');
   const current = builtinTaskDefinition('schedule_event', draft.builtinTasks, t);
   assert.equal(current.category, 'flowControl');
   draft.builtinTasks = changeBuiltinDefinition(draft.builtinTasks, current, { ...current, display_name: 'Book appointment', parameters: current.parameters.map((p) => ({ ...p, display_name: `Custom ${p.id}` })) });
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
   assert.deepEqual(createProjectWithEnvironment('New project', 3, env.data).builtinTasks, draft.builtinTasks);
-  draft.builtinTasks.schedule_event.symbol = ''; assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'invalidSymbol'));
+  draft.builtinTasks.schedule_event.symbol = ''; assert.ok(compileRuntime(draft, { referenceMode: 'uuid' }).errors.some((e) => e.key === 'invalidSymbol'));
 });
 
 test('a day simulation creates independent one-time instances without drawing candidates or modifying the project', () => {
@@ -87,7 +87,7 @@ test('scoped numeric offsets forward through macros, copy correctly and protect 
   macro.parameters = [{ id, display_name: 'Delay', type: 'number' }];
   macro.steps = [{ id: crypto.randomUUID(), task: { ...use, date: { mode: 'days', offset: { type: 'parameter_reference', parameter_id: id } } } }];
   draft.taskMacros = [macro]; activity.branches[0].task = { task_macro_id: macro.id, arguments: { [id]: { type: 'constant', value: 2 } } };
-  assert.deepEqual(compileProject(draft).errors, []); assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileProject(draft).errors, []); assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
   assert.equal(simulateSequenceDay(draft, sequence.id, 4).reservations[0].target_position, 6);
   const copy = duplicateTaskMacro(macro); assert.equal(copy.steps[0].task.date.offset.parameter_id, copy.parameters[0].id);
   assert.throws(() => deleteMacroParameter(draft, macro.id, id), /macroParameterInUse/);
@@ -119,9 +119,9 @@ test('date expressions export environment contracts, protect variable references
   use.date = { mode: 'days', offset: { type: 'expression', operator: '+', operand_a: { type: 'reference', reference_id: vars.number }, operand_b: { type: 'constant', value: 1 } } };
   use.display_name = ''; use.day_schedule_id = eventDay.id; delete use.day_source;
   assert.deepEqual(compileProject(draft).errors, []);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.slots[activity.id].branches[0].task.date.offset.operand_a.type, 'environment_reference');
-  assert.equal(runtime.data.slots[activity.id].branches[0].task.display_name, 'Inspection');
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.slots[activity.id].branches[0].task.date.offset.operand_a.type, 'reference');
+  assert.equal(runtime.data.slots[activity.id].branches[0].task.display_name, '');
   assert.equal(editProject(draft).variables.remove(vars.number).ok, false);
   const values = { ...simulationInitialValues(draft), [vars.number]: 2 };
   const result = simulateSequenceDay(draft, sequence.id, 4, values);

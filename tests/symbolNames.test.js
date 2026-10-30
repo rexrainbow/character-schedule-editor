@@ -55,8 +55,8 @@ test('mapping blueprint roundtrip retains symbols; API rename updates expression
   const rebuilt = good(importBlueprint(output));
   assert.ok(!rebuilt.draft.operandNodes[old.id]);
   assert.equal(good(exportBlueprint(rebuilt.draft)).data, output);
-  const runtime = good(compileRuntime(p.getSnapshot())).data;
-  assert.ok(Object.values(runtime.task_macros).some((item) => item.name === 'work'));
+  const runtime = good(compileRuntime(p.getSnapshot(), { referenceMode: 'uuid' })).data;
+  assert.ok(Object.values(runtime.macros).some((item) => item.name === 'work'));
   assert.ok(Object.values(runtime.slots).some((item) => item.name === 'work'));
   assert.doesNotMatch(JSON.stringify(runtime), /engine_key/);
 });
@@ -77,6 +77,6 @@ test('parameters and event references resolve in their owning scope by name', ()
   assert.equal(parse(blueprint).builtins.increment_variable.parameter_symbols.value, 'amount');
   const rebuilt = good(importBlueprint(blueprint));
   assert.equal(rebuilt.draft.builtinTasks.increment_variable.parameters.value.symbol, 'amount');
-  assert.ok(good(compileRuntime(rebuilt.draft)).data.environment_requirements.tasks.some((item) => item.name === 'increase' && item.parameters.some((parameter) => parameter.name === 'amount')));
+  assert.equal(good(compileRuntime(rebuilt.draft, { referenceMode: 'uuid' })).data.builtins.increment_variable.parameters.value.symbol, 'amount');
   assert.equal(p.validate().errors.length, 0);
 });

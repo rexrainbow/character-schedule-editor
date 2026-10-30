@@ -73,10 +73,10 @@ test('counting filters and tags round-trip and export on shared and inline priva
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
   const copy = duplicateEventGroup(group, draft.days); copy.countFilter.tag = 'Changed'; assert.equal(group.countFilter.tag, 'Work');
   const changed = changeWeekCell(draft, draft.weeks[0].id, 'mon', 0, activity.id);
-  const runtime = compileRuntime(changed); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.days[main.id].tags, ['Work']); assert.deepEqual(runtime.data.weeks[draft.weeks[0].id].days.mon.tags, ['Work']);
-  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups[0].count_filter, { kind: 'tag', tag: 'Work' });
-  assert.ok(!Object.hasOwn(runtime.data.sequences[sequence.id].event_groups[0], 'skip_weekdays'));
+  const runtime = compileRuntime(changed, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.deepEqual(runtime.data.days[main.id].tags, ['Work']); assert.deepEqual(runtime.data.days[runtime.data.weeks[draft.weeks[0].id].days.mon].tags, ['Work']);
+  assert.deepEqual(runtime.data.sequences[sequence.id].eventGroups[0].countFilter, { kind: 'tag', tag: 'Work' });
+  assert.ok(!Object.hasOwn(runtime.data.sequences[sequence.id].eventGroups[0], 'skip_weekdays'));
   assert.match(eventTooltip(group, draft.days, translator('en')), /tagged/);
 });
 

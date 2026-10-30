@@ -14,8 +14,8 @@ test('tags survive project round trips and independent copies and export to runt
   const copy = duplicateDay(draft, main); copy.tags.push('Copy'); assert.deepEqual(main.tags, ['Main', 'Work']);
   const changed = changeWeekCell(draft, draft.weeks[0].id, 'mon', 0, draft.slots[0].id);
   const privateDay = changed.days.find((day) => day.scope === 'week_private'); assert.deepEqual(privateDay.tags, main.tags);
-  const runtime = compileRuntime(changed); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.days[main.id].tags, main.tags); assert.deepEqual(runtime.data.weeks[draft.weeks[0].id].days.mon.tags, main.tags);
+  const runtime = compileRuntime(changed, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.deepEqual(runtime.data.days[main.id].tags, main.tags); assert.deepEqual(runtime.data.days[runtime.data.weeks[draft.weeks[0].id].days.mon].tags, main.tags);
   assert.equal(sharedDays(changed).some((day) => day.id === privateDay.id), false);
 });
 

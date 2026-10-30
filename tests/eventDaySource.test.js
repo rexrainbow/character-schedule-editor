@@ -26,8 +26,8 @@ for (const mode of ['random', 'sequential']) test(`${mode} day source round-trip
   assert.deepEqual(data.day_source.candidates.map((item) => item.day_schedule_id), [eventDay.id, second.id]);
   assert.equal(data.day_source.candidates[1].weight, mode === 'random' ? 3 : undefined);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups[0].day_source, data.day_source);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.deepEqual(runtime.data.sequences[sequence.id].eventGroups[0].dayCandidates, group.dayCandidates);
   assert.ok(runtime.data.days[second.id]);
   const report = compileReport(draft); assert.deepEqual(report.errors, []); assert.ok(report.data.includes('Rest'));
   assert.deepEqual(dayUses(draft)[second.id].roles, ['main']); // Actual references do not change intended uses.

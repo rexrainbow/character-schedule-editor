@@ -20,9 +20,9 @@ test('day events round-trip and export as independent references without changin
   assert.equal(day.day_start_slot_id, slotId); assert.equal(day.day_end_slot_id, slotId);
   assert.equal(day.slot_events.length, 3); assert.deepEqual(day.slot_events[0], { start_slot_id: slotId, end_slot_id: slotId });
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.days[dayId].day_start_slot_id, slotId);
-  assert.deepEqual(runtime.data.days[dayId].slot_events, day.slot_events);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.equal(runtime.data.days[dayId].dayStartId, slotId);
+  assert.deepEqual(runtime.data.days[dayId].slotEvents, draft.days.find((item) => item.id === dayId).slotEvents);
   const bad = structuredClone(project.data); bad.day_schedules[dayId].slot_events.pop();
   assert.ok(compileProject(projectToDraft(bad)).errors.some((e) => e.path.endsWith('/slot_events')));
   bad.day_schedules[dayId].slot_events[0].start_slot_id = crypto.randomUUID();
@@ -42,8 +42,8 @@ test('copies, private-day snapshots and deletion isolate and clean all event ref
   const copiedWeek = duplicateWeek(draft, draft.weeks[0]);
   const copiedDay = copiedWeek.days.find((day) => day.owner?.week_schedule_id === copiedWeek.weeks.at(-1).id);
   copiedDay.slotEvents[0].endId = null; assert.equal(privateDay.slotEvents[0].endId, slotId);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.weeks[weekId].days.mon.day_start_slot_id, slotId);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.days[runtime.data.weeks[weekId].days.mon].dayStartId, slotId);
   const cleared = deleteSlotAndReferences(draft, slotId);
   assert.ok(cleared.days.every((day) => dayAssignments(day).every((entry) => entry.id === null)));
   assert.deepEqual(compileProject(cleared).errors, []);

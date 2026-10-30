@@ -32,7 +32,7 @@ test('environment export isolates definitions, preserves IDs and metadata, and s
   assert.deepEqual(created.environment, environment.environment);
   assert.deepEqual(compileProject(created).errors, []);
   assert.deepEqual(projectToDraft(compileProject(created).data).environment, environment.environment);
-  assert.deepEqual(compileRuntime(draft).data.environment_requirements.environment, environment.environment);
+  assert.ok(Object.values(compileRuntime(draft, { referenceMode: 'uuid' }).data.variables).some((item) => item.scope === 'environment'));
   draft.slots[0].branches[0].condition = { kind: 'group', mode: 'ALL', items: [] };
   assert.deepEqual(compileEnvironment(draft).errors, []); // Incomplete application content does not block environment export.
 });

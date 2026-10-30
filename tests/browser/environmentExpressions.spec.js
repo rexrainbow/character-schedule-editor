@@ -40,9 +40,9 @@ test('environment expressions are editable only in environment mode, filter depe
   expect(Object.values(environment.expression_macros).every((macro) => macro.scope === 'environment')).toBe(true);
   await navigate(page, 'expressions');
   const runtime = await download(page, () => exportRuntime(page));
-  expect(Object.keys(runtime.expression_macros)).toHaveLength(6);
-  expect(runtime.expression_macros[computed.id].display_name).toBe('User number');
-  expect(Object.values(runtime.expression_macros).some((macro) => macro.name === 'schedule_is_first_slot')).toBe(true);
+  expect(Object.keys(runtime.expressions)).toHaveLength(6);
+  expect(Object.values(runtime.expressions).find((item) => item.display_name === 'User number').value_type).toBe('number');
+  expect(Object.values(runtime.expressions).some((macro) => macro.name === 'schedule_is_first_slot')).toBe(true);
 });
 
 test('existing projects can add the progress preset repeatedly without duplicating UUIDs', async ({ page }) => {

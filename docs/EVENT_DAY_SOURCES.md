@@ -30,7 +30,7 @@
 }
 ```
 
-依序模式的 `mode` 為 `sequential`，各候選僅含 `day_schedule_id`，以陣列順序為準。專案與 runtime Schema 都涵蓋此結構。
+專案依序來源的 mode 為 sequential，各候選含 day_schedule_id。Runtime Program 對應為 sourceMode／dayCandidates，候選內使用 dayId；兩者均以陣列順序為準。格式見 [RUNTIME.md](RUNTIME.md)。
 
 Runtime 應在事件實際發生時選取一次，整天使用同一個日行程。隨機模式依權重選一筆；依序模式每次實際發生前進一筆，最後一筆之後循環。未符合日期、機率未發生或冷卻期間不前進；事件已發生但被其他事件阻擋，仍算一次。依序進度與亂數狀態由 runtime 維護，不寫入編輯器專案。
 

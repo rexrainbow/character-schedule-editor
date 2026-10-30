@@ -12,17 +12,17 @@ test('both empty macro modes round-trip and export callable runtime placeholders
   draft.slots = draft.taskMacros.map((macro) => { const slot = createSlot([], macro.display_name); slot.branches[0].task = { task_macro_id: macro.id, arguments: {} }; return slot; });
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.task_macros[sequence.id].steps, []);
-  assert.deepEqual(runtime.data.task_macros[branch.id].branches, []);
-  assert.equal(runtime.data.task_macros[sequence.id].display_name, 'Debug sequence');
-  assert.equal(runtime.data.task_macros[branch.id].display_name, 'Debug branch');
-  assert.deepEqual(runtime.data.environment_requirements.tasks, []);
+  assert.deepEqual(runtime.data.macros[sequence.id].steps, []);
+  assert.deepEqual(runtime.data.macros[branch.id].branches, []);
+  assert.equal(runtime.data.macros[sequence.id].display_name, 'Debug sequence');
+  assert.equal(runtime.data.macros[branch.id].display_name, 'Debug branch');
+  assert.deepEqual(Object.values(runtime.data.tasks), []);
   sequence.parameters = [{ id: crypto.randomUUID(), display_name: 'Input', type: 'number' }];
   assert.ok(compileProject(draft).errors.length, 'empty bodies do not bypass required invocation arguments');
   draft.slots[0].branches[0].task.arguments[sequence.parameters[0].id] = { type: 'constant', value: 1 };
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
 });
 
 test('nonempty branch macros and slots still require a final ELSE and complete tasks', () => {

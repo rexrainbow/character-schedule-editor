@@ -29,9 +29,9 @@ test('three canonical variants round-trip; runtime excludes icons and includes p
   assert.equal(once.end, undefined); assert.equal(once.count_filter, undefined); assert.equal(once.interval_days, undefined);
   assert.equal(periodic.probability_percent, undefined);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.sequences[sequence.id].event_groups[0].icon, undefined);
-  assert.equal(runtime.data.sequences[sequence.id].event_groups[0].cooldown_days, 7);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.sequences[sequence.id].eventGroups[0].icon, undefined);
+  assert.equal(runtime.data.sequences[sequence.id].eventGroups[0].cooldown_days, 7);
   const copy = duplicateEventGroup(group, draft.days); assert.notEqual(copy.id, group.id); assert.equal(copy.icon, group.icon);
   for (const [key, value] of [['probability_percent', 101], ['probability_percent', -1], ['cooldown_days', .5], ['cooldown_days', -1]]) {
     const bad = structuredClone(project.data); bad.week_sequences[sequence.id].event_groups[0][key] = value;
@@ -53,7 +53,7 @@ test('adjustments clamp probability, preserve today’s plan, expose reads, and 
   const { draft, sequence, activity, group } = fixture();
   activity.branches = [{ condition: null, task: adjust(150) }];
   assert.deepEqual(compileProject(draft).errors, []);
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
   const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
   assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 100);
   assert.equal(result.eventValues[group.id].cooldown_remaining, 7);
@@ -80,7 +80,7 @@ test('event parameter contracts round-trip through environments and cannot be we
   macro.steps[0].task.value = { type: 'event_property', event: { type: 'parameter_reference', parameter_id: parameter.id }, property: 'cooldown_days' };
   assert.equal(macroParameterReferences(macro, parameter.id).length, 2);
   activity.branches = [{ condition: null, task: { task_macro_id: macro.id, arguments: { [parameter.id]: { type: 'event_reference', event_group_id: group.id } } } }];
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
   const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
   assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 17);
 });
@@ -91,9 +91,9 @@ test('event references forward through macro parameters, export, and block inval
   draft.taskMacros = [macro];
   activity.branches = [{ condition: null, task: { task_macro_id: macro.id, arguments: { [parameter.id]: { type: 'event_reference', event_group_id: group.id } } } }];
   assert.deepEqual(compileProject(draft).errors, []);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.equal(runtime.data.task_macros[macro.id].parameters[0].event_kind, 'probability');
-  assert.equal(runtime.data.task_macros[macro.id].steps[0].event_operation, 'adjust_probability');
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.macros[macro.id].parameters[0].event_kind, 'probability');
+  assert.equal(runtime.data.macros[macro.id].steps[0].task.builtin, 'adjust_probability_event');
   const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
   assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 15);
   assert.equal(eventReferencesTo(draft, [group.id]).length, 1);

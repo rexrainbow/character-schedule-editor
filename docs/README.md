@@ -1,5 +1,9 @@
 # Character Schedule Editor
 
+[獨立 Runtime 示範頁](../runtime-demo/README.md)可載入匯出的執行資料，按次執行一天並顯示任務紀錄。`npm run build` 一併輸出 `dist/runtime-demo/`，亦可獨立建置，無須編輯器或 MCP。
+
+移植 JS runtime 至 C# 或其他語言，請由 [Runtime 移植入口](../src/runtime/PORTING.md)開始；先以 name Program JSON 為輸入，使用隨附 JSON 案例比對行為，不必同時移植 YAML parser 或 GUI。
+
 任務巨集新增 [加權隨機候選](WEIGHTED_TASK_MACROS.md)：先檢查所有候選資格，再求值權重並抽選一個，沒有可抽選者時執行選填的後備動作。支援數字 expression、雙語編輯、YAML、runtime、模擬診斷與 checkpoint 恢復。
 
 第一次使用可先閱讀 [一頁式工具介紹](INTRODUCTION.md)（[English](INTRODUCTION.en.md)）。網頁右上角的「說明（?）」在載入專案前及各編輯模式都可開啟同一份介紹，內容跟隨介面語系。
@@ -68,7 +72,7 @@ Web 編輯器資料操作已整併至可供 Node.js 共用的 Project API，包�
 
 日行程已指定的時段格右上角提供常駐 `↗`，直接開啟共用時段行程編輯器；時段格主體維持原指定操作。編輯器的「返回日行程」會恢復來源日行程與捲動位置。跳轉不修改指定關係，空時段不提供跳轉按鈕。
 
-環境層與應用層變數支援符合型別的常數初始值；Runtime 匯出含兩層完整變數樹，由 runtime 決定是否套用環境初始值。詳見 [INITIAL_VALUES.md](./INITIAL_VALUES.md)。
+環境層與應用層變數支援符合型別的常數初始值；Runtime Program 的 variables 字典完整保留兩層定義，以 scope 區分，由宿主決定是否覆寫環境初值。詳見 [INITIAL_VALUES.md](INITIAL_VALUES.md)。
 
 數值變數支援選填最小值、最大值，空白表示無限制；runtime 與模擬的數值寫入截斷至設定範圍。詳見 [VARIABLE_BOUNDS.md](./VARIABLE_BOUNDS.md)。
 
@@ -206,7 +210,7 @@ Schema 使用 `task_macros` 與 `task_macro_id`，開發階段不轉換舊 `task
 
 任務清單固定提供「設定變數」模板，與普通任務共用編輯面板。在環境模式可修改圖示、名稱、name 與兩個參數名稱；參數種類、數量及順序固定，新增、刪除、排序與型別控制停用，不提供複製或刪除模板。自訂名稱會同步到使用者模式，且不隨語系切換被覆蓋；未自訂名稱仍跟隨介面語系。
 
-設定保存於 builtin_tasks.set_variable；Runtime 以範本的 name 作為 task_key 連接環境提供的任務。時段行程與四種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
+設定保存於 builtin_tasks.set_variable；Runtime Program 保留 builtin 操作種類並由核心執行，顯示／契約設定位於 builtins。時段行程與四種任務巨集均可選取。目標只允許變數空間中非唯讀的葉節點；數值共用 Expression 編輯器並跟隨目標型別，可引用唯讀變數、計算式巨集及目前的巨集參數。
 
 資料為 `{builtin: "set_variable", target_variable_id, value}`，寫入位置與一般讀值引用分開。寫入中的變數不能改成唯讀或刪除，不相容的型別修改也會被拒絕。切換目標遇到不相容數值時先確認清除。engine 應先求值再寫入，編輯器不執行運算。
 

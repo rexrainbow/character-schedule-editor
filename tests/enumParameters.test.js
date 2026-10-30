@@ -17,10 +17,10 @@ test('enum contracts round-trip in projects, runtime macros, requirements and en
   const { draft, macro, property, sequence } = enumFixture();
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.task_macros[macro.id].parameters[0].options, property.options);
-  assert.deepEqual(runtime.data.task_macros[macro.id].steps[0].property, parameterRef(property));
-  assert.equal(runtime.data.environment_requirements.tasks[0].parameters[1].type, 'enum');
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.deepEqual(runtime.data.macros[macro.id].parameters[0].options, property.options);
+  assert.deepEqual(runtime.data.macros[macro.id].steps[0].task.property, parameterRef(property));
+  assert.equal(runtime.data.macros[macro.id].parameters[0].type, 'enum');
   draft.tasks = [{ id: crypto.randomUUID(), display_name: 'Engine action', symbol: 'engine_action', parameters: [structuredClone(property)] }];
   draft.environment = createEnvironmentInfo('Engine');
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
@@ -77,9 +77,9 @@ test('engine task enum arguments export as positional strings and copied options
   const { draft, property, activity } = enumFixture();
   const task = { id: crypto.randomUUID(), display_name: 'Engine task', symbol: 'engine_task', parameters: [structuredClone(property)] }; draft.tasks = [task];
   activity.branches[0].task = { task_id: task.id, arguments: { [property.id]: constant('probability_percent') } };
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.deepEqual(runtime.data.slots[activity.id].branches[0].task.arguments, [constant('probability_percent')]);
-  assert.deepEqual(runtime.data.environment_requirements.tasks.find((item) => item.name === 'engine_task').parameters[0].options, property.options);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.deepEqual(runtime.data.slots[activity.id].branches[0].task.arguments[property.id], constant('probability_percent'));
+  assert.deepEqual(runtime.data.tasks[task.id].parameters[0].options, property.options);
   const result = simulateSlot(draft, activity.id); assert.deepEqual(result.errors, []); assert.equal(result.calls[0].arguments[0].value, 'probability_percent');
   const copy = duplicateTask(task); copy.parameters[0].options[0].display_name = 'Renamed';
   assert.notEqual(task.parameters[0].options[0].display_name, 'Renamed');

@@ -50,7 +50,7 @@
 
 固定來源改用 `day_schedule_id`，與 `day_source` 二擇一。`date.mode = "days"` 時不包含 weekday。一般時段使用數字 operand；任務巨集另支援區域 parameter_reference。
 
-runtime 匯出將 builtin 改成 task_key 與 `flow_control: "schedule_event"`，移除 icon，保留事件 display_name、日期、來源、執行方式與優先權。環境變數引用使用 name；task_key 的內容為內建任務的 name。
+Runtime Program 保留 `builtin: "schedule_event"`，移除 icon，保留事件 display_name、日期、來源、執行方式與優先權。引用在預設 name 模式下使用名稱，由 runtime 執行預約，不另轉為 task_key／flow_control。格式見 [RUNTIME.md](RUNTIME.md)。
 
 執行中的預約佇列不屬於專案存檔。Runtime 每次成功預約產生新 UUID，保存目前序列、目標日期、建立位置與來源任務供除錯。到預約日才依權重選一次日行程，整天使用同一個結果；預約當下不抽選。當天再依既有三種執行模式、優先權及「放行本時段」規則運作。同優先權時原有事件在前，預約事件依建立順序排列。此版未加入取消、改期或防重複任務。
 

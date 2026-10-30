@@ -14,7 +14,7 @@
 
 環境檔新增 `expression_macros`，只包含環境巨集，保留 UUID、名稱、圖示、scope、name 與定義。匯入至新專案時採用該環境的完整定義，不額外合併行程進度範本；系統會補齊兩個內建隨機函數。替換既有環境時，巨集與變數同樣依環境 UUID 或唯一 name 重連應用內容的引用；固定內建函數亦可依 builtin 身分及參數位置重連。型別不符、引用缺漏或循環則拒絕套用，保持原專案。
 
-Runtime 使用同一個 expression_macros 字典，完整輸出環境與應用巨集；保留 name、display_name、型別及定義，移除 scope 和 icon。巨集間引用保留 expression_macro_id，定義中的環境變數引用使用 name。Engine 可依 UUID 求值，兩層不需不同的運算機制。
+Runtime Program 使用同一個 expressions 字典，完整輸出環境與應用巨集，保留 scope、name、display_name、型別及定義，不輸出 icon。巨集與變數引用欄位保持 expression_macro_id／reference_id，預設值為名稱；核心也可使用 UUID 模式，兩層使用相同求值機制。
 
 新建專案且未匯入環境時，建立以下「行程進度」範本。既有專案可在環境變數頁按「加入行程進度範本」。重複加入保留既有 UUID 與自訂內容，不重複建立；遇到不相容的 name 定義則報錯，整次操作不套用。
 

@@ -39,9 +39,9 @@
 
 ## Runtime 匯出
 
-runtime 頂層的 enum_definitions 保存兩層列舉葉節點，以 UUID 索引，內容為 name、display_name、scope 及 options；不輸出圖示、群組、父層或編輯排序。
+Runtime Program 頂層 enums 保存兩層列舉與群組，預設以名稱索引，保留 scope、parent_id、order 與選項，不輸出圖示。
 
-runtime 參數若為引用模式，保持 `{type: "enum", enum_id: UUID}`；自訂模式仍保存 options。Engine 必須從 catalog 解析 enum_id，再檢查實際字串是否存在。列舉以 `enums.name` 加入 exports，對應 `{kind: "enums", id: UUID}`。
+Runtime 參數保留 enum_id（name 模式為名稱），並附解析後的 options；自訂模式也保存 options。Engine 仍須檢查實際字串屬於選項集合。由 enums 集合直接查找，不再另設 exports。詳見 [RUNTIME.md](RUNTIME.md)。
 
 模擬使用當前定義解析參數，可比較字串、轉傳至相容參數，或控制「調整機率事件」的屬性及操作；不將定義寫進變數空間。
 

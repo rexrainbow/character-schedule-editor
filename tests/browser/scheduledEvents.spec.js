@@ -52,8 +52,8 @@ test('flow-control task selects date and weighted day candidates, exports and pr
   await expect(page.locator('.day-use-group-interrupt')).toHaveCount(0); // Assigning a reservation never edits intended uses.
   const download = page.waitForEvent('download'); await exportRuntime(page);
   const runtime = JSON.parse(await readFile(await (await download).path(), 'utf8'));
-  expect(runtime.slots[activity.id].branches[0].task.flow_control).toBe('schedule_event');
-  expect(runtime.slots[activity.id].branches[0].task.icon).toBeUndefined();
+  expect(Object.values(runtime.slots).find((item) => item.display_name === activity.name).branches[0].task.builtin).toBe('schedule_event');
+  expect(Object.values(runtime.slots).find((item) => item.display_name === activity.name).branches[0].task.icon).toBeUndefined();
   await run(page);
   const reservations = page.locator('.simulation-reservations');
   await expect(reservations).toContainText('Date night'); await expect(reservations).toContainText('Week 2 / Thursday');

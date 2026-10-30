@@ -1,8 +1,10 @@
 # 可恢復 Runtime
 
+跨語言實作（例如 C#）請先讀 [PORTING.md](PORTING.md)，內含移植範圍、必要依賴與可直接重播的 JSON 驗收資料。
+
 精確的選擇、求值、事件排序、變數寫入、中斷／放行、重置與恢復規則，統一見 [ENGINE_SEMANTICS.md](../../docs/ENGINE_SEMANTICS.md)。本 README 著重 API 與程式組織。
 
-這個資料夾是獨立、可在瀏覽器與 Node.js 使用的執行核心。模擬 GUI 已透過 `src/simulation/` 使用 UUID 版本；右上角既有執行資料匯出格式尚未改接。以 `index.js` 作為公開入口。
+這個資料夾是獨立、可在瀏覽器與 Node.js 使用的執行核心。模擬 GUI 透過 `src/simulation/` 使用 UUID 版本；GUI、API 與 MCP 的執行資料匯出使用同格式的 name 版本。以 `index.js` 作為公開入口。
 
 ## 組織
 
@@ -65,7 +67,7 @@ await runtime.nextDay();
 
 `program.toJSON()` 可輸出新核心使用的 `schedule-runtime-program`，由 `Program.fromJSON(data)` 載入。UUID／name 版本具有相同結構；name 版本的定義引用、參數引用與巨集引數都不含編輯器 UUID。`Program` 會複製並凍結定義，執行中不接受更名或修改。
 
-此格式尚未接到 GUI 的「執行資料」匯出。既有 `src/core/runtimeModel.js` 的混合引用輸出不是此載入器的輸入，這階段請使用 `Program.fromProject()` 或 `program.toJSON()`，不要將兩種檔案混用。此分界是刻意保留，讓下一階段再統一匯出器與模擬器。
+GUI「匯出執行資料」、API 與 MCP runtime 匯出皆由 `src/core/runtimeModel.js` 委派 Program 編譯，下載的 JSON 可直接 `Program.fromJSON()` 載入。欄位與 Schema 見 [RUNTIME.md](../../docs/RUNTIME.md)。專案存檔及 YAML 仍須先編譯，不能當作 Program JSON 載入。
 
 ## 暫停與恢復
 

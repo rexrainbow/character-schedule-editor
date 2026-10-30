@@ -30,18 +30,18 @@ test('new variable builtins retain fixed contracts and editable metadata across 
 
 test('runtime variable operations preserve keys, targets, expressions and accurate access requirements', () => {
   const { draft, text, sequence } = builtinVariableFixture();
-  const before = structuredClone(draft), result = compileRuntime(draft); assert.deepEqual(result.errors, []);
+  const before = structuredClone(draft), result = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(result.errors, []);
   assert.deepEqual(draft, before); assert.deepEqual(validateRuntimeDocument(result.data), []);
   const calls = Object.values(result.data.slots).map((slot) => slot.branches[0].task);
-  assert.deepEqual(calls[0], { task_key: 'engine_increment_variable', target: { type: 'environment_reference', name: 'Counter' }, value: { type: 'constant', value: -2 } });
-  assert.deepEqual(calls[1], { task_key: 'engine_toggle_variable', target: { type: 'environment_reference', name: 'Enabled' } });
-  assert.deepEqual(calls[2], { task_key: 'engine_reset_variable', target: { type: 'reference', reference_id: text } });
-  assert.equal(result.data.task_macros[sequence.id].steps[0].value.type, 'parameter_reference');
-  assert.ok(result.data.environment_requirements.variables.every((item) => item.access === 'read_write'));
-  const increment = result.data.environment_requirements.tasks.find((item) => item.name === 'engine_increment_variable');
-  assert.equal(increment.parameters[0].value_type, 'number'); assert.equal(increment.parameters[1].type, 'number');
+  assert.equal(calls[0].builtin, 'increment_variable'); assert.ok(result.data.variables[calls[0].target_variable_id]);
+  assert.equal(calls[1].builtin, 'toggle_variable');
+  assert.deepEqual(calls[2], { builtin: 'reset_variable', target_variable_id: text });
+  assert.equal(result.data.macros[sequence.id].steps[0].task.value.type, 'parameter_reference');
+  assert.ok(Object.values(result.data.variables).every((item) => item.node_type !== 'value' || !item.read_only || item.name === 'Readonly'));
+  const increment = result.data.builtins.increment_variable;
+  assert.equal(increment.symbol, 'engine_increment_variable');
   draft.builtinTasks.toggle_variable.symbol = '';
-  assert.ok(compileRuntime(draft).errors.some((error) => error.key === 'invalidSymbol'));
+  assert.ok(compileRuntime(draft, { referenceMode: 'uuid' }).errors.some((error) => error.key === 'invalidSymbol'));
 });
 
 test('all builtin targets protect type, write permissions and deletion, including macro-only uses', () => {

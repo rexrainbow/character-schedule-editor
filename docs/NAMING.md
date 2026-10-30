@@ -62,7 +62,7 @@ mapping key 就是物件的 name，不需要在內容重複宣告 name，也不�
 
 ## Runtime
 
-物件與環境契約輸出 name，環境引用使用 `{type: environment_reference, name: ...}`，任務 task_key 的內容為該任務的 name。UUID 仍可用於 runtime 內部關聯；對外入口 exports 採類型前綴，例如 slots.work、taskMacros.work，避免跨類同名覆蓋。
+執行資料統一為 [Runtime Program](RUNTIME.md)，預設 name 引用。各集合 key 與物件 name 相同；reference_id、task_id、task_macro_id 等欄位的值也為名稱，參數引用限於所屬作用域。從 Program.resolve(kind, name) 或對應集合找入口，不再另設 exports、task_key 或 environment_reference。
 
 行程進度範本改用 schedule_current_week、schedule_current_weekday、schedule_current_day、schedule_current_slot、schedule_slots_per_day、schedule_total_weeks；模擬自動配對相同名稱。改名時仍可明確指定進度綁定。Engine 應同步採用新契約；display_name 更動不影響 name。
 # 物件說明

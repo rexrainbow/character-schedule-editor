@@ -44,7 +44,7 @@ test('day tags trim input, prevent duplicates, filter with names and survive cop
   await page.getByRole('button', { name: 'Remove tag: Custom', exact: true }).click();
   const changed = await save(page); expect(changed.day_schedules[main.id].tags).toContain('Custom');
   const runtimePending = page.waitForEvent('download'); await exportRuntime(page);
-  const runtime = JSON.parse(await readFile(await (await runtimePending).path(), 'utf8')); expect(runtime.days[main.id].tags).toContain('Custom');
+  const runtime = JSON.parse(await readFile(await (await runtimePending).path(), 'utf8')); expect(Object.values(runtime.days).find((item) => item.display_name === main.name).tags).toContain('Custom');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'reload.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(changed)) });
   await openDayOptions(page);
   await expect(page.getByRole('combobox', { name: 'Filter by tag', exact: true })).toHaveValue('');

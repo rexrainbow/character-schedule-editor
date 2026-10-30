@@ -10,6 +10,7 @@ import { createProjectService } from '../src/node/projectService.js';
 import { startWebServer } from '../src/node/web/server.js';
 import { connectProjectService } from '../src/node/web/client.js';
 import { weightedBlueprint } from './weightedMacroFixture.js';
+import { Program } from '../src/runtime/index.js';
 
 const entry = fileURLToPath(new URL('../src/node/main.js', import.meta.url));
 async function directory(t) {
@@ -57,7 +58,9 @@ test('MCP creates, previews, imports, edits, exports YAML, rebuilds and saves wi
   assert.equal(newVariables.value.find((item) => item.display_name === '金錢').initial_value, 150);
   const second = await call('project_export', { format: 'yaml' }); assert.equal(second.value, text);
   const saved = await call('project_save', { path: 'rebuilt.json', expectedRevision: rebuilt.revision }); assert.equal(saved.ok, true); assert.equal(saved.dirty, false);
-  assert.equal((await call('project_export', { format: 'runtime' })).ok, true);
+  const executable = await call('project_export', { format: 'runtime' });
+  assert.equal(executable.ok, true); assert.equal(executable.value.referenceMode, 'name');
+  assert.deepEqual(Program.fromJSON(executable.value).toJSON(), executable.value);
   const weighted = await call('project_import_yaml', { yaml: weightedBlueprint, expectedRevision: saved.revision });
   assert.equal(weighted.ok, true);
   const lottery = await call('project_query', { command: { object: 'taskMacros', action: 'get', name: 'lottery' } });

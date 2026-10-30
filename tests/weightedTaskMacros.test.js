@@ -124,10 +124,10 @@ task_macros:
   assert.match(yaml, /weight: \(params.chance \+ vars.n\)/); assert.match(yaml, /fallback notes/);
   assert.equal(good(exportBlueprint(good(importBlueprint(yaml)).draft)).data, yaml);
   good(compileProject(projectToDraft(good(compileProject(draft)).data)));
-  const runtime = good(compileRuntime(draft)).data;
-  assert.equal(runtime.task_macros[chosen.id].mode, 'random');
-  assert.equal(runtime.task_macros[chosen.id].candidates[0].weight.operand_b.name, 'n');
-  assert.ok(runtime.environment_requirements.variables.some((item) => item.name === 'n'));
+  const runtime = good(compileRuntime(draft, { referenceMode: 'uuid' })).data;
+  assert.equal(runtime.macros[chosen.id].mode, 'random');
+  assert.equal(runtime.macros[chosen.id].candidates[0].weight.operand_b.reference_id, draft.taskMacros.find((item) => item.id === chosen.id).candidates[0].weight.operand_b.reference_id);
+  assert.ok(Object.values(runtime.variables).some((item) => item.name === 'n'));
   const session = createProjectSession(draft);
   assert.equal(executeCommand(session, { object: 'taskMacros', action: 'setMode', name: 'other', mode: 'random' }).ok, true);
 });

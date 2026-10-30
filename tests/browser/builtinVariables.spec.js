@@ -27,7 +27,7 @@ test('new builtin definitions lock structure and persist custom names/keys witho
     for (const select of await page.getByRole('combobox', { name: 'Parameter type', exact: true }).all()) await expect(select).toBeDisabled();
   }
   await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Restore state');
-  await page.getByRole('textbox', { name: 'Engine key', exact: true }).fill('custom_restore');
+  await page.getByRole('textbox', { name: 'Name (symbol)', exact: true }).first().fill('custom_restore');
   await page.getByRole('textbox', { name: 'Parameter name', exact: true }).fill('Destination');
   await navigate(page, 'slots');
   page.once('dialog', (d) => d.accept());
@@ -37,7 +37,7 @@ test('new builtin definitions lock structure and persist custom names/keys witho
   await page.getByRole('dialog').getByRole('treeitem', { name: 'Message', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Apply', exact: true }).click();
   const saved = await download(page, () => exportProject(page));
-  expect(saved.builtin_tasks.reset_variable).toEqual({ display_name: 'Restore state', symbol: 'custom_restore', parameters: { target: { display_name: 'Destination' } } });
+  expect(saved.builtin_tasks.reset_variable).toEqual({ display_name: 'Restore state', name: 'custom_restore', parameters: { target: { display_name: 'Destination' } } });
 });
 
 test('builtin task selection filters writable targets and saves negative increments and target-only operations', async ({ page }) => {
@@ -53,7 +53,7 @@ test('builtin task selection filters writable targets and saves negative increme
   await dialog.getByRole('spinbutton', { name: 'Constant value', exact: true }).fill('-4.5');
   await dialog.getByRole('button', { name: 'Apply', exact: true }).click();
   const runtime = await download(page, () => exportRuntime(page));
-  expect(runtime.slots[fixture.draft.slots[0].id].branches[0].task.value.value).toBe(-4.5);
+  expect(Object.values(runtime.slots).find((item) => item.display_name === fixture.draft.slots[0].name).branches[0].task.value.value).toBe(-4.5);
   page.once('dialog', (d) => d.accept());
   await page.getByRole('combobox', { name: 'Task', exact: true }).selectOption('builtin:toggle_variable');
   await page.getByRole('button', { name: 'Target variable', exact: true }).click();

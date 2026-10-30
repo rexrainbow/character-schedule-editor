@@ -64,7 +64,7 @@ runtime 在每天開始執行任何行程前，先依當時的設定與冷卻狀
 
 機率增加 5 是增加 5 個百分點，結果限制於 0–100。冷卻設定必須得到安全整數，負數限制為 0，小數與非有限值報錯。剩餘冷卻只能讀取，不能由此任務直接寫入。當天之後的運算式可以讀到新設定，但它只影響之後日期的發生判定。
 
-runtime 任務輸出使用 task_key、`event_operation: "adjust_probability"` 及相同的 event/property/operation/value；task_key 的內容為內建任務的 name。
+Runtime Program 保留 `builtin: "adjust_probability_event"` 與 event/property/operation/value，由 runtime 執行；事件／參數引用在預設 name 模式下以名稱連結。格式見 [RUNTIME.md](RUNTIME.md)。
 
 ## 單日模擬
 

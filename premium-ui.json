@@ -1,6 +1,6 @@
 {
   "profile": "product-admin",
-  "sourceRoots": ["src/gui"],
+  "sourceRoots": ["src/gui", "runtime-demo"],
   "canonicalMap": "UX-CONTRACT.md",
   "requiredCapabilities": ["Select/Listbox", "Date", "Form", "Scrollbar", "Toast", "CRUD"],
   "ownership": { "Select/Listbox": "native", "Date": "authored" },

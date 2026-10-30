@@ -65,8 +65,8 @@ test('project, runtime export, blueprint and editing API retain repeat counts an
   const sequence = draft.sequences[0], doc = good(compileProject(draft)).data;
   assert.deepEqual(doc.week_sequences[sequence.id].week_repeat_counts, [2, null]);
   assert.deepEqual(good(compileProject(projectToDraft(doc))).data, doc);
-  const output = good(compileRuntime(draft)).data; assert.deepEqual(validateRuntimeDocument(output), []);
-  assert.deepEqual(output.sequences[sequence.id].entries.map((entry) => entry.repeat_count), [2, null]);
+  const output = good(compileRuntime(draft, { referenceMode: 'uuid' })).data; assert.deepEqual(validateRuntimeDocument(output), []);
+  assert.deepEqual(output.sequences[sequence.id].rows.map((entry) => entry.repeatCount), [2, null]);
   const yaml = good(exportBlueprint(draft)).data;
   assert.deepEqual(good(importBlueprint(yaml)).draft.sequences[0].rows.map((row) => row.repeatCount), [2, null]);
   const invalid = structuredClone(doc); invalid.week_sequences[sequence.id].week_repeat_counts = [null, 1];

@@ -1,255 +1,461 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Character Schedule Runtime Data Schema",
-  "description": "Runtime data v1. References, types, dependency contracts, ELSE ordering, scopes and cell counts also require compiler validation.",
+  "title": "Character Schedule Runtime Program",
+  "description": "Executable Program JSON for Program.fromJSON(), shared by GUI/API/MCP exports and runtime hosts. Semantic references, types and execution constraints also require Program validation.",
   "type": "object",
   "properties": {
-    "format_version": {
-      "const": 1
+    "format": {
+      "const": "schedule-runtime-program"
+    },
+    "referenceMode": {
+      "enum": [
+        "name",
+        "uuid"
+      ]
     },
     "display_name": {
       "type": "string"
     },
     "settings": {
+      "$ref": "#/$defs/project_settings"
+    },
+    "builtins": {
       "type": "object",
       "properties": {
-        "slots_per_day": {
-          "type": "integer",
-          "minimum": 1
+        "set_variable": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "increment_variable": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "toggle_variable": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "reset_variable": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "release_slot": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "adjust_probability_event": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "schedule_event": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "display_name": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
         }
       },
-      "required": [
-        "slots_per_day"
-      ],
+      "required": [],
       "additionalProperties": false
     },
-    "environment_requirements": {
-      "type": "object",
-      "properties": {
-        "variables": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/variable_requirement"
-          }
-        },
-        "tasks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/task_requirement"
-          }
-        },
-        "environment": {
-          "$ref": "#/$defs/environment_info"
-        }
-      },
-      "required": [
-        "variables",
-        "tasks"
-      ],
-      "additionalProperties": false
-    },
-    "environment_variables": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/environment_variable_tree"
-      }
-    },
-    "application_variables": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/variable_tree"
-      }
-    },
-    "expression_macros": {
+    "variables": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
-        "$ref": "#/$defs/runtime_expression"
+        "$ref": "#/$defs/operand_node"
       }
     },
-    "task_macros": {
+    "expressions": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
-        "$ref": "#/$defs/runtime_macro"
+        "$ref": "#/$defs/expression_macro"
+      }
+    },
+    "enums": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/enum_definition_node"
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/task_definition"
+      }
+    },
+    "macros": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/task_macro"
       }
     },
     "slots": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
-        "$ref": "#/$defs/runtime_slot"
+        "$ref": "#/$defs/slot"
       }
     },
     "days": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
-        "$ref": "#/$defs/runtime_day"
+        "$ref": "#/$defs/day_schedule"
       }
     },
     "weeks": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
-        "$ref": "#/$defs/runtime_week"
+        "$ref": "#/$defs/week_schedule"
       }
     },
     "sequences": {
       "type": "object",
       "propertyNames": {
-        "$ref": "#/$defs/uuid"
+        "type": "string",
+        "minLength": 1
       },
       "additionalProperties": {
         "$ref": "#/$defs/runtime_sequence"
       }
-    },
-    "enum_definitions": {
-      "type": "object",
-      "propertyNames": {
-        "$ref": "#/$defs/uuid"
-      },
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "display_name": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-          },
-          "scope": {
-            "enum": [
-              "environment",
-              "application"
-            ]
-          },
-          "options": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "object",
-              "properties": {
-                "display_name": {
-                  "type": "string"
-                },
-                "value": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "^\\S(?:.*\\S)?$"
-                }
-              },
-              "required": [
-                "display_name",
-                "value"
-              ],
-              "additionalProperties": false
-            }
-          }
-        },
-        "required": [
-          "display_name",
-          "scope",
-          "options"
-        ],
-        "additionalProperties": false
-      }
-    },
-    "exports": {
-      "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
-      },
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "kind": {
-            "enum": [
-              "operands",
-              "expressions",
-              "taskMacros",
-              "slots",
-              "days",
-              "weeks",
-              "sequences",
-              "enums",
-              "eventGroups"
-            ]
-          },
-          "id": {
-            "$ref": "#/$defs/uuid"
-          },
-          "sequence_id": {
-            "$ref": "#/$defs/uuid"
-          }
-        },
-        "required": [
-          "kind",
-          "id"
-        ],
-        "additionalProperties": false,
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "kind": {
-                  "const": "eventGroups"
-                }
-              }
-            },
-            "then": {
-              "required": [
-                "sequence_id"
-              ]
-            }
-          }
-        ]
-      }
     }
   },
   "required": [
-    "format_version",
-    "display_name",
+    "format",
+    "referenceMode",
     "settings",
-    "environment_requirements",
-    "environment_variables",
-    "application_variables",
-    "expression_macros",
-    "task_macros",
+    "builtins",
+    "variables",
+    "expressions",
+    "enums",
+    "tasks",
+    "macros",
     "slots",
     "days",
     "weeks",
-    "sequences",
-    "enum_definitions",
-    "exports"
+    "sequences"
   ],
   "additionalProperties": false,
   "$defs": {
-    "variable_requirement": {
+    "project_settings": {
       "type": "object",
+      "required": [
+        "slots_per_day"
+      ],
+      "properties": {
+        "slots_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "operand_node": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/group_node"
+        },
+        {
+          "$ref": "#/$defs/value_node"
+        }
+      ]
+    },
+    "group_node": {
+      "type": "object",
+      "required": [
+        "parent_id",
+        "order",
+        "node_type",
+        "name"
+      ],
       "properties": {
         "display_name": {
           "type": "string"
         },
+        "parent_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "node_type": {
+          "const": "group"
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ],
+          "default": "environment"
+        },
         "name": {
           "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "additionalProperties": false
+    },
+    "uuid": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value_node": {
+      "type": "object",
+      "required": [
+        "parent_id",
+        "order",
+        "node_type",
+        "value_type",
+        "read_only",
+        "name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "node_type": {
+          "const": "value"
         },
         "value_type": {
+          "type": "string",
           "enum": [
             "number",
             "string",
@@ -257,28 +463,116 @@
           ]
         },
         "read_only": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
-        "access": {
+        "scope": {
           "enum": [
-            "read",
-            "write",
-            "read_write"
-          ]
+            "environment",
+            "application"
+          ],
+          "default": "environment"
+        },
+        "initial_value": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ],
+          "description": "Constant initial value. When omitted, defaults to 0, empty string or false according to value_type."
+        },
+        "min_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
+        },
+        "max_value": {
+          "type": "number",
+          "description": "Optional inclusive numeric bound. Runtime clamps numeric writes to the configured bounds. Omitted means unrestricted."
         },
         "integer_only": {
           "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         }
       },
-      "required": [
-        "display_name",
-        "name",
-        "value_type",
-        "read_only",
-        "access"
-      ],
       "additionalProperties": false,
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_type": {
+                "const": "number"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "min_value"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_value"
+                  ]
+                }
+              ]
+            }
+          }
+        },
         {
           "if": {
             "properties": {
@@ -294,55 +588,45 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "integer_only": {
+                "const": true
+              }
+            },
+            "required": [
+              "integer_only"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial_value": {
+                "type": "integer"
+              },
+              "min_value": {
+                "type": "integer"
+              },
+              "max_value": {
+                "type": "integer"
+              }
+            }
+          }
         }
       ]
     },
-    "task_requirement": {
-      "type": "object",
-      "properties": {
-        "display_name": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "parameters": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/runtime_parameter_requirement"
-          }
-        }
-      },
-      "required": [
-        "display_name",
-        "name",
-        "parameters"
-      ],
-      "additionalProperties": false
-    },
-    "runtime_parameter_requirement": {
+    "expression_macro": {
       "type": "object",
       "required": [
-        "type",
+        "value_type",
+        "definition",
         "name"
       ],
       "properties": {
         "display_name": {
           "type": "string"
         },
-        "type": {
-          "enum": [
-            "number",
-            "string",
-            "boolean",
-            "variable_reference",
-            "event_reference",
-            "enum",
-            "expression"
-          ]
-        },
         "value_type": {
           "enum": [
             "number",
@@ -351,626 +635,28 @@
             "any"
           ]
         },
-        "access": {
+        "definition": {
+          "$ref": "#/$defs/computed_definition"
+        },
+        "scope": {
           "enum": [
-            "read",
-            "write",
-            "read_write"
-          ]
-        },
-        "event_kind": {
-          "enum": [
-            "any",
-            "probability"
-          ]
-        },
-        "options": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "properties": {
-              "display_name": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "^\\S(?:.*\\S)?$"
-              }
-            },
-            "required": [
-              "display_name",
-              "value"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "enum_id": {
-          "$ref": "#/$defs/uuid"
+            "environment",
+            "application"
+          ],
+          "default": "application"
         },
         "name": {
           "type": "string",
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "variable_reference"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "value_type",
-              "access"
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "value_type"
-                  ]
-                },
-                {
-                  "required": [
-                    "access"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "event_reference"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "event_kind"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "event_kind"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "enum"
-              }
-            }
-          },
-          "then": {
-            "oneOf": [
-              {
-                "required": [
-                  "options"
-                ],
-                "not": {
-                  "required": [
-                    "enum_id"
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "enum_id"
-                ],
-                "not": {
-                  "required": [
-                    "options"
-                  ]
-                }
-              }
-            ]
-          },
-          "else": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "options"
-                  ]
-                },
-                {
-                  "required": [
-                    "enum_id"
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "uuid": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "environment_info": {
-      "type": "object",
-      "required": [
-        "id",
-        "display_name",
-        "version"
-      ],
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/uuid"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "environment_variable_tree": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "kind": {
-              "const": "group"
-            },
-            "children": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/environment_variable_tree"
-              }
-            }
-          },
-          "required": [
-            "display_name",
-            "id",
-            "kind",
-            "children"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "kind": {
-              "const": "value"
-            },
-            "value_type": {
-              "enum": [
-                "number",
-                "string",
-                "boolean"
-              ]
-            },
-            "read_only": {
-              "type": "boolean"
-            },
-            "initial_value": {
-              "type": [
-                "number",
-                "string",
-                "boolean"
-              ]
-            },
-            "min_value": {
-              "type": "number"
-            },
-            "max_value": {
-              "type": "number"
-            },
-            "integer_only": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "display_name",
-            "id",
-            "kind",
-            "value_type",
-            "read_only",
-            "initial_value",
-            "name"
-          ],
-          "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "number"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "string"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "boolean"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "boolean"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "else": {
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "min_value"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "max_value"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "else": {
-                "not": {
-                  "required": [
-                    "integer_only"
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "integer_only": {
-                    "const": true
-                  }
-                },
-                "required": [
-                  "integer_only"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "integer"
-                  },
-                  "min_value": {
-                    "type": "integer"
-                  },
-                  "max_value": {
-                    "type": "integer"
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    "variable_tree": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "kind": {
-              "const": "group"
-            },
-            "children": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/variable_tree"
-              }
-            }
-          },
-          "required": [
-            "display_name",
-            "id",
-            "kind",
-            "children"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "kind": {
-              "const": "value"
-            },
-            "value_type": {
-              "enum": [
-                "number",
-                "string",
-                "boolean"
-              ]
-            },
-            "read_only": {
-              "type": "boolean"
-            },
-            "initial_value": {
-              "type": [
-                "number",
-                "string",
-                "boolean"
-              ]
-            },
-            "min_value": {
-              "type": "number"
-            },
-            "max_value": {
-              "type": "number"
-            },
-            "integer_only": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "display_name",
-            "id",
-            "kind",
-            "value_type",
-            "read_only",
-            "initial_value"
-          ],
-          "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "number"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "string"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "boolean"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "boolean"
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "else": {
-                "not": {
-                  "anyOf": [
-                    {
-                      "required": [
-                        "min_value"
-                      ]
-                    },
-                    {
-                      "required": [
-                        "max_value"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "value_type": {
-                    "const": "number"
-                  }
-                }
-              },
-              "else": {
-                "not": {
-                  "required": [
-                    "integer_only"
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "integer_only": {
-                    "const": true
-                  }
-                },
-                "required": [
-                  "integer_only"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "initial_value": {
-                    "type": "integer"
-                  },
-                  "min_value": {
-                    "type": "integer"
-                  },
-                  "max_value": {
-                    "type": "integer"
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    "runtime_expression": {
-      "type": "object",
-      "properties": {
-        "display_name": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "value_type": {
-          "enum": [
-            "number",
-            "string",
-            "boolean",
-            "any"
-          ]
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         },
         "parameters": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/expression_parameter"
           }
-        },
-        "definition": {
-          "$ref": "#/$defs/computed_definition"
         }
       },
-      "required": [
-        "display_name",
-        "value_type",
-        "definition"
-      ],
       "additionalProperties": false,
       "allOf": [
         {
@@ -1086,38 +772,6 @@
         }
       ]
     },
-    "expression_parameter": {
-      "type": "object",
-      "required": [
-        "id",
-        "type",
-        "name"
-      ],
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/uuid"
-        },
-        "display_name": {
-          "type": "string"
-        },
-        "type": {
-          "enum": [
-            "number",
-            "string",
-            "boolean",
-            "any"
-          ]
-        },
-        "name": {
-          "type": "string",
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "variadic": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
     "computed_definition": {
       "oneOf": [
         {
@@ -1228,9 +882,6 @@
         },
         {
           "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
         }
       ]
     },
@@ -1335,9 +986,6 @@
         },
         {
           "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
         }
       ]
     },
@@ -1439,24 +1087,6 @@
       },
       "required": [
         "type"
-      ],
-      "additionalProperties": false
-    },
-    "environment_reference": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "const": "environment_reference"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        }
-      },
-      "required": [
-        "type",
-        "name"
       ],
       "additionalProperties": false
     },
@@ -1604,221 +1234,153 @@
       ],
       "additionalProperties": false
     },
-    "runtime_macro": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "parameters": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/task_parameter"
-              }
-            },
-            "mode": {
-              "const": "sequence"
-            },
-            "steps": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/runtime_step"
-              }
-            },
-            "eligibility": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/scoped_condition"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [
-            "display_name",
-            "parameters",
-            "mode",
-            "steps"
-          ],
-          "additionalProperties": false
+    "expression_parameter": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
         },
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "parameters": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/task_parameter"
-              }
-            },
-            "mode": {
-              "const": "branch"
-            },
-            "branches": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/runtime_branch"
-              }
-            },
-            "eligibility": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/scoped_condition"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [
-            "display_name",
-            "parameters",
-            "mode",
-            "branches"
-          ],
-          "additionalProperties": false
+        "display_name": {
+          "type": "string"
         },
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "parameters": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/task_parameter"
-              }
-            },
-            "mode": {
-              "const": "priority"
-            },
-            "candidates": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/scoped_task_macro_use"
-              }
-            },
-            "eligibility": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/scoped_condition"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [
-            "display_name",
-            "parameters",
-            "mode",
-            "candidates"
-          ],
-          "additionalProperties": false
+        "type": {
+          "enum": [
+            "number",
+            "string",
+            "boolean",
+            "any"
+          ]
         },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "variadic": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "enum_definition_node": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "enum": [
+            "group",
+            "enum"
+          ]
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "environment",
+            "application"
+          ]
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/uuid"
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S(?:.*\\S)?$"
+              }
+            },
+            "required": [
+              "display_name",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "required": [
+        "node_type",
+        "scope",
+        "parent_id",
+        "order",
+        "name"
+      ],
+      "additionalProperties": false,
+      "allOf": [
         {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "parameters": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/task_parameter"
+          "if": {
+            "properties": {
+              "node_type": {
+                "const": "enum"
               }
-            },
-            "mode": {
-              "const": "random"
-            },
-            "candidates": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "weight": {
-                    "$ref": "#/$defs/scoped_numeric_operand"
-                  },
-                  "task": {
-                    "$ref": "#/$defs/runtime_action"
-                  }
-                },
-                "required": [
-                  "weight",
-                  "task"
-                ],
-                "additionalProperties": false
-              }
-            },
-            "fallback": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "task": {
-                      "$ref": "#/$defs/runtime_action"
-                    }
-                  },
-                  "required": [
-                    "task"
-                  ],
-                  "additionalProperties": false
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "eligibility": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/scoped_condition"
-                },
-                {
-                  "type": "null"
-                }
-              ]
             }
           },
-          "required": [
-            "display_name",
-            "parameters",
-            "mode",
-            "candidates"
-          ],
-          "additionalProperties": false
+          "then": {
+            "required": [
+              "options"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "options"
+              ]
+            }
+          }
         }
       ]
+    },
+    "task_definition": {
+      "type": "object",
+      "required": [
+        "parameters",
+        "name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "additionalProperties": false
     },
     "task_parameter": {
       "type": "object",
@@ -1958,27 +1520,8 @@
             }
           },
           "then": {
-            "oneOf": [
-              {
-                "required": [
-                  "options"
-                ],
-                "not": {
-                  "required": [
-                    "enum_id"
-                  ]
-                }
-              },
-              {
-                "required": [
-                  "enum_id"
-                ],
-                "not": {
-                  "required": [
-                    "options"
-                  ]
-                }
-              }
+            "required": [
+              "options"
             ]
           },
           "else": {
@@ -2000,56 +1543,134 @@
         }
       ]
     },
-    "runtime_step": {
+    "task_macro": {
       "oneOf": [
         {
-          "$ref": "#/$defs/runtime_task"
+          "$ref": "#/$defs/task_macro_sequence"
         },
         {
-          "$ref": "#/$defs/runtime_assignment"
+          "$ref": "#/$defs/task_macro_branch"
         },
         {
-          "$ref": "#/$defs/runtime_target_operation"
+          "$ref": "#/$defs/task_macro_conditional"
         },
         {
-          "$ref": "#/$defs/runtime_event_adjustment"
+          "$ref": "#/$defs/task_macro_priority"
         },
         {
-          "$ref": "#/$defs/runtime_scheduled_event"
-        },
-        {
-          "$ref": "#/$defs/scoped_task_macro_use"
+          "$ref": "#/$defs/task_macro_random"
         }
       ]
     },
-    "runtime_task": {
+    "task_macro_sequence": {
       "type": "object",
+      "required": [
+        "parameters",
+        "steps",
+        "mode",
+        "name"
+      ],
       "properties": {
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        "display_name": {
+          "type": "string"
         },
-        "arguments": {
+        "parameters": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/runtime_argument"
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "task"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_action"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "mode": {
+          "const": "sequence"
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_task_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scoped_task_use"
+        },
+        {
+          "$ref": "#/$defs/scoped_set_variable"
+        },
+        {
+          "$ref": "#/$defs/scoped_target_variable_operation"
+        },
+        {
+          "$ref": "#/$defs/scoped_task_macro_use"
+        },
+        {
+          "$ref": "#/$defs/adjust_probability_event"
+        },
+        {
+          "$ref": "#/$defs/scoped_schedule_event"
+        }
+      ]
+    },
+    "scoped_task_use": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "arguments"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/scoped_task_argument"
           }
         }
       },
-      "required": [
-        "task_key",
-        "arguments"
-      ],
       "additionalProperties": false
     },
-    "runtime_argument": {
+    "scoped_task_argument": {
       "oneOf": [
         {
           "$ref": "#/$defs/scoped_operand"
         },
         {
-          "$ref": "#/$defs/runtime_variable_reference"
+          "$ref": "#/$defs/variable_reference_argument"
         },
         {
           "$ref": "#/$defs/event_reference"
@@ -2059,61 +1680,38 @@
         }
       ]
     },
-    "runtime_variable_reference": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "variable_reference"
-            },
-            "reference_id": {
-              "$ref": "#/$defs/uuid"
-            }
-          },
-          "required": [
-            "type",
-            "reference_id"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "const": "variable_reference"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            }
-          },
-          "required": [
-            "type",
-            "name"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    },
-    "runtime_assignment": {
+    "variable_reference_argument": {
       "type": "object",
+      "required": [
+        "type",
+        "reference_id"
+      ],
       "properties": {
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        "type": {
+          "const": "variable_reference"
         },
-        "target": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/reference_operand"
-            },
-            {
-              "$ref": "#/$defs/environment_reference"
-            }
+        "reference_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scoped_set_variable": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id",
+        "value"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "set_variable",
+            "increment_variable"
           ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
         },
         "value": {
           "$ref": "#/$defs/scoped_operand"
@@ -2141,48 +1739,88 @@
           ]
         }
       },
-      "required": [
-        "task_key",
-        "target",
-        "value"
-      ],
-      "additionalProperties": false
-    },
-    "runtime_target_operation": {
-      "type": "object",
-      "properties": {
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "target": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/reference_operand"
-            },
-            {
-              "$ref": "#/$defs/environment_reference"
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
             }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/scoped_numeric_operand"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "random_amplitude"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "scoped_target_variable_operation": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "toggle_variable",
+            "reset_variable"
           ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
         }
       },
-      "required": [
-        "task_key",
-        "target"
-      ],
       "additionalProperties": false
     },
-    "runtime_event_adjustment": {
+    "scoped_task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/scoped_task_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "adjust_probability_event": {
       "type": "object",
       "properties": {
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "event_operation": {
-          "const": "adjust_probability"
+        "builtin": {
+          "const": "adjust_probability_event"
         },
         "event": {
           "$ref": "#/$defs/event_argument"
@@ -2218,8 +1856,7 @@
         }
       },
       "required": [
-        "task_key",
-        "event_operation",
+        "builtin",
         "event",
         "property",
         "operation",
@@ -2227,9 +1864,12 @@
       ],
       "additionalProperties": false
     },
-    "runtime_scheduled_event": {
+    "scoped_schedule_event": {
       "type": "object",
       "properties": {
+        "builtin": {
+          "const": "schedule_event"
+        },
         "display_name": {
           "type": "string"
         },
@@ -2288,23 +1928,14 @@
           "type": "integer",
           "minimum": -9007199254740991,
           "maximum": 9007199254740991
-        },
-        "task_key": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "flow_control": {
-          "const": "schedule_event"
         }
       },
       "required": [
+        "builtin",
         "display_name",
         "date",
         "execution_mode",
-        "priority",
-        "task_key",
-        "flow_control"
+        "priority"
       ],
       "additionalProperties": false,
       "oneOf": [
@@ -2399,30 +2030,79 @@
         }
       ]
     },
-    "scoped_task_macro_use": {
+    "task_macro_branch": {
       "type": "object",
       "required": [
-        "task_macro_id",
-        "arguments"
+        "mode",
+        "parameters",
+        "branches",
+        "name"
       ],
       "properties": {
-        "arguments": {
-          "type": "object",
-          "propertyNames": {
-            "$ref": "#/$defs/uuid"
-          },
-          "additionalProperties": {
-            "$ref": "#/$defs/runtime_argument"
+        "mode": {
+          "const": "branch"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
           }
         },
-        "task_macro_id": {
-          "$ref": "#/$defs/uuid"
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/macro_branch"
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ]
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         }
       },
       "additionalProperties": false
     },
-    "runtime_branch": {
+    "macro_branch": {
       "type": "object",
+      "required": [
+        "condition",
+        "task"
+      ],
       "properties": {
         "condition": {
           "oneOf": [
@@ -2435,211 +2115,266 @@
           ]
         },
         "task": {
-          "$ref": "#/$defs/runtime_action"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_task_use"
+            },
+            {
+              "$ref": "#/$defs/scoped_task_macro_use"
+            },
+            {
+              "$ref": "#/$defs/scoped_set_variable"
+            },
+            {
+              "$ref": "#/$defs/scoped_target_variable_operation"
+            }
+          ]
         }
       },
-      "required": [
-        "condition",
-        "task"
-      ],
       "additionalProperties": false
     },
-    "runtime_action": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/runtime_task"
-        },
-        {
-          "$ref": "#/$defs/runtime_assignment"
-        },
-        {
-          "$ref": "#/$defs/runtime_target_operation"
-        },
-        {
-          "$ref": "#/$defs/runtime_event_adjustment"
-        },
-        {
-          "$ref": "#/$defs/runtime_scheduled_event"
-        },
-        {
-          "$ref": "#/$defs/scoped_task_macro_use"
-        }
-      ]
-    },
-    "runtime_slot": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "branches": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/runtime_branch"
-              }
-            }
-          },
-          "required": [
-            "display_name",
-            "branches"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "display_name": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            },
-            "mode": {
-              "const": "priority"
-            },
-            "candidates": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/scoped_task_macro_use"
-              }
-            }
-          },
-          "required": [
-            "display_name",
-            "mode",
-            "candidates"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    },
-    "runtime_day": {
+    "task_macro_conditional": {
       "type": "object",
       "properties": {
         "display_name": {
           "type": "string"
         },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "mode": {
+          "const": "conditional"
+        },
+        "condition": {
+          "$ref": "#/$defs/scoped_condition"
+        },
+        "task": {
+          "$ref": "#/$defs/scoped_task_action"
+        },
         "name": {
           "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "slot_ids": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
-          },
-          "uniqueItems": true,
-          "description": "Editor-only labels. No leading or trailing whitespace. Not exported to runtime."
-        },
-        "day_start_slot_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/uuid"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "day_end_slot_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/uuid"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "slot_events": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "start_slot_id",
-              "end_slot_id"
-            ],
-            "properties": {
-              "start_slot_id": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/uuid"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "end_slot_id": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/uuid"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "slot_releases": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/runtime_flow_control"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         }
       },
       "required": [
-        "display_name",
-        "slot_ids"
+        "parameters",
+        "mode",
+        "condition",
+        "task",
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "Legacy import-only form. Converted to a sequence with eligibility and one task step."
+    },
+    "task_macro_priority": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "required": [
+        "parameters",
+        "mode",
+        "candidates",
+        "name"
       ],
       "additionalProperties": false
     },
-    "runtime_flow_control": {
+    "task_macro_random": {
       "type": "object",
       "properties": {
-        "task_key": {
+        "display_name": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task_parameter"
+          }
+        },
+        "mode": {
+          "const": "random"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_action"
+              },
+              "weight": {
+                "$ref": "#/$defs/scoped_numeric_operand"
+              }
+            },
+            "required": [
+              "id",
+              "task",
+              "weight"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "eligibility": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
           "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         },
-        "flow_control": {
-          "const": "release_slot"
+        "fallback": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "task": {
+                  "$ref": "#/$defs/scoped_task_action"
+                }
+              },
+              "required": [
+                "task"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "parameters",
+        "mode",
+        "candidates",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "slot": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/slot_branch"
         },
+        {
+          "$ref": "#/$defs/slot_priority"
+        }
+      ]
+    },
+    "slot_branch": {
+      "type": "object",
+      "required": [
+        "branches",
+        "name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/branch"
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "condition"
+                  ],
+                  "properties": {
+                    "condition": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ]
+        },
+        "mode": {
+          "const": "branch"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "additionalProperties": false
+    },
+    "branch": {
+      "type": "object",
+      "required": [
+        "condition",
+        "task"
+      ],
+      "properties": {
         "condition": {
           "oneOf": [
             {
@@ -2649,13 +2384,30 @@
               "type": "null"
             }
           ]
+        },
+        "task": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/task_use"
+            },
+            {
+              "$ref": "#/$defs/task_macro_use"
+            },
+            {
+              "$ref": "#/$defs/set_variable"
+            },
+            {
+              "$ref": "#/$defs/target_variable_operation"
+            },
+            {
+              "$ref": "#/$defs/adjust_probability_event"
+            },
+            {
+              "$ref": "#/$defs/schedule_event"
+            }
+          ]
         }
       },
-      "required": [
-        "task_key",
-        "flow_control",
-        "condition"
-      ],
       "additionalProperties": false
     },
     "condition": {
@@ -2743,9 +2495,6 @@
         },
         {
           "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
         }
       ]
     },
@@ -2821,25 +2570,595 @@
         },
         {
           "$ref": "#/$defs/event_property_operand"
-        },
-        {
-          "$ref": "#/$defs/environment_reference"
         }
       ]
     },
-    "runtime_week": {
+    "task_use": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "arguments"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/task_argument"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "task_argument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operand"
+        },
+        {
+          "$ref": "#/$defs/variable_reference_argument"
+        },
+        {
+          "$ref": "#/$defs/event_reference"
+        },
+        {
+          "$ref": "#/$defs/current_event_reference"
+        }
+      ]
+    },
+    "task_macro_use": {
+      "type": "object",
+      "required": [
+        "task_macro_id",
+        "arguments"
+      ],
+      "properties": {
+        "arguments": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uuid"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/task_argument"
+          }
+        },
+        "task_macro_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "set_variable": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id",
+        "value"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "set_variable",
+            "increment_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "value": {
+          "$ref": "#/$defs/operand"
+        },
+        "random_amplitude": {
+          "$ref": "#/$defs/numeric_operand",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "constant"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/numeric_operand"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "builtin": {
+                "const": "increment_variable"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "random_amplitude"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "target_variable_operation": {
+      "type": "object",
+      "required": [
+        "builtin",
+        "target_variable_id"
+      ],
+      "properties": {
+        "builtin": {
+          "enum": [
+            "toggle_variable",
+            "reset_variable"
+          ]
+        },
+        "target_variable_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "schedule_event": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "schedule_event"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/schedule_date"
+        },
+        "day_schedule_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "day_source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "random"
+                },
+                "candidates": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day_schedule_id": {
+                        "$ref": "#/$defs/uuid"
+                      },
+                      "weight": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": [
+                      "day_schedule_id",
+                      "weight"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "mode",
+                "candidates"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "execution_mode": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "builtin",
+        "display_name",
+        "date",
+        "execution_mode",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "day_schedule_id"
+          ],
+          "not": {
+            "required": [
+              "day_source"
+            ]
+          }
+        },
+        {
+          "required": [
+            "day_source"
+          ],
+          "not": {
+            "required": [
+              "day_schedule_id"
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "enum": [
+                  "interrupt_main",
+                  "interrupt_lower"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "priority": {
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "schedule_date": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "days"
+            },
+            "offset": {
+              "$ref": "#/$defs/numeric_operand"
+            }
+          },
+          "required": [
+            "mode",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "weeks_weekday"
+            },
+            "offset": {
+              "$ref": "#/$defs/numeric_operand"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "required": [
+            "mode",
+            "offset",
+            "weekday"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "slot_priority": {
       "type": "object",
       "properties": {
         "display_name": {
           "type": "string"
         },
+        "mode": {
+          "const": "priority"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/uuid"
+              },
+              "task": {
+                "$ref": "#/$defs/scoped_task_macro_use"
+              }
+            },
+            "required": [
+              "id",
+              "task"
+            ],
+            "additionalProperties": false
+          }
+        },
         "name": {
           "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "required": [
+        "mode",
+        "candidates",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "day_schedule": {
+      "type": "object",
+      "required": [
+        "slotIds",
+        "name"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "shared",
+            "week_private"
+          ]
+        },
+        "owner": {
+          "type": "object",
+          "required": [
+            "week_schedule_id",
+            "weekday"
+          ],
+          "properties": {
+            "week_schedule_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "weekday": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "slotIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "dayStartId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dayEndId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slotEvents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "startId",
+              "endId"
+            ],
+            "properties": {
+              "startId": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "endId": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+          },
+          "uniqueItems": true,
+          "description": "Tags preserved in executable days and used by event count filters."
+        },
+        "slotReleases": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/slot_release"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "purposes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "main",
+              "overlay",
+              "interrupt"
+            ]
+          },
+          "default": [
+            "main"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "scope"
+            ],
+            "properties": {
+              "scope": {
+                "const": "week_private"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "owner"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "owner"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "slot_release": {
+      "type": "object",
+      "properties": {
+        "builtin": {
+          "const": "release_slot"
+        },
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "builtin"
+      ],
+      "additionalProperties": false
+    },
+    "week_schedule": {
+      "type": "object",
+      "required": [
+        "days",
+        "name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string"
         },
         "days": {
           "type": "object",
+          "required": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
           "properties": {
             "mon": {
               "oneOf": [
@@ -2848,9 +3167,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2861,9 +3177,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2874,9 +3187,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2887,9 +3197,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2900,9 +3207,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2913,9 +3217,6 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             },
@@ -2926,540 +3227,349 @@
                 },
                 {
                   "type": "null"
-                },
-                {
-                  "$ref": "#/$defs/runtime_day"
                 }
               ]
             }
           },
-          "required": [
-            "mon",
-            "tue",
-            "wed",
-            "thu",
-            "fri",
-            "sat",
-            "sun"
-          ],
           "additionalProperties": false
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Required persistent symbol, unique within the object type; used by engine and blueprint references."
         }
       },
-      "required": [
-        "display_name",
-        "days"
-      ],
       "additionalProperties": false
     },
     "runtime_sequence": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
         "display_name": {
           "type": "string"
         },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-        },
-        "start_weekday": {
-          "enum": [
-            "mon",
-            "tue",
-            "wed",
-            "thu",
-            "fri",
-            "sat",
-            "sun"
-          ]
-        },
-        "end_weekday": {
-          "enum": [
-            "mon",
-            "tue",
-            "wed",
-            "thu",
-            "fri",
-            "sat",
-            "sun"
-          ]
-        },
-        "entries": {
+        "rows": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "week_id": {
-                "$ref": "#/$defs/uuid"
-              },
-              "repeat_count": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "minimum": 1
-              },
-              "day_overrides": {
-                "type": "object",
-                "properties": {
-                  "mon": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "tue": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "wed": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "thu": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "fri": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "sat": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "sun": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/$defs/uuid"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [],
-                "additionalProperties": false
-              }
-            },
-            "required": [
-              "week_id",
-              "repeat_count",
-              "day_overrides"
-            ],
-            "additionalProperties": false
+            "$ref": "#/$defs/runtime_row"
           }
         },
-        "event_groups": {
+        "startWeekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "endWeekday": {
+          "enum": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ]
+        },
+        "eventGroups": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/sequence_event_group"
+            "$ref": "#/$defs/runtime_event"
           }
         }
       },
       "required": [
-        "display_name",
-        "start_weekday",
-        "end_weekday",
-        "entries"
+        "name",
+        "rows",
+        "eventGroups"
       ],
       "additionalProperties": false
     },
-    "sequence_event_group": {
-      "oneOf": [
-        {
+    "runtime_row": {
+      "type": "object",
+      "properties": {
+        "weekId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repeatCount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "overrides": {
           "type": "object",
           "properties": {
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "day_schedule_id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "start": {
-              "$ref": "#/$defs/sequence_event_date"
-            },
-            "priority": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 9007199254740991
-            },
-            "display_name": {
-              "type": "string",
-              "minLength": 0
-            },
-            "kind": {
-              "const": "once"
-            },
-            "execution_mode": {
-              "enum": [
-                "overlay",
-                "interrupt_main",
-                "interrupt_lower"
+            "mon": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
-            "day_source": {
-              "$ref": "#/$defs/event_day_source"
+            "tue": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            "wed": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "thu": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "fri": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sat": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sun": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
-          "required": [
-            "id",
-            "kind",
-            "start",
-            "priority",
-            "name",
-            "display_name"
-          ],
-          "additionalProperties": false,
-          "oneOf": [
-            {
-              "required": [
-                "day_schedule_id"
-              ],
-              "not": {
-                "required": [
-                  "day_source"
-                ]
-              }
-            },
-            {
-              "required": [
-                "day_source"
-              ],
-              "not": {
-                "required": [
-                  "day_schedule_id"
-                ]
-              }
-            }
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "weekId",
+        "repeatCount",
+        "overrides"
+      ],
+      "additionalProperties": false
+    },
+    "runtime_event": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "once",
+            "periodic",
+            "probability"
           ]
         },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "day_schedule_id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "start": {
-              "$ref": "#/$defs/sequence_event_date"
-            },
-            "priority": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 9007199254740991
-            },
-            "display_name": {
-              "type": "string",
-              "minLength": 0
-            },
-            "kind": {
-              "const": "periodic"
-            },
-            "end": {
-              "$ref": "#/$defs/sequence_event_date"
-            },
-            "count_filter": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "all"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ],
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "day"
-                    },
-                    "day_schedule_id": {
-                      "$ref": "#/$defs/uuid"
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "day_schedule_id"
-                  ],
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "tag"
-                    },
-                    "tag": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "tag"
-                  ],
-                  "additionalProperties": false
-                }
-              ],
-              "default": {
-                "kind": "all"
-              }
-            },
-            "interval_days": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 9007199254740991
-            },
-            "execution_mode": {
-              "enum": [
-                "overlay",
-                "interrupt_main",
-                "interrupt_lower"
-              ]
-            },
-            "day_source": {
-              "$ref": "#/$defs/event_day_source"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-            }
-          },
-          "required": [
-            "id",
-            "kind",
-            "start",
-            "priority",
-            "end",
-            "interval_days",
-            "name",
-            "display_name"
-          ],
-          "additionalProperties": false,
-          "oneOf": [
-            {
-              "required": [
-                "day_schedule_id"
-              ],
-              "not": {
-                "required": [
-                  "day_source"
-                ]
-              }
-            },
-            {
-              "required": [
-                "day_source"
-              ],
-              "not": {
-                "required": [
-                  "day_schedule_id"
-                ]
-              }
-            }
+        "dayId": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/sequence_event_date"
+        },
+        "end": {
+          "$ref": "#/$defs/sequence_event_date"
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "executionMode": {
+          "enum": [
+            "overlay",
+            "interrupt_main",
+            "interrupt_lower"
           ]
         },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "day_schedule_id": {
-              "$ref": "#/$defs/uuid"
-            },
-            "start": {
-              "$ref": "#/$defs/sequence_event_date"
-            },
-            "priority": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 9007199254740991
-            },
-            "display_name": {
-              "type": "string",
-              "minLength": 0
-            },
-            "kind": {
-              "const": "probability"
-            },
-            "end": {
-              "$ref": "#/$defs/sequence_event_date"
-            },
-            "count_filter": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "all"
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ],
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "day"
-                    },
-                    "day_schedule_id": {
-                      "$ref": "#/$defs/uuid"
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "day_schedule_id"
-                  ],
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "const": "tag"
-                    },
-                    "tag": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "tag"
-                  ],
-                  "additionalProperties": false
-                }
-              ],
-              "default": {
-                "kind": "all"
+        "sourceMode": {
+          "enum": [
+            "fixed",
+            "random",
+            "sequential"
+          ]
+        },
+        "dayCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dayId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "exclusiveMinimum": 0
               }
             },
-            "probability_percent": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 100
+            "required": [
+              "dayId"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "countFilter": {
+          "$ref": "#/$defs/runtime_count"
+        },
+        "probability_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "cooldown_days": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "name",
+        "id",
+        "kind",
+        "start",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "sourceMode": {
+                "enum": [
+                  "random",
+                  "sequential"
+                ]
+              }
             },
-            "cooldown_days": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 9007199254740991
-            },
-            "execution_mode": {
-              "enum": [
-                "overlay",
-                "interrupt_main",
-                "interrupt_lower"
-              ]
-            },
-            "day_source": {
-              "$ref": "#/$defs/event_day_source"
-            },
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            "required": [
+              "sourceMode"
+            ]
+          },
+          "then": {
+            "required": [
+              "dayCandidates"
+            ]
+          },
+          "else": {
+            "required": [
+              "dayId"
+            ],
+            "properties": {
+              "dayId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "periodic"
+              }
             }
           },
-          "required": [
-            "id",
-            "kind",
-            "start",
-            "priority",
-            "end",
-            "probability_percent",
-            "cooldown_days",
-            "name",
-            "display_name"
-          ],
-          "additionalProperties": false,
-          "oneOf": [
-            {
-              "required": [
-                "day_schedule_id"
-              ],
-              "not": {
-                "required": [
-                  "day_source"
-                ]
-              }
-            },
-            {
-              "required": [
-                "day_source"
-              ],
-              "not": {
-                "required": [
-                  "day_schedule_id"
-                ]
+          "then": {
+            "required": [
+              "end",
+              "interval"
+            ],
+            "properties": {
+              "interval": {
+                "minimum": 1
               }
             }
-          ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "probability"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "end",
+              "probability_percent",
+              "cooldown_days"
+            ]
+          }
         }
       ]
     },
     "sequence_event_date": {
       "type": "object",
       "required": [
-        "week_number",
+        "week",
         "weekday"
       ],
       "properties": {
-        "week_number": {
+        "week": {
           "type": "integer",
           "minimum": 1
         },
@@ -3477,68 +3587,51 @@
       },
       "additionalProperties": false
     },
-    "event_day_source": {
+    "runtime_count": {
       "oneOf": [
         {
           "type": "object",
           "properties": {
-            "mode": {
-              "const": "random"
-            },
-            "candidates": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "object",
-                "properties": {
-                  "day_schedule_id": {
-                    "$ref": "#/$defs/uuid"
-                  },
-                  "weight": {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  }
-                },
-                "required": [
-                  "day_schedule_id",
-                  "weight"
-                ],
-                "additionalProperties": false
-              }
+            "kind": {
+              "const": "all"
             }
           },
           "required": [
-            "mode",
-            "candidates"
+            "kind"
           ],
           "additionalProperties": false
         },
         {
           "type": "object",
           "properties": {
-            "mode": {
-              "const": "sequential"
+            "kind": {
+              "const": "day"
             },
-            "candidates": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "object",
-                "properties": {
-                  "day_schedule_id": {
-                    "$ref": "#/$defs/uuid"
-                  }
-                },
-                "required": [
-                  "day_schedule_id"
-                ],
-                "additionalProperties": false
-              }
+            "day_schedule_id": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "required": [
-            "mode",
-            "candidates"
+            "kind",
+            "day_schedule_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "tag"
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "tag"
           ],
           "additionalProperties": false
         }

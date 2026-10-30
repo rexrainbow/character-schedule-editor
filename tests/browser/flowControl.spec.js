@@ -40,8 +40,8 @@ test('dedicated day slot adds unconditional release, exports one-parameter runti
   await expect(page.locator('.day-slot-release.configured')).toHaveCount(1);
   const data = await download(page, () => exportProject(page)); expect(data.day_schedules[days.High.id].slot_releases).toEqual([createRelease(), null, null]);
   const runtime = await download(page, () => exportRuntime(page));
-  expect(runtime.days[days.High.id].slot_releases[0]).toEqual({ task_key: 'control_release', flow_control: 'release_slot', condition: null });
-  expect(runtime.environment_requirements.tasks.find((t) => t.name === 'control_release').parameters).toHaveLength(1);
+  expect(Object.values(runtime.days).find((item) => item.display_name === days.High.name).slotReleases[0]).toEqual({ builtin: 'release_slot', condition: null });
+  expect(runtime.builtins.release_slot.symbol).toBe('control_release');
   await page.screenshot({ path: 'test-results/day-slot-release-desktop.png' });
   await runDay(page); await expect(page.locator('.simulation-cancel-reason')).toHaveCount(26);
   await expect(page.locator('.simulation-results')).toContainText('Slot released; skip this event');

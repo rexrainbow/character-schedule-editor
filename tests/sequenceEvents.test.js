@@ -30,9 +30,9 @@ test('event groups round-trip and export runtime rules referencing complete shar
   sequence.eventGroups = [rule(sequence, eventDay.id)];
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.deepEqual(runtime.data.sequences[sequence.id].event_groups, project.data.week_sequences[sequence.id].event_groups.map(({ symbol, icon, ...group }) => group));
-  assert.ok(runtime.data.days[eventDay.id].day_start_slot_id);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.equal(runtime.data.sequences[sequence.id].eventGroups[0].dayId, eventDay.id);
+  assert.ok(runtime.data.days[eventDay.id].dayStartId);
   for (const mutate of [
     (g) => { g.interval_days = -1; }, (g) => { g.priority = .5; }, (g) => { g.end.week_number = 4; },
     (g) => { g.end = { week_number: 1, weekday: 'mon' }; g.start.weekday = 'tue'; },
@@ -49,8 +49,8 @@ test('event names fall back, keys join global contracts, copies clear keys and t
   const group = rule(sequence, eventDay.id); group.symbol = 'event_inspection'; sequence.eventGroups = [group];
   const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.equal(project.data.week_sequences[sequence.id].event_groups[0].display_name, '');
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  assert.deepEqual(runtime.data.exports['eventGroups.event_inspection'], { kind: 'eventGroups', id: group.id, sequence_id: sequence.id });
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  assert.equal(runtime.data.sequences[sequence.id].eventGroups[0].name, 'event_inspection');
   group.display_name = 'Routine inspection';
   const tooltip = eventTooltip(group, draft.days, translator('en')).split('\n');
   assert.equal(tooltip.length, 4); assert.equal(tooltip[0], 'Routine inspection'); assert.ok(tooltip[1].includes('Every 7 days')); assert.ok(tooltip[2].includes('Week 1 / Monday')); assert.equal(tooltip[3], 'Priority: 0');
@@ -59,7 +59,7 @@ test('event names fall back, keys join global contracts, copies clear keys and t
   draft.days[0].symbol = group.symbol;
   assert.equal(engineKeyConflicts(engineKeyEntries(draft), 'eventGroups', group.id, group.symbol).length, 0);
   assert.deepEqual(compileProject(draft).errors, []);
-  assert.deepEqual(compileRuntime(draft).errors, []);
+  assert.deepEqual(compileRuntime(draft, { referenceMode: 'uuid' }).errors, []);
 });
 
 test('week operations keep rule positions; shortening removes whole invalid groups; shared-day deletion clears references', () => {

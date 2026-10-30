@@ -23,10 +23,10 @@ test('inclusive ranges count from the start date and round-trip/export without l
   assert.equal(sequenceDate(changed, 1, 'wed').after, true);
   draft.sequences = [changed]; const project = compileProject(draft); assert.deepEqual(project.errors, []);
   assert.deepEqual(compileProject(projectToDraft(project.data)).data, project.data);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.sequences[changed.id].start_weekday, 'thu');
-  assert.equal(runtime.data.sequences[changed.id].end_weekday, 'tue');
-  assert.equal(runtime.data.sequences[changed.id].entries.length, 2);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []); assert.deepEqual(validateRuntimeDocument(runtime.data), []);
+  assert.equal(runtime.data.sequences[changed.id].startWeekday, 'thu');
+  assert.equal(runtime.data.sequences[changed.id].endWeekday, 'tue');
+  assert.equal(runtime.data.sequences[changed.id].rows.length, 2);
   assert.equal(duplicateSequence(draft, changed).startWeekday, 'thu');
   assert.equal(moveSequenceRow(changed, changed.rows[1].uid, -1).endWeekday, 'tue');
   const legacy = structuredClone(project.data); delete legacy.week_sequences[changed.id].start_weekday; delete legacy.week_sequences[changed.id].end_weekday;

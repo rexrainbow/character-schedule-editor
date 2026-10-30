@@ -23,16 +23,16 @@ test('shared enum definitions and parameter references round-trip without copied
 });
 test('resolved enum references execute and export runtime catalogs with no editor tree or icons', () => {
   const { draft, sequence, group, macro, propertyEnumId, enumGroupId } = enumDefinitionsFixture();
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.task_macros[macro.id].parameters[0].enum_id, propertyEnumId);
-  assert.equal(runtime.data.enum_definitions[propertyEnumId].icon, undefined);
-  assert.equal(runtime.data.enum_definitions[propertyEnumId].parent_id, undefined);
-  assert.equal(runtime.data.enum_definitions[enumGroupId], undefined);
-  assert.deepEqual(runtime.data.exports['enums.enum_event_property'], { kind: 'enums', id: propertyEnumId });
+  assert.equal(runtime.data.macros[macro.id].parameters[0].enum_id, propertyEnumId);
+  assert.equal(runtime.data.enums[propertyEnumId].icon, undefined);
+  assert.equal(runtime.data.enums[propertyEnumId].parent_id, enumGroupId);
+  assert.equal(runtime.data.enums[enumGroupId].node_type, 'group');
+  assert.equal(runtime.data.enums[propertyEnumId].name, 'enum_event_property');
   const result = simulateSequenceDay(draft, sequence.id, 0, undefined, undefined, t, {}, { [group.id]: true });
   assert.deepEqual(result.errors, []); assert.equal(result.eventValues[group.id].probability_percent, 15);
-  const bad = structuredClone(runtime.data); delete bad.enum_definitions[propertyEnumId]; assert.ok(validateRuntimeDocument(bad).some((error) => error.key === 'missingEnumDefinition'));
+  const bad = structuredClone(runtime.data); delete bad.enums[propertyEnumId]; assert.ok(validateRuntimeDocument(bad).some((error) => error.key === 'missingReference'));
 });
 test('environment exports isolate their definitions and task references; application references cannot leak upward', () => {
   const { draft, property, propertyEnumId, operationEnumId } = enumDefinitionsFixture();

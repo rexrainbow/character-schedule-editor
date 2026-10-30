@@ -31,11 +31,11 @@ test('empty macro modes are callable and exportable; branch content can be remov
   expect(project.task_macros[sequence.id].steps).toEqual([]);
   expect(project.task_macros[branch.id].branches).toEqual([]);
   const runtime = await download(page, () => exportRuntime(page));
-  expect(runtime.task_macros[sequence.id].display_name).toBe('Runtime debug');
-  expect(runtime.task_macros[sequence.id].steps).toEqual([]);
-  expect(runtime.task_macros[branch.id].branches).toEqual([]);
-  expect(runtime.slots[draft.slots[0].id].branches[0].task.task_macro_id).toBe(sequence.id);
-  expect(runtime.environment_requirements.tasks).toEqual([]);
+  expect(Object.values(runtime.macros).find((item) => item.display_name === 'Runtime debug').display_name).toBe('Runtime debug');
+  expect(Object.values(runtime.macros).find((item) => item.display_name === 'Runtime debug').steps).toEqual([]);
+  expect(Object.values(runtime.macros).find((item) => item.display_name === branch.display_name).branches).toEqual([]);
+  expect(Object.values(runtime.slots).find((item) => item.display_name === draft.slots[0].name).branches[0].task.task_macro_id).toBe(Object.values(runtime.macros).find((item) => item.display_name === 'Runtime debug').name);
+  expect(Object.values(runtime.tasks)).toEqual([]);
   await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('zh-TW');
   await expect(page.getByText('此巨集沒有動作，可匯出作為除錯佔位；runtime 可印出巨集名稱後立即完成。', { exact: true })).toBeVisible();
 });

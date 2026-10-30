@@ -17,11 +17,11 @@ test('optional numeric bounds survive both layers, project/environment/runtime e
   assert.deepEqual(projectToDraft(project.data).operandNodes, draft.operandNodes);
   const env = compileEnvironment(draft); assert.deepEqual(env.errors, []);
   assert.equal(createProjectWithEnvironment('Imported', 3, env.data).operandNodes[number].max_value, 100);
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.deepEqual(validateRuntimeDocument(runtime.data), []);
-  assert.equal(runtime.data.environment_variables[0].children.find((node) => node.id === number).min_value, 0);
-  assert.equal(runtime.data.application_variables[0].min_value, -10);
-  assert.equal(Object.hasOwn(runtime.data.application_variables[0], 'max_value'), false);
+  assert.equal(runtime.data.variables[number].min_value, 0);
+  assert.equal(Object.values(runtime.data.variables).find((node) => node.scope === 'application').min_value, -10);
+  assert.equal(Object.hasOwn(Object.values(runtime.data.variables).find((node) => node.scope === 'application'), 'max_value'), false);
   const copy = duplicateOperandSubtree(draft.operandNodes, number); assert.equal(copy.nodes[copy.id].max_value, 100);
   const changed = changeOperandType(draft.operandNodes, [], number, 'string');
   assert.deepEqual(changed.blocked, []); assert.equal(Object.hasOwn(changed.nodes[number], 'min_value'), false);
@@ -73,7 +73,7 @@ test('clamped writes are visible to subsequent macro steps and reset uses valid 
   assert.deepEqual(result.errors, []); assert.deepEqual(result.calls.map((call) => call.after), [12, 7, 10]);
   const values = simulationInitialValues(draft); values[number] = 20;
   assert.ok(simulateSlot(draft, draft.slots[0].id, values).errors.some((error) => error.key === 'simulationValueOutsideBounds'));
-  const runtime = compileRuntime(draft); assert.deepEqual(runtime.errors, []);
-  runtime.data.environment_variables[0].children.find((node) => node.id === number).max_value = 5;
-  assert.ok(validateRuntimeDocument(runtime.data).some((error) => error.key === 'initialValueOutsideBounds'));
+  const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
+  runtime.data.variables[number].max_value = 5;
+  assert.ok(validateRuntimeDocument(runtime.data).some((error) => error.key === 'invalidStateValue'));
 });

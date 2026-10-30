@@ -5,10 +5,10 @@ import { resolveDraftEnums } from '../core/enumParameters.js';
 import { copy, fail, freeze, fingerprint, jsonCopy } from './utils.js';
 
 const collections = ['variables', 'expressions', 'enums', 'tasks', 'macros', 'slots', 'days', 'weeks', 'sequences'];
-const clean = (value) => {
-  if (Array.isArray(value)) return value.map(clean);
+const clean = (value, dictionary = false) => {
+  if (Array.isArray(value)) return value.map((item) => clean(item));
   if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(Object.entries(value).filter(([key, item]) => item !== undefined && !key.startsWith('_') && !['icon', 'description', 'uid'].includes(key)).map(([key, item]) => [key, clean(item)]));
+  return Object.fromEntries(Object.entries(value).filter(([key, item]) => item !== undefined && (dictionary || !key.startsWith('_') && !['icon', 'description', 'uid', 'option_icons', 'purposes'].includes(key))).map(([key, item]) => [key, clean(item, key === 'arguments')]));
 };
 
 /** Immutable executable definition, independent of handlers, listeners and run state. */
@@ -48,6 +48,7 @@ export class Program {
       for (const [key, item] of Object.entries(value)) {
         if (item === undefined || key.startsWith('_') || ['uid', 'icon', 'description', 'symbol'].includes(key)) continue;
         if (['reference_id', 'target_variable_id'].includes(key)) output[key] = ref('variables', item);
+        else if (key === 'dayId') output[key] = item ? ref('days', item) : item;
         else if (key === 'expression_macro_id') output[key] = ref('expressions', item);
         else if (key === 'parameter_id') output[key] = local.get(item) ?? fail('missingParameter', { ref: item });
         else if (key === 'task_id') output[key] = ref('tasks', item);
@@ -63,12 +64,17 @@ export class Program {
       }
       return output;
     }
-    const data = { format: 'schedule-runtime-program', referenceMode, settings: copy(draft.project.settings), builtins: clean(draft.builtinTasks ?? {}) };
+    const data = { format: 'schedule-runtime-program', referenceMode, display_name: draft.project.name, settings: copy(draft.project.settings), builtins: clean(draft.builtinTasks ?? {}) };
     for (const kind of collections) data[kind] = Object.fromEntries(source[kind].map((item) => {
       const local = new Map((item.parameters ?? []).map((p) => [p.id, referenceMode === 'uuid' ? p.id : p.symbol]));
       const result = transform(item, local);
       result.name = item.symbol; result.display_name = ['slots', 'days', 'weeks', 'sequences'].includes(kind) ? item.name : item.display_name;
       delete result.symbol; delete result.id;
+      if (kind === 'expressions') for (const field of ['source', 'node_type', 'parent_id', 'order']) delete result[field];
+      if (kind === 'variables' && item.node_type === 'value') result.initial_value = item.initial_value ?? (item.value_type === 'number' ? 0 : item.value_type === 'boolean' ? false : '');
+      if (kind === 'variables') result.scope = item.scope ?? 'environment';
+      if (kind === 'expressions') result.scope = item.scope ?? 'application';
+      if (kind === 'slots') { if (item.mode === 'priority') delete result.branches; else delete result.candidates; }
       if (item.parameters) result.parameters = item.parameters.map((p) => ({ ...transform(p, local), id: local.get(p.id), name: p.symbol }));
       if (kind === 'variables') result.parent_id = ref('variables', item.parent_id);
       if (kind === 'enums') result.parent_id = ref('enums', item.parent_id);
@@ -132,5 +138,10 @@ export class Program {
     for (const [, week] of this.entries('weeks')) for (const id of Object.values(week.days)) if (id != null) this.get('days', id);
     for (const [, sequence] of this.entries('sequences')) { if (sequenceRepeatErrors(sequence).length) fail('invalidWeekRepeat'); }
     for (const [, sequence] of this.entries('sequences')) for (const row of sequence.rows) { this.get('weeks', row.weekId); for (const id of Object.values(row.overrides)) if (id != null) this.get('days', id); }
+    for (const [, sequence] of this.entries('sequences')) for (const event of sequence.eventGroups ?? []) {
+      if (!event.sourceMode || event.sourceMode === 'fixed') this.get('days', event.dayId);
+      else for (const candidate of event.dayCandidates ?? []) this.get('days', candidate.dayId);
+      if (event.countFilter?.kind === 'day') this.get('days', event.countFilter.day_schedule_id);
+    }
   }
 }

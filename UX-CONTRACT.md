@@ -2,6 +2,10 @@
 
 ## Canonical UI Map
 
+Standalone runtime-demo uses the base stylesheet, shared locale resolution/translations and native controls as a separate host variant. One Runtime persists between day clicks. Loading/running disables conflicting actions and guards duplicate requests; validated file replacement is atomic. Sequence/seed lock after execution begins and unlock on explicit reset. Import errors preserve prior state; execution errors preserve completed log entries and require reset/reload. The local journal is not shared/project state and is not placed in URLs or storage. Only its log surface owns bounded scrolling; older days collapse and task entries load 200 at a time.
+
+Runtime export uses the same name-based Program JSON as Program.fromJSON(), across GUI, local API and MCP. Keep the existing download name and dirty-state behavior; invalid projects produce field/path errors and no artifact. Project saves, Blueprint rebuild input and runtime checkpoints remain distinct operations.
+
 Expression parameter values are local per invocation and reuse the canonical operand picker. Back returns directly to the parent operand, including nested call arguments; Cancel/Escape discard that picker draft. Builtin randomRange/randomItem signatures are fixed in environment mode and read-only in user mode. Custom expression parameters remain editable in their owning mode. Static previews never run expressions or advance random state.
 
 Random functions are provisioned at application-session startup, project load/reset and environment import in both the standalone browser and local service. They appear directly in the environment expression list without a separate install action. Preserve existing builtin UUIDs and custom labels; protect user-defined expressions when a default symbol collides.

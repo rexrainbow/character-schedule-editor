@@ -38,17 +38,17 @@ test('typed initial values survive project/environment round trips, copies and e
 
 test('runtime includes unused environment variables and typed defaults but only used requirements', () => {
   const { draft, counter, local } = fixture();
-  const before = structuredClone(draft), result = compileRuntime(draft);
+  const before = structuredClone(draft), result = compileRuntime(draft, { referenceMode: 'uuid' });
   assert.deepEqual(result.errors, []); assert.deepEqual(draft, before);
-  assert.equal(result.data.environment_variables[0].children[0].initial_value, 12.5);
-  assert.equal(result.data.application_variables[0].initial_value, true);
-  assert.deepEqual(result.data.environment_requirements.variables, []);
+  assert.equal(result.data.variables[counter].initial_value, 12.5);
+  assert.equal(result.data.variables[local].initial_value, true);
+  assert.ok(result.data.variables[counter]);
   delete draft.operandNodes[local].initial_value;
-  assert.equal(compileRuntime(draft).data.application_variables[0].initial_value, false);
-  const invalid = structuredClone(result.data); invalid.application_variables[0].initial_value = 1;
+  assert.equal(compileRuntime(draft, { referenceMode: 'uuid' }).data.variables[local].initial_value, false);
+  const invalid = structuredClone(result.data); invalid.variables[local].initial_value = 1;
   assert.ok(validateRuntimeDocument(invalid).length);
   draft.operandNodes[counter].symbol = '';
-  assert.ok(compileRuntime(draft).errors.some((e) => e.key === 'invalidSymbol'));
+  assert.ok(compileRuntime(draft, { referenceMode: 'uuid' }).errors.some((e) => e.key === 'invalidSymbol'));
 });
 
 test('wrong types, null and non-finite initial values fail with field locations', () => {

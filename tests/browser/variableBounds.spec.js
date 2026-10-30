@@ -30,8 +30,8 @@ test('optional limits validate initial values, export both layers and clear with
   await expect(min).toBeDisabled(); await expect(max).toBeDisabled();
   await page.getByRole('treeitem', { name: 'Local counter', exact: true }).click(); await min.fill('-5');
   const runtime = await download(page, () => exportRuntime(page));
-  expect(runtime.environment_variables[0].children.find((node) => node.id === counter).max_value).toBe(100);
-  expect(runtime.application_variables.find((node) => node.id === local).min_value).toBe(-5);
+  expect(runtime.variables.counter.max_value).toBe(100);
+  expect(Object.values(runtime.variables).find((node) => node.scope === 'application' && node.node_type === 'value').min_value).toBe(-5);
   await min.fill(''); const project = await download(page, () => exportProject(page));
   expect(project.operand_nodes[local].min_value).toBeUndefined(); expect(project.operand_nodes[local].max_value).toBeUndefined();
   await navigate(page, 'operands'); await page.getByRole('treeitem', { name: 'text', exact: true }).click();

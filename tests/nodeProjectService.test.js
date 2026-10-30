@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { createProjectService } from '../src/node/projectService.js';
 import { createProjectFiles } from '../src/node/projectFiles.js';
 import { createProjectSession } from '../src/core/projectApi.js';
+import { Program } from '../src/runtime/index.js';
 
 async function directory(t) {
   const root = await mkdtemp(join(tmpdir(), 'schedule-mcp-'));
@@ -63,7 +64,8 @@ test('exports use the same core compilations, preserve unsaved status and protec
   const report = await service.exportData({ format: 'report', path: 'report.md', expectedRevision: 1, includeUnreferenced: true });
   assert.equal(report.ok, true); assert.equal(report.dirty, true);
   assert.match(await readFile(join(root, 'report.md'), 'utf8'), /適用用途: 主要/);
-  const runtime = await service.exportData({ format: 'runtime' }); assert.equal(runtime.ok, true); assert.equal(runtime.value.days[created.id].purposes, undefined);
+  const runtime = await service.exportData({ format: 'runtime' }); assert.equal(runtime.ok, true); assert.equal(Object.values(runtime.value.days)[0].purposes, undefined);
+  assert.equal(runtime.value.referenceMode, 'name'); assert.deepEqual(Program.fromJSON(runtime.value).toJSON(), runtime.value);
   assert.equal((await service.exportData({ format: 'runtime', path: 'project.json', expectedRevision: 1, overwrite: true })).errors[0].code, 'projectFileIsReserved');
   assert.equal((await service.exportData({ format: 'runtime', path: 'runtime.json' })).errors[0].code, 'revisionRequired');
   assert.equal((await service.newProject({ expectedRevision: 1 })).errors[0].code, 'unsavedChanges');

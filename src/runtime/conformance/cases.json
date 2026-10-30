@@ -1,0 +1,4418 @@
+{
+  "format": "schedule-runtime-conformance",
+  "vectors": [
+    {
+      "seed": "1",
+      "initialState": 873244444,
+      "draws": [
+        {
+          "value": 0.8317172461972303,
+          "state": 241408774
+        },
+        {
+          "value": 0.826257279142396,
+          "state": 3904540400
+        },
+        {
+          "value": 0.5743482179496012,
+          "state": 3272704730
+        },
+        {
+          "value": 0.23591263265492834,
+          "state": 2640869060
+        }
+      ]
+    },
+    {
+      "seed": "port-測試😀",
+      "initialState": 1291516809,
+      "draws": [
+        {
+          "value": 0.1283470422395918,
+          "state": 659681139
+        },
+        {
+          "value": 0.7552224315107684,
+          "state": 27845469
+        },
+        {
+          "value": 0.04369100510815571,
+          "state": 3690977095
+        },
+        {
+          "value": 0.8078646574054086,
+          "state": 3059141425
+        }
+      ]
+    }
+  ],
+  "identities": [
+    {
+      "value": {
+        "z": 1,
+        "a": [
+          true,
+          null,
+          "測試😀"
+        ]
+      },
+      "fingerprint": "32b2c4eb32ecbd78"
+    },
+    {
+      "value": {
+        "a": 1e-7,
+        "b": 1e+21
+      },
+      "fingerprint": "c48542ed989fae5a"
+    }
+  ],
+  "cases": [
+    {
+      "id": "selection-and-writes",
+      "description": "Short-circuiting, priority, branch, truncation/clamp and reset baseline.",
+      "program": {
+        "format": "schedule-runtime-program",
+        "referenceMode": "name",
+        "display_name": "Character Schedule",
+        "settings": {
+          "slots_per_day": 3
+        },
+        "builtins": {},
+        "variables": {
+          "n": {
+            "display_name": "n",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 0,
+            "value_type": "number",
+            "read_only": false,
+            "initial_value": 8,
+            "min_value": 0,
+            "max_value": 10,
+            "integer_only": true,
+            "name": "n"
+          },
+          "zero": {
+            "display_name": "zero",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 1,
+            "value_type": "number",
+            "read_only": false,
+            "initial_value": 0,
+            "name": "zero"
+          }
+        },
+        "expressions": {},
+        "enums": {},
+        "tasks": {},
+        "macros": {
+          "unavailable": {
+            "display_name": "unavailable",
+            "mode": "sequence",
+            "parameters": [],
+            "eligibility": {
+              "kind": "comparison",
+              "operand_a": {
+                "type": "reference",
+                "reference_id": "n"
+              },
+              "comparator": ">",
+              "operand_b": {
+                "type": "constant",
+                "value": 100
+              }
+            },
+            "steps": [
+              {
+                "id": "steps_0",
+                "task": {
+                  "builtin": "set_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 99
+                  }
+                }
+              }
+            ],
+            "name": "unavailable"
+          },
+          "work": {
+            "display_name": "work",
+            "mode": "sequence",
+            "parameters": [],
+            "eligibility": {
+              "kind": "group",
+              "mode": "ALL",
+              "items": [
+                {
+                  "kind": "comparison",
+                  "operand_a": {
+                    "type": "constant",
+                    "value": true
+                  },
+                  "comparator": "==",
+                  "operand_b": {
+                    "type": "constant",
+                    "value": true
+                  }
+                },
+                {
+                  "kind": "group",
+                  "mode": "ANY",
+                  "items": [
+                    {
+                      "kind": "comparison",
+                      "operand_a": {
+                        "type": "constant",
+                        "value": true
+                      },
+                      "comparator": "==",
+                      "operand_b": {
+                        "type": "constant",
+                        "value": true
+                      }
+                    },
+                    {
+                      "kind": "comparison",
+                      "operand_a": {
+                        "type": "expression",
+                        "operator": "/",
+                        "operand_a": {
+                          "type": "constant",
+                          "value": 1
+                        },
+                        "operand_b": {
+                          "type": "reference",
+                          "reference_id": "zero"
+                        }
+                      },
+                      "comparator": ">",
+                      "operand_b": {
+                        "type": "constant",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "steps": [
+              {
+                "id": "steps_0",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 20
+                  }
+                }
+              },
+              {
+                "id": "steps_1",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": -2.8
+                  }
+                }
+              },
+              {
+                "id": "steps_2",
+                "task": {
+                  "builtin": "reset_variable",
+                  "target_variable_id": "n"
+                }
+              },
+              {
+                "id": "steps_3",
+                "task": {
+                  "task_macro_id": "finish",
+                  "arguments": {}
+                }
+              }
+            ],
+            "name": "work"
+          },
+          "finish": {
+            "display_name": "finish",
+            "mode": "branch",
+            "parameters": [],
+            "branches": [
+              {
+                "condition": {
+                  "kind": "comparison",
+                  "operand_a": {
+                    "type": "reference",
+                    "reference_id": "n"
+                  },
+                  "comparator": "==",
+                  "operand_b": {
+                    "type": "constant",
+                    "value": 8
+                  }
+                },
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": -3
+                  }
+                }
+              },
+              {
+                "condition": null,
+                "task": {
+                  "builtin": "set_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 0
+                  }
+                }
+              }
+            ],
+            "name": "finish"
+          }
+        },
+        "slots": {
+          "work": {
+            "name": "work",
+            "mode": "priority",
+            "candidates": [
+              {
+                "id": "candidates_0",
+                "task": {
+                  "task_macro_id": "unavailable",
+                  "arguments": {}
+                }
+              },
+              {
+                "id": "candidates_1",
+                "task": {
+                  "task_macro_id": "work",
+                  "arguments": {}
+                }
+              }
+            ],
+            "display_name": "work"
+          }
+        },
+        "days": {},
+        "weeks": {},
+        "sequences": {}
+      },
+      "options": {
+        "runId": "selection-and-writes",
+        "seed": "1",
+        "initialState": {
+          "n": 3
+        }
+      },
+      "handlers": {},
+      "operations": [
+        {
+          "op": "runSlot",
+          "slot": "work"
+        }
+      ],
+      "expected": [
+        {
+          "operation": {
+            "op": "runSlot",
+            "slot": "work"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 5,
+            "zero": 0
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 873244444,
+          "invocations": 4,
+          "date": null,
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:1",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:1",
+              "ref": "n",
+              "before": 3,
+              "after": 10
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:1",
+              "attempt": 1
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:2",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:2",
+              "ref": "n",
+              "before": 10,
+              "after": 7
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:2",
+              "attempt": 1
+            },
+            {
+              "event": "task.start",
+              "name": "reset_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:3",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:3",
+              "ref": "n",
+              "before": 7,
+              "after": 8
+            },
+            {
+              "event": "task.completed",
+              "name": "reset_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:3",
+              "attempt": 1
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:4",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:4",
+              "ref": "n",
+              "before": 8,
+              "after": 5
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "selection-and-writes:4",
+              "attempt": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seeded-weighted-selection",
+      "description": "Seeded functions, zero-weight fallback and eligible-only weighted choices.",
+      "program": {
+        "format": "schedule-runtime-program",
+        "referenceMode": "name",
+        "display_name": "Character Schedule",
+        "settings": {
+          "slots_per_day": 3
+        },
+        "builtins": {},
+        "variables": {
+          "n": {
+            "display_name": "n",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 0,
+            "value_type": "number",
+            "read_only": false,
+            "initial_value": 0,
+            "name": "n"
+          },
+          "text": {
+            "display_name": "text",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 1,
+            "value_type": "string",
+            "read_only": false,
+            "initial_value": "",
+            "name": "text"
+          }
+        },
+        "expressions": {
+          "randomRange": {
+            "display_name": "randomRange",
+            "scope": "environment",
+            "value_type": "number",
+            "parameters": [
+              {
+                "display_name": "min",
+                "id": "min",
+                "type": "number",
+                "name": "min"
+              },
+              {
+                "display_name": "max",
+                "id": "max",
+                "type": "number",
+                "name": "max"
+              }
+            ],
+            "definition": {
+              "kind": "builtin",
+              "builtin": "randomRange"
+            },
+            "name": "randomRange"
+          },
+          "randomItem": {
+            "display_name": "randomItem",
+            "scope": "environment",
+            "value_type": "any",
+            "parameters": [
+              {
+                "display_name": "items",
+                "id": "items",
+                "type": "any",
+                "variadic": true,
+                "name": "items"
+              }
+            ],
+            "definition": {
+              "kind": "builtin",
+              "builtin": "randomItem"
+            },
+            "name": "randomItem"
+          }
+        },
+        "enums": {},
+        "tasks": {},
+        "macros": {
+          "excluded": {
+            "display_name": "excluded",
+            "mode": "sequence",
+            "parameters": [],
+            "eligibility": {
+              "kind": "comparison",
+              "operand_a": {
+                "type": "constant",
+                "value": false
+              },
+              "comparator": "==",
+              "operand_b": {
+                "type": "constant",
+                "value": true
+              }
+            },
+            "steps": [
+              {
+                "id": "steps_0",
+                "task": {
+                  "builtin": "set_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 999
+                  }
+                }
+              }
+            ],
+            "name": "excluded"
+          },
+          "weighted": {
+            "display_name": "weighted",
+            "mode": "random",
+            "parameters": [],
+            "candidates": [
+              {
+                "id": "candidates_0",
+                "task": {
+                  "task_macro_id": "excluded",
+                  "arguments": {}
+                },
+                "weight": {
+                  "type": "constant",
+                  "value": 1000
+                }
+              },
+              {
+                "id": "candidates_1",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 2
+                  }
+                },
+                "weight": {
+                  "type": "constant",
+                  "value": 1
+                }
+              },
+              {
+                "id": "candidates_2",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 3
+                  }
+                },
+                "weight": {
+                  "type": "constant",
+                  "value": 2
+                }
+              }
+            ],
+            "fallback": null,
+            "name": "weighted"
+          },
+          "empty_pool": {
+            "display_name": "empty_pool",
+            "mode": "random",
+            "parameters": [],
+            "candidates": [
+              {
+                "id": "candidates_0",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 99
+                  }
+                },
+                "weight": {
+                  "type": "constant",
+                  "value": 0
+                }
+              }
+            ],
+            "fallback": {
+              "task": {
+                "task_macro_id": "weighted",
+                "arguments": {}
+              }
+            },
+            "name": "empty_pool"
+          },
+          "roll": {
+            "display_name": "roll",
+            "mode": "sequence",
+            "parameters": [],
+            "steps": [
+              {
+                "id": "steps_0",
+                "task": {
+                  "builtin": "set_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "expression_macro_reference",
+                    "expression_macro_id": "randomRange",
+                    "arguments": {
+                      "min": {
+                        "type": "constant",
+                        "value": 2
+                      },
+                      "max": {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "id": "steps_1",
+                "task": {
+                  "builtin": "set_variable",
+                  "target_variable_id": "text",
+                  "value": {
+                    "type": "expression_macro_reference",
+                    "expression_macro_id": "randomItem",
+                    "arguments": {
+                      "items": [
+                        {
+                          "type": "constant",
+                          "value": "red"
+                        },
+                        {
+                          "type": "constant",
+                          "value": "green"
+                        },
+                        {
+                          "type": "constant",
+                          "value": "blue"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "id": "steps_2",
+                "task": {
+                  "task_macro_id": "empty_pool",
+                  "arguments": {}
+                }
+              }
+            ],
+            "name": "roll"
+          }
+        },
+        "slots": {
+          "roll": {
+            "name": "roll",
+            "branches": [
+              {
+                "condition": null,
+                "task": {
+                  "task_macro_id": "roll",
+                  "arguments": {}
+                }
+              }
+            ],
+            "display_name": "roll"
+          }
+        },
+        "days": {},
+        "weeks": {},
+        "sequences": {}
+      },
+      "options": {
+        "runId": "seeded-weighted-selection",
+        "seed": "port-測試😀"
+      },
+      "handlers": {},
+      "operations": [
+        {
+          "op": "runSlot",
+          "slot": "roll"
+        }
+      ],
+      "expected": [
+        {
+          "operation": {
+            "op": "runSlot",
+            "slot": "roll"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 4.385041126718775,
+            "text": "blue"
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 3690977095,
+          "invocations": 3,
+          "date": null,
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll"
+            },
+            {
+              "event": "task.start",
+              "name": "set_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:1",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:1",
+              "ref": "n",
+              "before": 0,
+              "after": 2.385041126718775
+            },
+            {
+              "event": "task.completed",
+              "name": "set_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:1",
+              "attempt": 1
+            },
+            {
+              "event": "task.start",
+              "name": "set_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:2",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "text",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:2",
+              "ref": "text",
+              "before": "",
+              "after": "blue"
+            },
+            {
+              "event": "task.completed",
+              "name": "set_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:2",
+              "attempt": 1
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:3",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:3",
+              "ref": "n",
+              "before": 2.385041126718775,
+              "after": 4.385041126718775
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "roll",
+              "occurrenceId": "slot:roll",
+              "invocationId": "seeded-weighted-selection:3",
+              "attempt": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "days-events-and-release",
+      "description": "Repeat boundary, event priority, per-slot release, periodic counts, sequential sources and cooldown.",
+      "program": {
+        "format": "schedule-runtime-program",
+        "referenceMode": "name",
+        "display_name": "Character Schedule",
+        "settings": {
+          "slots_per_day": 2
+        },
+        "builtins": {},
+        "variables": {
+          "n": {
+            "display_name": "n",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 0,
+            "value_type": "number",
+            "read_only": false,
+            "initial_value": 0,
+            "name": "n"
+          }
+        },
+        "expressions": {},
+        "enums": {},
+        "tasks": {},
+        "macros": {},
+        "slots": {
+          "main": {
+            "name": "main",
+            "branches": [
+              {
+                "condition": null,
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 1
+                  }
+                }
+              }
+            ],
+            "display_name": "main"
+          },
+          "repair": {
+            "name": "repair",
+            "branches": [
+              {
+                "condition": null,
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 10
+                  }
+                }
+              }
+            ],
+            "display_name": "repair"
+          },
+          "bonus": {
+            "name": "bonus",
+            "branches": [
+              {
+                "condition": null,
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 100
+                  }
+                }
+              }
+            ],
+            "display_name": "bonus"
+          }
+        },
+        "days": {
+          "main": {
+            "name": "main",
+            "slotIds": [
+              "main",
+              "main"
+            ],
+            "tags": [
+              "working"
+            ],
+            "display_name": "main"
+          },
+          "repair": {
+            "name": "repair",
+            "slotIds": [
+              "repair",
+              "repair"
+            ],
+            "slotReleases": [
+              {
+                "builtin": "release_slot",
+                "condition": null
+              },
+              null
+            ],
+            "display_name": "repair"
+          },
+          "bonus": {
+            "name": "bonus",
+            "slotIds": [
+              null,
+              null
+            ],
+            "dayStartId": "bonus",
+            "display_name": "bonus"
+          },
+          "bonus_alt": {
+            "name": "bonus_alt",
+            "slotIds": [
+              null,
+              null
+            ],
+            "dayStartId": "bonus",
+            "display_name": "bonus_alt"
+          }
+        },
+        "weeks": {
+          "normal": {
+            "name": "normal",
+            "days": {
+              "mon": "main",
+              "tue": "main",
+              "wed": "main",
+              "thu": "main",
+              "fri": "main",
+              "sat": "main",
+              "sun": "main"
+            },
+            "display_name": "normal"
+          }
+        },
+        "sequences": {
+          "life": {
+            "name": "life",
+            "eventGroups": [
+              {
+                "executionMode": "interrupt_main",
+                "id": "repair",
+                "kind": "probability",
+                "display_name": "repair",
+                "dayId": "repair",
+                "start": {
+                  "week": 1,
+                  "weekday": "mon"
+                },
+                "end": {
+                  "week": 1,
+                  "weekday": "sun"
+                },
+                "interval": 1,
+                "countFilter": {
+                  "kind": "all"
+                },
+                "priority": 2,
+                "probability_percent": 100,
+                "cooldown_days": 1,
+                "name": "repair"
+              },
+              {
+                "executionMode": "overlay",
+                "id": "bonus",
+                "kind": "periodic",
+                "display_name": "bonus",
+                "sourceMode": "sequential",
+                "dayCandidates": [
+                  {
+                    "dayId": "bonus"
+                  },
+                  {
+                    "dayId": "bonus_alt"
+                  }
+                ],
+                "start": {
+                  "week": 1,
+                  "weekday": "mon"
+                },
+                "end": {
+                  "week": 1,
+                  "weekday": "sun"
+                },
+                "interval": 3,
+                "countFilter": {
+                  "kind": "tag",
+                  "tag": "working"
+                },
+                "priority": -1,
+                "name": "bonus",
+                "dayId": ""
+              }
+            ],
+            "rows": [
+              {
+                "repeatCount": null,
+                "weekId": "normal",
+                "overrides": {}
+              }
+            ],
+            "display_name": "life"
+          }
+        }
+      },
+      "options": {
+        "runId": "days-events-and-release",
+        "seed": "1"
+      },
+      "handlers": {},
+      "operations": [
+        {
+          "op": "runDay",
+          "sequence": "life"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        },
+        {
+          "op": "nextDay"
+        }
+      ],
+      "expected": [
+        {
+          "operation": {
+            "op": "runDay",
+            "sequence": "life"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 111
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 1
+            }
+          },
+          "sequential": {
+            "bonus": 1
+          },
+          "reservations": [],
+          "randomState": 241408774,
+          "invocations": 4,
+          "date": {
+            "position": 0,
+            "dayNumber": 1
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:0:bonus",
+              "invocationId": "days-events-and-release:1",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:0:bonus",
+              "invocationId": "days-events-and-release:1",
+              "ref": "n",
+              "before": 0,
+              "after": 100
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:0:bonus",
+              "invocationId": "days-events-and-release:1",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair",
+              "invocationId": "days-events-and-release:2",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "task.completed",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair",
+              "invocationId": "days-events-and-release:2",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:0:main",
+              "invocationId": "days-events-and-release:3",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:0:main",
+              "invocationId": "days-events-and-release:3",
+              "ref": "n",
+              "before": 100,
+              "after": 101
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:0:main",
+              "invocationId": "days-events-and-release:3",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:0:repair",
+              "invocationId": "days-events-and-release:4",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:0:repair",
+              "invocationId": "days-events-and-release:4",
+              "ref": "n",
+              "before": 101,
+              "after": 111
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:0:repair",
+              "invocationId": "days-events-and-release:4",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:0:bonus"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 113
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 0
+            }
+          },
+          "sequential": {
+            "bonus": 1
+          },
+          "reservations": [],
+          "randomState": 241408774,
+          "invocations": 6,
+          "date": {
+            "position": 1,
+            "dayNumber": 2
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:5",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:5",
+              "ref": "n",
+              "before": 111,
+              "after": 112
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:5",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:6",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:6",
+              "ref": "n",
+              "before": 112,
+              "after": 113
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:1:main",
+              "invocationId": "days-events-and-release:6",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:1:main"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 124
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 1
+            }
+          },
+          "sequential": {
+            "bonus": 1
+          },
+          "reservations": [],
+          "randomState": 3904540400,
+          "invocations": 9,
+          "date": {
+            "position": 2,
+            "dayNumber": 3
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair",
+              "invocationId": "days-events-and-release:7",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "task.completed",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair",
+              "invocationId": "days-events-and-release:7",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:2:main",
+              "invocationId": "days-events-and-release:8",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:2:main",
+              "invocationId": "days-events-and-release:8",
+              "ref": "n",
+              "before": 113,
+              "after": 114
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:2:main",
+              "invocationId": "days-events-and-release:8",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:2:repair",
+              "invocationId": "days-events-and-release:9",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:2:repair",
+              "invocationId": "days-events-and-release:9",
+              "ref": "n",
+              "before": 114,
+              "after": 124
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:2:repair",
+              "invocationId": "days-events-and-release:9",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:2:main"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 226
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 0
+            }
+          },
+          "sequential": {
+            "bonus": 2
+          },
+          "reservations": [],
+          "randomState": 3904540400,
+          "invocations": 12,
+          "date": {
+            "position": 3,
+            "dayNumber": 4
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:3:bonus",
+              "invocationId": "days-events-and-release:10",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:3:bonus",
+              "invocationId": "days-events-and-release:10",
+              "ref": "n",
+              "before": 124,
+              "after": 224
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:3:bonus",
+              "invocationId": "days-events-and-release:10",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:11",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:11",
+              "ref": "n",
+              "before": 224,
+              "after": 225
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:11",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:12",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:12",
+              "ref": "n",
+              "before": 225,
+              "after": 226
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:3:main",
+              "invocationId": "days-events-and-release:12",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus_alt",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:3:bonus"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 237
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 1
+            }
+          },
+          "sequential": {
+            "bonus": 2
+          },
+          "reservations": [],
+          "randomState": 3272704730,
+          "invocations": 15,
+          "date": {
+            "position": 4,
+            "dayNumber": 5
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair",
+              "invocationId": "days-events-and-release:13",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "task.completed",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair",
+              "invocationId": "days-events-and-release:13",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:4:main",
+              "invocationId": "days-events-and-release:14",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:4:main",
+              "invocationId": "days-events-and-release:14",
+              "ref": "n",
+              "before": 226,
+              "after": 227
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:4:main",
+              "invocationId": "days-events-and-release:14",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:4:repair",
+              "invocationId": "days-events-and-release:15",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:4:repair",
+              "invocationId": "days-events-and-release:15",
+              "ref": "n",
+              "before": 227,
+              "after": 237
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:4:repair",
+              "invocationId": "days-events-and-release:15",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:4:main"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 239
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 0
+            }
+          },
+          "sequential": {
+            "bonus": 2
+          },
+          "reservations": [],
+          "randomState": 3272704730,
+          "invocations": 17,
+          "date": {
+            "position": 5,
+            "dayNumber": 6
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:16",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:16",
+              "ref": "n",
+              "before": 237,
+              "after": 238
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:16",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:17",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:17",
+              "ref": "n",
+              "before": 238,
+              "after": 239
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:5:main",
+              "invocationId": "days-events-and-release:17",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:5:main"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 350
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 1
+            }
+          },
+          "sequential": {
+            "bonus": 3
+          },
+          "reservations": [],
+          "randomState": 2640869060,
+          "invocations": 21,
+          "date": {
+            "position": 6,
+            "dayNumber": 7
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:6:bonus",
+              "invocationId": "days-events-and-release:18",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:6:bonus",
+              "invocationId": "days-events-and-release:18",
+              "ref": "n",
+              "before": 239,
+              "after": 339
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": "bonus",
+              "occurrenceId": "days-events-and-release:life:6:bonus",
+              "invocationId": "days-events-and-release:18",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair",
+              "invocationId": "days-events-and-release:19",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "task.completed",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair",
+              "invocationId": "days-events-and-release:19",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:6:main",
+              "invocationId": "days-events-and-release:20",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:6:main",
+              "invocationId": "days-events-and-release:20",
+              "ref": "n",
+              "before": 339,
+              "after": 340
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:6:main",
+              "invocationId": "days-events-and-release:20",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:6:repair",
+              "invocationId": "days-events-and-release:21",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:6:repair",
+              "invocationId": "days-events-and-release:21",
+              "ref": "n",
+              "before": 340,
+              "after": 350
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:6:repair",
+              "invocationId": "days-events-and-release:21",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:main"
+            },
+            {
+              "event": "assignment.start",
+              "name": "bonus",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "bonus",
+              "dayRef": "bonus",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:6:bonus"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 352
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 0
+            }
+          },
+          "sequential": {
+            "bonus": 3
+          },
+          "reservations": [],
+          "randomState": 2640869060,
+          "invocations": 23,
+          "date": {
+            "position": 7,
+            "dayNumber": 8
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:22",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:22",
+              "ref": "n",
+              "before": 350,
+              "after": 351
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:22",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:23",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:23",
+              "ref": "n",
+              "before": 351,
+              "after": 352
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:7:main",
+              "invocationId": "days-events-and-release:23",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:7:main"
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "nextDay"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 363
+          },
+          "events": {
+            "repair": {
+              "probability_percent": 100,
+              "cooldown_days": 1,
+              "cooldown_remaining": 1
+            }
+          },
+          "sequential": {
+            "bonus": 3
+          },
+          "reservations": [],
+          "randomState": 2009033390,
+          "invocations": 26,
+          "date": {
+            "position": 8,
+            "dayNumber": 9
+          },
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "day.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair",
+              "invocationId": "days-events-and-release:24",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "task.completed",
+              "name": "release_slot",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair",
+              "invocationId": "days-events-and-release:24",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:8:main",
+              "invocationId": "days-events-and-release:25",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:8:main",
+              "invocationId": "days-events-and-release:25",
+              "ref": "n",
+              "before": 352,
+              "after": 353
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:8:main",
+              "invocationId": "days-events-and-release:25",
+              "attempt": 1
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 0,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.start",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.start",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:8:repair",
+              "invocationId": "days-events-and-release:26",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:8:repair",
+              "invocationId": "days-events-and-release:26",
+              "ref": "n",
+              "before": 353,
+              "after": 363
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": "repair",
+              "occurrenceId": "days-events-and-release:life:8:repair",
+              "invocationId": "days-events-and-release:26",
+              "attempt": 1
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.body",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": "main",
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "slot.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.skipped",
+              "name": "main",
+              "phase": "slot.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            },
+            {
+              "event": "phase.start",
+              "phase": "day.end",
+              "slotIndex": 1
+            },
+            {
+              "event": "assignment.start",
+              "name": "repair",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "eventRef": "repair",
+              "dayRef": "repair",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:repair"
+            },
+            {
+              "event": "assignment.start",
+              "name": "main",
+              "phase": "day.end",
+              "slotIndex": 1,
+              "dayRef": "main",
+              "slotRef": null,
+              "occurrenceId": "days-events-and-release:life:8:main"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pending-task-resume",
+      "description": "Pause rolls back staged writes; restore retries only the pending task with frozen random arguments.",
+      "program": {
+        "format": "schedule-runtime-program",
+        "referenceMode": "name",
+        "display_name": "Character Schedule",
+        "settings": {
+          "slots_per_day": 3
+        },
+        "builtins": {},
+        "variables": {
+          "n": {
+            "display_name": "n",
+            "node_type": "value",
+            "scope": "application",
+            "parent_id": null,
+            "order": 0,
+            "value_type": "number",
+            "read_only": false,
+            "initial_value": 0,
+            "name": "n"
+          }
+        },
+        "expressions": {
+          "randomRange": {
+            "display_name": "randomRange",
+            "scope": "environment",
+            "value_type": "number",
+            "parameters": [
+              {
+                "display_name": "min",
+                "id": "min",
+                "type": "number",
+                "name": "min"
+              },
+              {
+                "display_name": "max",
+                "id": "max",
+                "type": "number",
+                "name": "max"
+              }
+            ],
+            "definition": {
+              "kind": "builtin",
+              "builtin": "randomRange"
+            },
+            "name": "randomRange"
+          },
+          "randomItem": {
+            "display_name": "randomItem",
+            "scope": "environment",
+            "value_type": "any",
+            "parameters": [
+              {
+                "display_name": "items",
+                "id": "items",
+                "type": "any",
+                "variadic": true,
+                "name": "items"
+              }
+            ],
+            "definition": {
+              "kind": "builtin",
+              "builtin": "randomItem"
+            },
+            "name": "randomItem"
+          }
+        },
+        "enums": {},
+        "tasks": {
+          "wait": {
+            "display_name": "wait",
+            "parameters": [
+              {
+                "display_name": "amount",
+                "id": "amount",
+                "type": "number",
+                "name": "amount"
+              }
+            ],
+            "name": "wait"
+          }
+        },
+        "macros": {
+          "work": {
+            "display_name": "work",
+            "mode": "sequence",
+            "parameters": [],
+            "steps": [
+              {
+                "id": "steps_0",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "id": "steps_1",
+                "task": {
+                  "task_id": "wait",
+                  "arguments": {
+                    "amount": {
+                      "type": "expression_macro_reference",
+                      "expression_macro_id": "randomRange",
+                      "arguments": {
+                        "min": {
+                          "type": "constant",
+                          "value": 2
+                        },
+                        "max": {
+                          "type": "constant",
+                          "value": 5
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "id": "steps_2",
+                "task": {
+                  "builtin": "increment_variable",
+                  "target_variable_id": "n",
+                  "value": {
+                    "type": "constant",
+                    "value": 10
+                  }
+                }
+              }
+            ],
+            "name": "work"
+          }
+        },
+        "slots": {
+          "work": {
+            "name": "work",
+            "branches": [
+              {
+                "condition": null,
+                "task": {
+                  "task_macro_id": "work",
+                  "arguments": {}
+                }
+              }
+            ],
+            "display_name": "work"
+          }
+        },
+        "days": {},
+        "weeks": {},
+        "sequences": {}
+      },
+      "options": {
+        "runId": "pending-task-resume",
+        "seed": "1"
+      },
+      "handlers": {
+        "wait": [
+          {
+            "op": "increment",
+            "variable": "n",
+            "argument": "amount"
+          }
+        ]
+      },
+      "operations": [
+        {
+          "op": "startSlot",
+          "slot": "work"
+        },
+        {
+          "op": "step"
+        },
+        {
+          "op": "resumeAndPause",
+          "task": "wait"
+        },
+        {
+          "op": "restore"
+        },
+        {
+          "op": "resume"
+        }
+      ],
+      "expected": [
+        {
+          "operation": {
+            "op": "startSlot",
+            "slot": "work"
+          },
+          "error": null,
+          "status": "ready",
+          "variables": {
+            "n": 0
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 873244444,
+          "invocations": 0,
+          "date": null,
+          "pending": null,
+          "trace": []
+        },
+        {
+          "operation": {
+            "op": "step"
+          },
+          "error": null,
+          "status": "paused",
+          "variables": {
+            "n": 1
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 873244444,
+          "invocations": 1,
+          "date": null,
+          "pending": null,
+          "trace": [
+            {
+              "event": "phase.start",
+              "phase": "slot.body",
+              "slotIndex": 0
+            },
+            {
+              "event": "assignment.start",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work"
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:1",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:1",
+              "ref": "n",
+              "before": 0,
+              "after": 1
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:1",
+              "attempt": 1
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "resumeAndPause",
+            "task": "wait"
+          },
+          "error": null,
+          "status": "paused",
+          "variables": {
+            "n": 1
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 241408774,
+          "invocations": 2,
+          "date": null,
+          "pending": {
+            "name": "wait",
+            "arguments": {
+              "amount": 4.495151738591691
+            },
+            "invocationId": "pending-task-resume:2",
+            "attempt": 1
+          },
+          "trace": [
+            {
+              "event": "task.start",
+              "name": "wait",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:2",
+              "attempt": 1,
+              "arguments": {
+                "amount": 4.495151738591691
+              }
+            }
+          ]
+        },
+        {
+          "operation": {
+            "op": "restore"
+          },
+          "error": null,
+          "status": "paused",
+          "variables": {
+            "n": 1
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 241408774,
+          "invocations": 2,
+          "date": null,
+          "pending": {
+            "name": "wait",
+            "arguments": {
+              "amount": 4.495151738591691
+            },
+            "invocationId": "pending-task-resume:2",
+            "attempt": 1
+          },
+          "trace": []
+        },
+        {
+          "operation": {
+            "op": "resume"
+          },
+          "error": null,
+          "status": "completed",
+          "variables": {
+            "n": 15.49515173859169
+          },
+          "events": {},
+          "sequential": {},
+          "reservations": [],
+          "randomState": 241408774,
+          "invocations": 3,
+          "date": null,
+          "pending": null,
+          "trace": [
+            {
+              "event": "task.start",
+              "name": "wait",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:2",
+              "attempt": 2,
+              "arguments": {
+                "amount": 4.495151738591691
+              }
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:2",
+              "ref": "n",
+              "before": 1,
+              "after": 5.495151738591691
+            },
+            {
+              "event": "task.completed",
+              "name": "wait",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:2",
+              "attempt": 2
+            },
+            {
+              "event": "task.start",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:3",
+              "attempt": 1,
+              "arguments": {}
+            },
+            {
+              "event": "variable.change",
+              "name": "n",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:3",
+              "ref": "n",
+              "before": 5.495151738591691,
+              "after": 15.49515173859169
+            },
+            {
+              "event": "task.completed",
+              "name": "increment_variable",
+              "phase": "slot.body",
+              "slotIndex": 0,
+              "slotRef": "work",
+              "occurrenceId": "slot:work",
+              "invocationId": "pending-task-resume:3",
+              "attempt": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -52,7 +52,7 @@ test('descriptions survive project, YAML and environment round trips; runtime co
   const environment = good(compileEnvironment(draft)).data;
   assert.ok(Object.values(environment.operand_nodes).some((node) => node.description?.includes('variables.stamina')));
   assert.ok(Object.values(environment.tasks).some((task) => task.description === 'Engine notification.'));
-  assert.doesNotMatch(JSON.stringify(good(compileRuntime(draft)).data), /"description":/);
+  assert.doesNotMatch(JSON.stringify(good(compileRuntime(draft, { referenceMode: 'uuid' })).data), /"description":/);
   const report = good(compileReport(draft, { includeUnreferenced: true, t })).data;
   assert.match(report, /Interrupt with cold day/); assert.match(report, /Perform work/); assert.match(report, /days\.working intent/);
 });

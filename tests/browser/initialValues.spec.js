@@ -29,11 +29,11 @@ test('initial values respect layer locks and runtime exports include unused envi
   await expect(page.getByRole('checkbox', { name: 'Read only', exact: true })).toBeChecked();
   await navigate(page, 'operands', 'en', 'user');
   const runtime = await download(page, () => exportRuntime(page));
-  expect(runtime.application_variables.find((n) => n.id === local).initial_value).toBe(42.5);
-  const leaves = runtime.environment_variables[0].children;
+  expect(Object.values(runtime.variables).find((n) => n.scope === 'application' && n.node_type === 'value').initial_value).toBe(42.5);
+  const leaves = Object.values(runtime.variables).filter((n) => n.scope === 'environment' && n.node_type === 'value');
   expect(leaves.find((n) => n.display_name === 'limit').initial_value).toBe(8);
-  expect(leaves.find((n) => n.id === counter).initial_value).toBe(0);
-  expect(runtime.environment_requirements.variables.some((n) => n.name === 'limit')).toBe(false);
+  expect(leaves.find((n) => n.name === 'counter').initial_value).toBe(0);
+  expect(runtime.variables.limit.scope).toBe('environment');
 });
 
 test('type changes confirm initial value reset, cancel preserves data, and all three inputs save typed values', async ({ page }) => {

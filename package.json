@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
+    "build:runtime-demo": "vite build --config runtime-demo/vite.config.js",
+    "preview:runtime-demo": "vite preview --config runtime-demo/vite.config.js --host 127.0.0.1",
     "build:agent-kit": "node scripts/build-agent-kit.mjs",
+    "build:runtime-conformance": "node scripts/build-runtime-conformance.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "mcp": "node src/node/main.js",
     "serve": "node src/node/main.js --web --no-stdio",

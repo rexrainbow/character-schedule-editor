@@ -39,7 +39,7 @@ test('purposes round-trip and copy to shared/private days, but remain outside ru
   const customized = changeWeekCell(f.draft, f.draft.weeks[0].id, 'mon', 0, f.activity.id);
   const privateDay = customized.days.find((day) => day.scope === 'week_private');
   assert.deepEqual(privateDay.purposes, original.purposes);
-  const runtime = compileRuntime(f.draft); assert.deepEqual(runtime.errors, []);
+  const runtime = compileRuntime(f.draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   assert.equal(runtime.data.days[f.main.id].purposes, undefined);
   assert.deepEqual(runtime.data.days[f.main.id].tags, ['Office']);
 });

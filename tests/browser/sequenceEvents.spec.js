@@ -241,7 +241,7 @@ test('tag counting updates recurrence, calendar markers, summaries and runtime t
   const data = await saved(page); expect(data.week_sequences[sequence.id].event_groups[0].count_filter).toEqual({ kind: 'tag', tag: 'Work' });
   expect(data.week_sequences[sequence.id].event_groups[0].skip_weekdays).toBeUndefined();
   const pending = page.waitForEvent('download'); await exportRuntime(page);
-  const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8')); expect(runtime.days[main.id].tags).toEqual(['Work']);
+  const runtime = JSON.parse(await readFile(await (await pending).path(), 'utf8')); expect(Object.values(runtime.days).find((item) => item.display_name === main.name).tags).toEqual(['Work']);
   await manager(page, 1); await dialog.getByRole('combobox', { name: 'Count dates by', exact: true }).selectOption('all');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   expect((await saved(page)).week_sequences[sequence.id].event_groups[0].count_filter).toEqual({ kind: 'tag', tag: 'Work' });

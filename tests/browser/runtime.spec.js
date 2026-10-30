@@ -29,6 +29,15 @@ test('project I/O lives in system menu; runtime export keeps debug names and doe
   const runtime = await download(page, () => exportRuntime(page));
   expect(runtime.name).toBe('character-schedule-runtime.json');
   expect(validateRuntimeDocument(runtime.data)).toEqual([]);
+  expect(runtime.data.format).toBe('schedule-runtime-program'); expect(runtime.data.referenceMode).toBe('name');
+  const executed = await page.evaluate(async (data) => {
+    const { Program, Runtime } = await import('/src/runtime/index.js');
+    const engine = new Runtime({ program: Program.fromJSON(data), unhandledTasks: 'record' });
+    const tasks = []; engine.on('task.completed', (event) => tasks.push(event.name));
+    await engine.runSlot({ slot: Object.keys(data.slots)[0] });
+    return { status: engine.status, tasks };
+  }, runtime.data);
+  expect(executed.status).toBe('completed'); expect(executed.tasks.length).toBeGreaterThan(0);
   expect(Object.values(runtime.data.days).some((day) => day.display_name === 'Debug day')).toBe(true);
   expect(await dirty(page)).toBe(true);
   const project = await download(page, () => exportProject(page));

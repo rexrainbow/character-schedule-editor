@@ -1,6 +1,6 @@
 # Environment files and startup
 
-環境層變數葉節點的 `initial_value` 會隨環境檔保存及載入；群組沒有初始值。環境替換採用新環境定義的初始值，並保留應用層初始值。型別不符時拒絕匯入並指出欄位位置。Runtime 匯出另含完整環境變數樹，由 engine 決定是否套用環境初始值，詳見 [INITIAL_VALUES.md](./INITIAL_VALUES.md)。
+環境層變數葉節點的 `initial_value` 會隨環境檔保存及載入；群組沒有初始值。環境替換採用新環境定義的初始值，並保留應用層初始值。型別不符時拒絕匯入並指出欄位位置。Runtime Program 的 variables 字典包含完整環境定義，由宿主決定是否覆寫環境初值，詳見 [INITIAL_VALUES.md](INITIAL_VALUES.md)。
 
 啟動時顯示起始畫面，不自動開啟專案設定。可匯入完整專案，或建立新專案並選擇是否匯入環境。
 
@@ -50,4 +50,4 @@
 7. 檢查環境 UUID 與應用節點是否碰撞，再執行候選專案完整驗證，包括樹路徑、巨集作用域與全部引用。尚未完成或其他不合法的應用內容也會阻止套用。
 8. 預覽顯示環境資訊、已解析的變數／任務定義數及問題位置。全部檢查通過才可套用；取消或錯誤均保留原專案，不刪除使用者內容、不清空引用。
 
-Runtime 的 `environment_requirements.environment` 在專案已有識別資訊時附上環境 ID、顯示名稱及內容版本，另保留實際使用的變數與任務契約。engine 可核對環境識別及契約；編輯器不提供 engine 實作或自動版本升級。
+Runtime 匯出統一為 [Program JSON](RUNTIME.md)，以 variables 的 scope、tasks 及 builtins 保存執行定義，不再附另一份 environment_requirements.environment。環境識別與版本保留於專案／環境存檔；外部任務 handler 由宿主依名稱提供。

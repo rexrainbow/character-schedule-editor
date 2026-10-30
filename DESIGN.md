@@ -30,6 +30,8 @@ A character's schedule is an executable calendar. The distinctive visual element
 
 ### Product context and register
 
+The standalone runtime-demo is a read/run host, not another editor. It reuses the base stylesheet tokens with a compact file/sequence/seed toolbar and one chronological task journal. Day boundaries are the signature structure; older days collapse and task rows load in batches. Its stylesheet owns only this independent document's geometry and scrollbar baseline. Native selects/file input keep existing interaction conventions; no React editor shell is imported.
+
 Product tool for people authoring reusable character schedules and testing their logic. Desktop uses side-by-side inputs/results; narrow screens use input/result tabs. English and Traditional Chinese follow the existing locale provider in `src/i18n/index.js`; neither locale implies a country-specific business workflow. No Japanese locale is currently supported.
 
 ### Token ownership/runtime mapping

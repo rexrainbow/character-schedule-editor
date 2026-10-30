@@ -33,7 +33,7 @@
 
 ## 儲存、API 與藍圖
 
-專案存檔新增選填 `week_repeat_counts`，與 `week_schedule_ids` 同長、逐筆對應，省略表示每筆一次。陣列元素是正整數或 null。Runtime JSON 的 `sequences.*.entries[]` 對應欄位為 `repeat_count`；Runtime Program 的 row 欄位為 `repeatCount`。
+專案存檔新增選填 `week_repeat_counts`，與 `week_schedule_ids` 同長、逐筆對應，省略表示每筆一次。陣列元素是正整數或 null。執行資料統一為 Runtime Program，對應欄位為 `sequences.*.rows[].repeatCount`。
 
 Core API：
 

@@ -49,7 +49,7 @@
 
 ## 匯出與驗證
 
-專案、環境及 runtime Schema 均包含 enum 定義。自訂選項的參數保存 options；共用列舉的參數保存 enum_id，runtime 由頂層 enum_definitions 查找選項。固定參數仍輸出字串常數，巨集內引用仍以參數 UUID 傳遞。Engine 在呼叫時應驗證解析後的值屬於接收方選項，並以字串供條件判斷使用。
+專案、環境及 runtime Schema 均包含 enum 定義。Runtime Program 的共用列舉參數保留 enum_id，並附解析後的 options；列舉在 enums 集合。固定引數仍為字串常數，巨集參數在預設 name 模式下以局部名稱引用。Engine 須驗證值屬於接收方選項，詳見 [RUNTIME.md](RUNTIME.md)。
 
 「調整機率事件」runtime 輸出的 property/operation，可為固定字串或參數引用物件；引擎須先在目前巨集呼叫作用域解析後，才執行設定變更。
 
