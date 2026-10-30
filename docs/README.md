@@ -8,7 +8,9 @@
 
 ## Agent 離線文件包
 
-執行 `npm run build:agent-kit`，會先更新 Blueprint Schema，再將中英文一頁式介紹、YAML 格式、Engine 語意、命名規則、能力總覽、Recipes 與完整範例輸出至 `agent-kit/`。產物提供從工具介紹開始的閱讀順序與驗證說明，可整包分享給 agent；不包含 MCP server、GUI 或 parser。來源文件仍維護於原位置，產生時改寫相對連結，未收錄文件改為專案路徑說明，並檢查缺檔及失效的本地檔案連結。`agent-kit/` 已加入 `.gitignore`，每次重新產生會替換既有產物。
+執行 `npm run build:agent-kit`，先更新 Blueprint Schema 與圖示清單，再輸出單層、五個檔案的 `agent-kit/`：README.md、BLUEPRINT_GUIDE.md、blueprint.schema.json、example.yaml、icons.json。一般只需閱讀[精簡指南](BLUEPRINT_GUIDE.md)與範例，Schema 與圖示按需查閱；不包含 MCP server、GUI 或 parser。閱讀入口來源為 [AGENT_KIT.md](AGENT_KIT.md)，完整技術文件與獨立 recipes 仍保留於 docs，不全部複製。產生時會改寫並檢查離線連結與 Schema 的語意文件指向；每次重新產生會替換既有產物，移除舊結構。
+
+變更藍圖語法或執行語意時，須同步維護精簡指南，再重新產生文件包。
 
 模擬模式提供 [連續模擬](CONTINUOUS_SIMULATION.md)，可查看多日事件、日終／周末快照、來源與任務副作用，以及由 checkpoint 詳細重跑某一天。
 

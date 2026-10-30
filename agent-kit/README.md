@@ -1,24 +1,24 @@
 # YAML Blueprint Agent Kit
 
-本文件包供人類與 agent 離線閱讀、建立及修改 YAML 藍圖。可以直接複製整個資料夾分享；閱讀不依賴專案原始碼、MCP 或 Node.js。
+供人類與 agent 建立或修改行程藍圖的離線文件包。整個資料夾可直接複製分享；閱讀不需要原始碼、Node.js 或 MCP。
 
-## 閱讀順序
+## 從這裡開始
 
-1. [一頁式工具介紹](docs/INTRODUCTION.md)（[English](docs/INTRODUCTION.en.md)）：先掌握工具目的與由周序列到任務的整體結構。
-2. [系統能力總覽](docs/SYSTEM_SEMANTICS.md)：將需求對應到系統構件。
-3. [Engine 執行語意](docs/ENGINE_SEMANTICS.md)：確認條件、候選、事件排序、變數更新及中斷規則。
-4. [命名規則](docs/NAMING.md)、[Blueprint 格式](docs/BLUEPRINT.md) 與 [JSON Schema](schemas/blueprint.schema.json)：確認命名、引用、宣告與文字運算式寫法。
-5. [Recipes](docs/RECIPES.md) 與 [完整 YAML 範例](examples/life-simulation.yaml)：參考具體組合。
-6. [圖示格式](ICONS.md) 與 [離線圖示清單](icons.json)：指定前景圖示、背景色及參數／選項圖示。
+1. 讀 [BLUEPRINT_GUIDE.md](BLUEPRINT_GUIDE.md)：掌握物件結構、YAML 寫法及執行規則。
+2. 參考 [example.yaml](example.yaml)：以完整生活／薪資範例為基礎修改。
+3. 不確定欄位或型別時，才查 [blueprint.schema.json](blueprint.schema.json) 的相關定義。
+4. 需要圖示時，才查 [icons.json](icons.json)；不填 icon 也能使用。
+
+一般編寫只需指南與範例，不必先讀完 Schema 或圖示清單。本包共五個檔案，沒有子資料夾。
 
 ## 編輯與驗證
 
-- YAML 使用 mapping key 作為 name；不需要 UUID。display_name、description 與 icon 可選填。
-- 匯入會從零建立專案，不會合併或更新既有專案。修改前保留原專案備份。
-- 先將 YAML 解析為 JSON，再用隨附 Schema 驗證結構。Schema 不能檢查文字運算式語法、引用目標、型別或循環，也不能代替執行語意文件。
-- 完整驗證需回到編輯器匯入藍圖，或透過專案提供的 YAML 預覽／匯入 API。確認無錯後，可用行程模擬與連續模擬檢查結果；本包不包含 parser 或驗證執行器。
-- 文件中的專案路徑說明指向未收錄的實作或技術文件，屬於補充資料。本包內的相對連結均指向已收錄檔案。MCP URI 需另行連接專案服務才能使用。
+- 用 mapping key 作為 name，不需要 UUID。display_name、description、icon 可選填。
+- 匯入 YAML 會重建整個專案，不會合併目前內容。修改既有專案時，先匯出目前藍圖並保留原專案存檔。
+- YAML 解析為 JSON 後，可用隨附 Schema 驗證欄位結構；運算式、引用、型別、權限及循環仍需編輯器或專案服務驗證。
+- 在 App 的「匯入專案」選取 .yaml／.yml，再用行程模擬或連續模擬檢查結果。本包不含 parser 或執行器。
+- 已連接 MCP 時，先取得 project_status，再呼叫 project_import_yaml 的 preview；正式匯入需使用目前 expectedRevision。未儲存內容的取代需明確授權，匯入後另行儲存。
 
-## 更新文件包
+## 維護來源
 
-此資料夾由來源專案的 `npm run build:agent-kit` 產生。請修改原始文件後重新產生，不要直接維護本包中的副本。產生腳本會先更新 Schema 與圖示清單，再檢查來源檔案及文件連結；不完整的內容會使產生失敗。
+由來源專案執行 `npm run build:agent-kit` 重新產生，不直接修改副本。主要文字來源為 `docs/AGENT_KIT.md` 與 `docs/BLUEPRINT_GUIDE.md`；其餘詳細技術文件與獨立 recipes 仍保留於原專案的 `docs/`，不必隨本包攜帶。

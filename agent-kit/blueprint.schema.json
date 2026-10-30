@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Character Schedule Blueprint",
-  "description": "Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
-  "$comment": "This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
+  "description": "Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: BLUEPRINT_GUIDE.md or MCP schedule://guide/engine-semantics.",
+  "$comment": "This Schema specifies structure, not the complete engine. Read BLUEPRINT_GUIDE.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
   "type": "object",
   "properties": {
     "project": {
@@ -1030,7 +1030,7 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "execution": {
                   "enum": [
@@ -1038,7 +1038,7 @@
                     "interrupt_main",
                     "interrupt_lower"
                   ],
-                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "priority": {
                   "type": "integer"
@@ -1676,7 +1676,7 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "execution": {
                   "enum": [
@@ -1684,7 +1684,7 @@
                     "interrupt_main",
                     "interrupt_lower"
                   ],
-                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "priority": {
                   "type": "integer"
@@ -2362,7 +2362,7 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "execution": {
                   "enum": [
@@ -2370,7 +2370,7 @@
                     "interrupt_main",
                     "interrupt_lower"
                   ],
-                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+                  "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See BLUEPRINT_GUIDE.md."
                 },
                 "priority": {
                   "type": "integer"
@@ -2721,7 +2721,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See BLUEPRINT_GUIDE.md."
               },
               "value": {
                 "type": "string",
@@ -2743,7 +2743,7 @@
         "type"
       ],
       "additionalProperties": false,
-      "description": "Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. any/variadic are reserved for randomItem. See EXPRESSION_FUNCTIONS.md."
+      "description": "Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. any/variadic are reserved for randomItem. See BLUEPRINT_GUIDE.md."
     },
     "macro": {
       "type": "object",
@@ -2790,7 +2790,7 @@
               "type": "null"
             }
           ],
-          "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+          "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See BLUEPRINT_GUIDE.md."
         },
         "steps": {
           "type": "array",
@@ -2818,7 +2818,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See BLUEPRINT_GUIDE.md."
               },
               "run": {
                 "$ref": "#/$defs/action"
@@ -2851,7 +2851,7 @@
       },
       "required": [],
       "additionalProperties": false,
-      "description": "Sequence, branch, priority or weighted random macro. Random evaluates arguments/eligibility, then eligible weights, then draws once; fallback runs only if the pool is empty. See ENGINE_SEMANTICS.md section 3.",
+      "description": "Sequence, branch, priority or weighted random macro. Random evaluates arguments/eligibility, then eligible weights, then draws once; fallback runs only if the pool is empty. See BLUEPRINT_GUIDE.md.",
       "allOf": [
         {
           "if": {
@@ -2919,7 +2919,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+                "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See BLUEPRINT_GUIDE.md."
               },
               "run": {
                 "$ref": "#/$defs/action"
@@ -3081,7 +3081,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See ENGINE_SEMANTICS.md sections 2-3."
+                    "description": "null is unconditional. ALL/ANY short-circuit in order; evaluation errors are not false. See BLUEPRINT_GUIDE.md."
                   }
                 },
                 "required": [],
@@ -3285,7 +3285,7 @@
             "candidates"
           ],
           "additionalProperties": false,
-          "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+          "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See BLUEPRINT_GUIDE.md."
         },
         "start": {
           "type": "object",
@@ -3382,7 +3382,7 @@
             "interrupt_main",
             "interrupt_lower"
           ],
-          "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See ENGINE_SEMANTICS.md sections 7-8."
+          "description": "Per-slot behavior: overlay, interrupt_main, or interrupt_lower (strictly lower event priority plus main). Daily start/end are not blocked. See BLUEPRINT_GUIDE.md."
         },
         "priority": {
           "type": "integer",
