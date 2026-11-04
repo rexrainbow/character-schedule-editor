@@ -132,6 +132,7 @@ export class ExecutionMachine {
         prepared.arguments = Object.fromEntries(task.parameters.map((p) => [p.name, args[p.id]]));
       } else {
         prepared.name = this.program.builtins[use.builtin]?.symbol ?? use.builtin;
+        let args;
         if (['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'].includes(use.builtin)) {
           const target = use.target_variable_id, before = evaluator.read(target), node = this.program.get('variables', target);
           let value;
@@ -148,13 +149,23 @@ export class ExecutionMachine {
             }
           }
           prepared.target = target; prepared.value = value;
+          args = { target: { type: 'variable_reference', reference_id: target, access: ['set_variable', 'reset_variable'].includes(use.builtin) ? 'write' : 'read_write' },
+            ...(['set_variable', 'increment_variable'].includes(use.builtin) ? { value: prepared.random?.increment ?? value } : {}),
+            ...(prepared.random ? { random_amplitude: prepared.random.random_amplitude } : {}) };
         } else if (use.builtin === 'adjust_probability_event') {
           prepared.eventRef = evaluator.event(use.event, frame.scope);
           const option = (value) => typeof value === 'string' ? value : evaluator.operand(value, frame.scope);
           prepared.property = option(use.property); prepared.operation = option(use.operation); prepared.value = evaluator.operand(use.value, frame.scope, 0, `${frame.path}/value`);
-        } else if (use.builtin === 'schedule_event') prepared.offset = evaluator.operand(use.date.offset, frame.scope);
-        else if (use.builtin === 'release_slot') prepared.result = evaluator.condition(use.condition ?? null, frame.scope, 0, `${frame.path}/condition`);
+          args = { event: { type: 'event_reference', event_group_id: prepared.eventRef }, property: prepared.property, operation: prepared.operation, value: prepared.value };
+        } else if (use.builtin === 'schedule_event') {
+          prepared.offset = evaluator.operand(use.date.offset, frame.scope);
+          args = { display_name: use.display_name, date_mode: use.date.mode, offset: prepared.offset, ...(use.date.weekday ? { weekday: use.date.weekday } : {}), day_source: copy(use.day_source ?? { mode: 'fixed', day_schedule_id: use.day_schedule_id }), execution_mode: use.execution_mode, priority: use.priority };
+        } else if (use.builtin === 'release_slot') {
+          prepared.result = evaluator.condition(use.condition ?? null, frame.scope, 0, `${frame.path}/condition`);
+          args = { condition: prepared.result };
+        }
         else fail('unknownBuiltin', { builtin: use.builtin });
+        prepared.arguments = Object.fromEntries(Object.entries(args).map(([key, value]) => [this.program.builtins[use.builtin]?.parameters?.[key]?.symbol ?? key, value]));
       }
       prepared.invocationId = invocationId;
       prepared.attempt = 0;

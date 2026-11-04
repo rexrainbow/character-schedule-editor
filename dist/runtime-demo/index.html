@@ -5,21 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101218" />
     <title>Runtime demo · Character Schedule</title>
-    <script type="module" crossorigin src="../assets/runtimeDemo-Axon2b5e.js"></script>
-    <link rel="modulepreload" crossorigin href="../assets/styles-DvpjNJQM.js">
-    <link rel="stylesheet" crossorigin href="../assets/styles-D7aTZkxn.css">
-    <link rel="stylesheet" crossorigin href="../assets/runtimeDemo-teQAhbbt.css">
+    <link rel="stylesheet" href="./app.css" />
   </head>
   <body>
     <header class="demo-header">
       <div><span class="brand-mark" aria-hidden="true">▶</span><strong>Character Schedule</strong><span class="demo-badge" data-text="title"></span></div>
-      <label class="language-field"><span data-text="language"></span><select id="language"><option value="en">English</option><option value="zh-TW">繁體中文</option></select></label>
+      <div class="header-tools">
+        <label class="language-field"><span data-text="language"></span><select id="language"><option value="en">English</option><option value="zh-TW">繁體中文</option></select></label>
+        <button id="help" class="help-button" type="button" aria-haspopup="dialog" aria-controls="help-dialog" disabled>?</button>
+      </div>
     </header>
     <main>
       <section class="setup" aria-labelledby="setup-title">
         <div class="file-row"><h1 id="setup-title" data-text="title"></h1><button id="load" type="button" data-text="load" disabled></button><span id="file-name"></span></div>
         <input id="file" type="file" accept=".json,application/json" hidden />
-        <p class="hint" data-text="importHint"></p>
         <h2 id="project-name" hidden></h2>
         <div class="controls">
           <label class="sequence-field"><span data-text="sequence"></span><select id="sequence"></select></label>
@@ -27,15 +26,31 @@
           <button id="run" type="button" class="primary" disabled></button>
           <button id="reset" type="button" data-text="reset" disabled></button>
         </div>
-        <p class="hint" data-text="resetHint"></p>
         <p id="error" role="alert" hidden></p>
       </section>
+      <div class="runtime-panels">
+      <details class="variables-panel" open>
+        <summary><h2 id="variables-title" data-text="variables"></h2></summary>
+        <div id="variables"></div>
+        <nav id="variable-pages"><button id="variables-prev" type="button" disabled>‹</button><span id="variables-page"></span><button id="variables-next" type="button" disabled>›</button></nav>
+      </details>
       <section class="journal" aria-labelledby="log-title">
         <div class="journal-header"><h2 id="log-title" data-text="log"></h2><p id="status" role="status" aria-live="polite"></p></div>
-        <p class="hint journal-hint" data-text="logHint"></p>
         <div id="log" class="log-list" tabindex="0" role="region" aria-labelledby="log-title"></div>
       </section>
+      </div>
     </main>
+    <dialog id="help-dialog" class="demo-help" aria-labelledby="help-title">
+      <header><h2 id="help-title" data-text="help"></h2></header>
+      <div class="help-body" role="region" aria-labelledby="help-title" tabindex="0">
+        <section><h3 data-text="helpLoad"></h3><p data-text="importHint"></p></section>
+        <section><h3 data-text="helpRun"></h3><p data-text="resetHint"></p></section>
+        <section><h3 data-text="log"></h3><p data-text="logHint"></p></section>
+        <section><h3 data-text="variables"></h3><p data-text="variablesHint"></p></section>
+      </div>
+      <footer><button id="help-close" type="button" data-text="close" disabled autofocus></button></footer>
+    </dialog>
     <noscript>Enable JavaScript to run schedules. 請啟用 JavaScript 以執行行程。</noscript>
+    <script defer src="./app.js"></script>
   </body>
 </html>

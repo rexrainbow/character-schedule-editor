@@ -75,5 +75,5 @@ test('clamped writes are visible to subsequent macro steps and reset uses valid 
   assert.ok(simulateSlot(draft, draft.slots[0].id, values).errors.some((error) => error.key === 'simulationValueOutsideBounds'));
   const runtime = compileRuntime(draft, { referenceMode: 'uuid' }); assert.deepEqual(runtime.errors, []);
   runtime.data.variables[number].max_value = 5;
-  assert.ok(validateRuntimeDocument(runtime.data).some((error) => error.key === 'invalidStateValue'));
+  assert.ok(validateRuntimeDocument(runtime.data).some((error) => error.key === 'invalidRuntimeProgram' && error.path === `/variables/${number}/initial_value`));
 });

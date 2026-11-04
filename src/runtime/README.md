@@ -141,6 +141,29 @@ unsubscribe();
 
 context 包含 runId、sequenceRef、position、dayNumber、零起算 slotIndex、phase，以及可用時的 eventRef、occurrenceId、dayRef、slotRef、priority。內建行程進度變數則維持一日起算。通知資料是凍結的副本；listener 不參與任務執行、不等待完成，錯誤轉為 `observer.error`。通知與外部消費者不具跨程序 exactly-once 保證；需要可靠消費時以 invocationId 等身分去重。
 
+### 任務通知與已求值參數
+
+`task.start` 與 `task.completed` 都帶有 `name`、`invocationId`、`attempt` 與 `arguments`；內建任務另有固定識別 `builtin`，不隨使用者修改任務名稱而改變。`arguments` 的 key 使用參數的契約名稱（內建任務依 `builtins[kind].parameters[key].symbol`，未自訂則使用預設名稱）。值已經求值，不是算式 AST；變數／事件引用保留目前 Program 的 name 或 UUID。通知不需開啟 diagnostics。
+
+例如，增加數值的 `arguments` 預設為：
+
+```js
+{
+  target: { type: 'variable_reference', reference_id: 'hp', access: 'read_write' },
+  value: 10,
+  random_amplitude: 2
+}
+```
+
+`task.completed` 僅在 checkpoint 成功提交後發送，另帶 `changes: [{ref, name, before, after}]`，只包含實際改變的變數。內建任務的 `result` 是執行結果；一般任務的 `result` 是 handler 回傳值（未回傳則省略）。
+
+- 設定／增加／切換／重設變數：`target_variable_id`、`before`、`requested`、`after`。增加數值另有 `increment`、`random_amplitude`、`random_offset`，可核對原始增量、實際隨機偏移及截斷／上下限之後的結果。
+- 調整機率事件：引數包含已解析的 `event`、`property`、`operation`、`value`；結果包含事件引用、屬性、操作及前後值。
+- 放行本時段：引數 `condition` 是已求值的布林；結果包含 `result`、`applied`、`reason`。
+- 預約事件：引數包含日期模式、已求值 offset、選填 weekday、日行程來源、執行方式、優先權與顯示名稱；結果說明是否接受及預約資料／拒絕原因。
+
+即使增加值因上限而沒有改變數值，仍會發出 `task.completed` 和完整 `result`，但 `changes` 為空，也不發出該變數的 `variable.change`。引數與隨機結果在任務開始前保存，恢復重試會沿用，不重新求值或抽樣。失敗／中止／提交失敗不發出該次完成通知。engine 可監聽通知顯示動畫或記錄，但不應在 listener 內重做內建運算；需要參與任務寫入時，使用一般任務 handler 的 `context.setVariable()`。
+
 中斷事件在自身開始任務與放行判斷完成後建立本時段的阻擋。放行跳過自己的主體與結束，並讓其他來源有機會執行；下一時段重建阻擋。同一個日行程被不同事件引用，仍以各自 occurrence 分別處理。
 
 預設用可保存狀態的亂數處理機率與權重；冷卻只在符合計數的日期遞減，發生當天設定的 N 天會阻擋接下來 N 個符合日期。sequential 候選在每次發生後前進。預約事件保存在執行狀態，未來 `nextDay()` 到達日期時加入當日來源。

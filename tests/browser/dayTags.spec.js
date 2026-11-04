@@ -17,10 +17,13 @@ async function save(page) { const pending = page.waitForEvent('download'); await
 
 test('day tags trim input, prevent duplicates, filter with names and survive copies and project reloads', async ({ page }) => {
   const { main } = await load(page); const list = page.locator('.sidebar .slot-list');
+  await page.getByRole('button', { name: 'Edit tags', exact: true }).click();
   await page.getByRole('textbox', { name: 'New tag', exact: true }).fill(' Work ');
   await expect(page.getByRole('button', { name: 'Add tag', exact: true })).toBeDisabled();
   await page.getByRole('textbox', { name: 'New tag', exact: true }).fill(' Custom '); await page.getByRole('textbox', { name: 'New tag', exact: true }).press('Enter');
-  await page.getByRole('combobox', { name: 'Add existing tag', exact: true }).selectOption('Event');
+  await page.getByRole('checkbox', { name: 'Event', exact: true }).check();
+  await expect(page.getByRole('combobox', { name: 'Add existing tag', exact: true })).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Apply', exact: true }).click();
   await expect(page.locator('.day-tags-editor .day-tag')).toHaveCount(4);
   await list.getByRole('button', { name: 'Filter by tag: Event', exact: true }).first().click();
   await expect(list.locator('.slot-item')).toHaveCount(2);
@@ -77,11 +80,44 @@ test('week, override and event-day selectors share tag filtering without changin
 test('Chinese mobile tag editor and untagged filtering fit the workspace', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 }); await load(page);
   await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('zh-TW'); const t = translator('zh-TW');
+  await page.getByRole('button', { name: t('editDayTags'), exact: true }).click();
   await page.getByRole('textbox', { name: t('newDayTag'), exact: true }).fill('特殊狀況'); await page.getByRole('button', { name: t('addDayTag'), exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: '特殊狀況', exact: true })).toBeChecked();
+  await expect(page.getByRole('dialog').getByRole('combobox')).toHaveCount(0);
+  await page.screenshot({ path: 'artifacts/day-tags-modal-mobile-zh.png' });
+  await page.getByRole('dialog').getByRole('button', { name: t('apply'), exact: true }).click();
   await expect(page.getByRole('button', { name: t('removeDayTag', { tag: '特殊狀況' }), exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await openDayOptions(page);
   await page.getByRole('combobox', { name: t('filterDayTags'), exact: true }).selectOption('untagged');
   await closeDayOptions(page);
   await expect(page.locator('.sidebar .slot-item')).toHaveCount(1);
+});
+
+test('tag modal keeps a local draft, cancels safely and commits pending names or an empty selection', async ({ page }) => {
+  const { main } = await load(page), trigger = page.getByRole('button', { name: 'Edit tags', exact: true });
+  await trigger.click();
+  const modal = page.getByRole('dialog');
+  await expect(modal.getByRole('textbox', { name: 'New tag', exact: true })).toBeFocused();
+  await modal.getByRole('checkbox', { name: 'Main', exact: true }).uncheck();
+  await modal.getByRole('checkbox', { name: 'Event', exact: true }).check();
+  await modal.getByRole('textbox', { name: 'New tag', exact: true }).fill(' Draft ');
+  await modal.getByRole('button', { name: 'Add tag', exact: true }).click();
+  await modal.getByRole('checkbox', { name: 'Draft', exact: true }).uncheck();
+  await expect(modal.getByRole('checkbox', { name: 'Draft', exact: true })).toBeVisible();
+  await expect(page.locator('.day-tags-editor > .day-tag-chips')).toHaveText('MainWork');
+  await page.keyboard.press('Escape'); await expect(trigger).toBeFocused();
+  expect((await save(page)).day_schedules[main.id].tags).toEqual(['Main', 'Work']);
+  await trigger.click();
+  await expect(modal.getByRole('checkbox', { name: 'Draft', exact: true })).toHaveCount(0);
+  await modal.getByRole('checkbox', { name: 'Main', exact: true }).uncheck();
+  await modal.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await trigger.click(); await expect(modal.getByRole('checkbox', { name: 'Main', exact: true })).toBeChecked();
+  await modal.getByRole('textbox', { name: 'New tag', exact: true }).fill(' Pending ');
+  await modal.getByRole('button', { name: 'Apply', exact: true }).click();
+  expect((await save(page)).day_schedules[main.id].tags).toEqual(['Main', 'Work', 'Pending']);
+  await trigger.click();
+  for (const tag of ['Main', 'Work', 'Pending']) await modal.getByRole('checkbox', { name: tag, exact: true }).uncheck();
+  await modal.getByRole('button', { name: 'Apply', exact: true }).click();
+  expect((await save(page)).day_schedules[main.id].tags).toBeUndefined();
 });

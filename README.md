@@ -2,7 +2,7 @@
 
 [Open the Web App](https://rexrainbow.github.io/character-schedule-editor/dist/)
 
-[Open the Runtime Demo](https://rexrainbow.github.io/character-schedule-editor/dist/runtime-demo/) to load exported runtime JSON and run one day at a time. The task log lists completed calls while variables and event state carry over to the next day.
+[Open the Runtime Demo](https://rexrainbow.github.io/character-schedule-editor/dist/runtime-demo/) to load exported runtime JSON and run one day at a time. The task log lists completed calls while variables and event state carry over to the next day. Its built HTML, JS, and CSS can also be copied together and opened locally without a server.
 
 ## Purpose
 

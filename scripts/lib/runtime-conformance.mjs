@@ -20,7 +20,7 @@ export async function replayRuntimeCase(fixture) {
   const program = Program.fromJSON(fixture.program);
   function attach(runtime) {
     for (const event of ['phase.start', 'assignment.start', 'assignment.skipped', 'task.start', 'task.completed', 'variable.change']) runtime.on(event, (record) => {
-      const keys = ['name', 'phase', 'slotIndex', 'eventRef', 'dayRef', 'slotRef', 'occurrenceId', 'invocationId', 'attempt', 'arguments', 'ref', 'before', 'after'];
+      const keys = ['name', 'phase', 'slotIndex', 'eventRef', 'dayRef', 'slotRef', 'occurrenceId', 'invocationId', 'attempt', 'builtin', 'arguments', 'result', 'changes', 'ref', 'before', 'after'];
       trace.push({ event, ...Object.fromEntries(keys.filter((key) => record[key] !== undefined).map((key) => [key, clone(record[key])])) });
     });
     return runtime;

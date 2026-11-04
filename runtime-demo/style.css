@@ -10,7 +10,9 @@ body { min-width: 320px; }
 .brand-mark { color: var(--accent); font-size: 13px; }
 .demo-badge { font-size: 12px; color: var(--accent); border: 1px solid #655781; border-radius: 5px; padding: 3px 7px; }
 .language-field { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-main { max-width: 1140px; margin: 30px auto; padding: 0 26px; }
+.demo-header .header-tools { flex-wrap: nowrap; flex-shrink: 0; }
+.help-button { width: 42px; padding: 0; border-radius: 50%; font-size: 19px; font-weight: 650; }
+main { max-width: 1360px; margin: 30px auto; padding: 0 26px; }
 button { min-height: 42px; padding: 9px 15px; border: 1px solid var(--border); border-radius: 7px; background: #202430; cursor: pointer; }
 button:hover:not(:disabled) { background: #2b3040; border-color: #798196; }
 button:active:not(:disabled) { background: #363c4d; }
@@ -28,10 +30,44 @@ button.primary:hover:not(:disabled) { background: #c8b8ff; }
 .controls select, .controls input { width: 100%; min-height: 43px; }
 #error { padding: 12px 15px; border-left: 3px solid #dc7f89; background: #281b23; margin-top: 15px; color: #f0b8c0; overflow-wrap: anywhere; line-height: 1.6; }
 .journal { border: 1px solid var(--border); border-radius: 9px; margin-top: 26px; background: #151820; }
-.journal-header { padding: 17px 20px 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.runtime-panels { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); align-items: start; gap: 18px; margin-top: 26px; }
+.runtime-panels .journal { margin-top: 0; min-width: 0; }
+.variables-panel { border: 1px solid var(--border); border-radius: 9px; background: #151820; min-width: 0; }
+.variables-panel > summary { cursor: pointer; padding: 17px 18px; }
+.variables-panel > summary h2 { display: inline; font-size: 17px; }
+.variables-panel > summary:hover { background: var(--border); }
+.variables-panel > summary:focus-visible { outline-offset: -3px; }
+#variables { padding: 0 14px 14px; }
+#variables table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+#variables th, #variables td { padding: 10px 4px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+#variables thead th { color: var(--muted); font-weight: 400; }
+#variables th:first-child { width: 65%; }
+#variables tbody th span, #variables code { display: block; }
+#variables code { color: var(--muted); font-size: 11px; margin-top: 3px; font-weight: 400; }
+#variables td { color: var(--accent); font-family: ui-monospace, monospace; }
+.variables-empty { color: var(--muted); font-size: 13px; line-height: 1.6; }
+#variable-pages { display: flex; justify-content: space-between; align-items: center; padding: 0 14px 14px; gap: 8px; font-size: 13px; }
+#variable-pages[hidden] { display: none; }
+.task-payloads { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; margin: 8px 0; }
+.task-data { background: #101218; border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; min-width: 0; }
+.task-data h3 { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+.task-data dl { margin: 0; font: 12px/1.65 ui-monospace, monospace; }
+.task-data dt { color: var(--muted); overflow-wrap: anywhere; }
+.task-data dd { margin: 0 0 5px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.journal-header { padding: 17px 20px 15px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
 #status { color: var(--accent); font-size: 13px; min-height: 21px; }
-.journal-hint { padding: 0 20px 14px; border-bottom: 1px solid var(--border); }
-.log-list { overflow-y: auto; max-height: max(280px, calc(100dvh - 420px)); min-height: 280px; scrollbar-gutter: stable; padding: 4px 20px 18px; }
+.log-list { overflow-y: auto; max-height: max(280px, calc(100dvh - 380px)); min-height: 280px; scrollbar-gutter: stable; padding: 4px 20px 18px; }
+.demo-help { width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); padding: 0; color: inherit; background: #151820; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 16px 48px #0008; }
+.demo-help[open] { display: flex; flex-direction: column; overflow: hidden; }
+.demo-help::backdrop { background: #0009; }
+.demo-help > header, .demo-help > footer { padding: 18px 20px; flex-shrink: 0; }
+.demo-help > header { border-bottom: 1px solid var(--border); }
+.demo-help > footer { border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+.help-body { padding: 20px; overflow-y: auto; min-height: 0; }
+.help-body:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.help-body section + section { margin-top: 22px; }
+.help-body h3 { margin-bottom: 8px; }
+.help-body p { color: var(--muted); font-size: 14px; line-height: 1.75; }
 .empty-log { color: var(--muted); padding: 60px 12px; text-align: center; }
 .day-entry { border-bottom: 1px solid var(--border); }
 .day-entry summary { padding: 15px 5px; cursor: pointer; display: flex; align-items: center; gap: 16px; }
@@ -49,7 +85,10 @@ button.primary:hover:not(:disabled) { background: #c8b8ff; }
 .recorded { margin-left: 10px; font-size: 11px; color: #d6b988; }
 .empty-day { color: var(--muted); list-style: none; }
 @media (max-width: 650px) {
+  .runtime-panels { grid-template-columns: minmax(0, 1fr); }
   .demo-header { padding: 14px 16px; align-items: start; }
+  .demo-header > div:first-child { min-width: 0; flex: 1; }
+  .demo-header .header-tools { margin-left: auto; }
   .demo-header > div { gap: 7px; }
   .demo-header strong { font-size: 14px; }
   .language-field > span { display: none; }
@@ -57,8 +96,7 @@ button.primary:hover:not(:disabled) { background: #c8b8ff; }
   main { padding: 0 14px; margin: 22px auto; }
   .controls { display: grid; grid-template-columns: minmax(0, 1fr) 120px; }
   .seed-field { width: auto; }
-  .journal-header { padding: 15px 14px 0; }
-  .journal-hint { padding-left: 14px; padding-right: 14px; }
+  .journal-header { padding: 15px 14px; }
   .log-list { padding-left: 12px; padding-right: 8px; max-height: 60dvh; }
   .day-entry summary { gap: 8px; }
   #file-name { flex-basis: 100%; max-width: none; }

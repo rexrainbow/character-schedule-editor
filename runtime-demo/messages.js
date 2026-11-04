@@ -1,5 +1,8 @@
 export const messages = {
   en: {
+    variables: 'Variable space', variableName: 'Variable', variableValue: 'Current value', noVariables: 'No variables defined.', variablePages: 'Variable pages', previousVariables: 'Previous variables', nextVariables: 'Next variables', page: '{page} / {total}',
+    arguments: 'Arguments', result: 'Result', variablesHint: 'Read-only current values, including environment and application variables. Values update after each committed task. Reset restores initial values. Collapse this panel to give the log more room on small screens.',
+    help: 'Help', close: 'Close', helpLoad: 'Load a schedule', helpRun: 'Run and reset',
     title: 'Runtime demo', language: 'Language', load: 'Load runtime JSON', sequence: 'Week sequence', seed: 'Random seed',
     importHint: 'In the editor, choose Export → Runtime data (JSON), then load that file here.',
     reset: 'Reset run', resetHint: 'Each click runs one day. Reset clears the log and restores the initial state; then you can change the sequence or seed.',
@@ -13,6 +16,9 @@ export const messages = {
     more: 'Show {count} more tasks',
   },
   'zh-TW': {
+    variables: '變數空間', variableName: '變數', variableValue: '目前數值', noVariables: '尚未定義變數。', variablePages: '變數分頁', previousVariables: '上一頁變數', nextVariables: '下一頁變數', page: '{page} / {total}',
+    arguments: '參數', result: '結果', variablesHint: '唯讀顯示環境層與應用層的目前變數值，每次任務提交後更新；重設會還原初始值。窄螢幕可收合此區，增加紀錄顯示空間。',
+    help: '使用說明', close: '關閉', helpLoad: '載入行程', helpRun: '執行與重設',
     title: 'Runtime 示範', language: '語言', load: '載入執行資料', sequence: '周序列', seed: '亂數種子',
     importHint: '從編輯器「匯出 → 執行資料（JSON）」下載檔案，再於此載入。',
     reset: '重設執行', resetHint: '每次點擊執行一天。重設會清除紀錄並還原初始狀態，之後可修改周序列或種子。',

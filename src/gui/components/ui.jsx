@@ -33,17 +33,23 @@ export function SlotCellContent({ slot, t }) {
   return <div className="cell-content">{slot ? <SlotInfo slot={slot} t={t} /> : <><Plus size={19} /><span>{t('selectCell')}</span></>}</div>;
 }
 
-export function Dialog({ title, subtitle, children, footer, onClose, t, wide = false, className = '', navigationDirty = false }) {
+export function Dialog({ title, subtitle, children, footer, onClose, t, wide = false, className = '', navigationDirty = false, initialFocusRef }) {
   const connection = useContext(ProjectConnectionContext);
   const navigation = useContext(NavigationContext);
   const ref = useRef(null);
+  // Capture before mounting children: autofocus fields may otherwise replace the trigger.
+  const returnFocus = useRef(document.activeElement);
   const headingId = useId();
   useEffect(() => navigation?.register(headingId, { dirty: navigationDirty }), [navigation, headingId, navigationDirty]);
   const [view, setView] = useState(null);
   useEffect(() => {
     const element = ref.current;
     element.showModal();
-    return () => element.close();
+    initialFocusRef?.current?.focus({ preventScroll: true });
+    return () => {
+      element.close();
+      if (returnFocus.current?.isConnected) returnFocus.current.focus?.({ preventScroll: true });
+    };
   }, []);
   const close = view?.onClose ?? onClose;
   return <dialog ref={ref} className={`modal ${(view?.wide ?? wide) ? 'modal-wide' : ''} ${view?.className ?? className}`} aria-labelledby={headingId} onCancel={(e) => { e.preventDefault(); close(); }}>

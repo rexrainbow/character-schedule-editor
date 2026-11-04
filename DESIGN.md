@@ -32,6 +32,8 @@ A character's schedule is an executable calendar. The distinctive visual element
 
 The standalone runtime-demo is a read/run host, not another editor. It reuses the base stylesheet tokens with a compact file/sequence/seed toolbar and one chronological task journal. Day boundaries are the signature structure; older days collapse and task rows load in batches. Its stylesheet owns only this independent document's geometry and scrollbar baseline. Native selects/file input keep existing interaction conventions; no React editor shell is imported.
 
+The demo's read-only variable table is a compact side panel on desktop and a collapsible section above the journal on narrow screens. Values use the existing accent and monospace text; labels retain display names plus qualified machine names. Task argument/result fields use the same dark surfaces, border and muted labels, with wrapping values and no extra scroll regions.
+
 Product tool for people authoring reusable character schedules and testing their logic. Desktop uses side-by-side inputs/results; narrow screens use input/result tabs. English and Traditional Chinese follow the existing locale provider in `src/i18n/index.js`; neither locale implies a country-specific business workflow. No Japanese locale is currently supported.
 
 ### Token ownership/runtime mapping
@@ -65,6 +67,8 @@ Retain existing button, field and modal corner geometry. Do not create local the
 Native controls retain visible focus and accessible labels. Run is disabled and aria-busy while active; a neutral Cancel action remains available. Inputs remain editable and invalidate the active run. Failed/cancelled results cannot be applied.
 
 ### Buttons and actions
+
+Section-level macro instructions use the shared `ContextHelp` question-mark icon beside the heading and the existing dark `Dialog`. Keep the reading workspace compact; actionable validation/reference warnings stay inline. Day tags retain their chips with a compact `+` action; their modal presents existing choices as wrapping checkbox labels, using `--accent` for selection and the canonical modal body for scrolling.
 
 Ordinary application notices use a non-interactive toast at the viewport's lower left, visible for the user-requested one second. Reuse the existing dark preview surface, border and accent tokens. The fixed toast never changes workspace height; actionable errors keep their persistent inline treatment.
 

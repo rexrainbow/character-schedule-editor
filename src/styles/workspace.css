@@ -163,7 +163,18 @@ body { min-width: 360px; font-size: 15px; }
 .day-tag>button { display: inline-flex; padding: 2px; border: 0; background: transparent; color: inherit; flex-shrink: 0; }
 .day-tag-add { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
 .day-tag-add input { flex: 1; min-width: 110px; width: 150px; }
-.day-tag-add select { min-width: 0; max-width: 100%; }
+.day-tags-actions, .section-title-with-help { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.section-title-with-help h2 { margin: 0; }
+.context-help { flex-shrink: 0; }
+.context-help-dialog .modal-body p { margin: 0 0 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.context-help-dialog .modal-body p:last-child { margin-bottom: 0; }
+.day-tag-options { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.day-tag-options legend { padding: 0; margin-bottom: 10px; }
+.day-tag-options label { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; cursor: pointer; max-width: 100%; }
+.day-tag-options label:hover { background: var(--border); }
+.day-tag-options label:has(input:checked) { border-color: var(--accent); }
+.day-tag-options input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; }
+.day-tag-options span { overflow-wrap: anywhere; min-width: 0; }
 .day-tag-filter { margin: 8px 0; }
 .day-tag-filter label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
 .day-tag-filter select { width: 100%; min-width: 0; }

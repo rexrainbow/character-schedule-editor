@@ -219,7 +219,8 @@ export class Runtime extends Emitter {
     };
     const nodeKind = pending.use.builtin === 'release_slot' ? 'control' : pending.use.builtin === 'schedule_event' ? 'reservation' : pending.use.builtin ? 'builtin' : 'task';
     if (!this.#diagnostics.isActive(nodeKind)) this.#diagnostics.begin(nodeKind, () => ({ use: pending.use, path: pending.path, invocationId: pending.invocationId, attempt: pending.attempt }));
-    this.#emit('task.start', { ...pending.context, name: pending.name, invocationId: pending.invocationId, attempt: pending.attempt, arguments: pending.arguments });
+    const task = { ...pending.context, name: pending.name, ...(pending.use.builtin ? { builtin: pending.use.builtin } : {}), invocationId: pending.invocationId, attempt: pending.attempt, arguments: pending.arguments };
+    this.#emit('task.start', task);
     let abortListener;
     try {
       current();
@@ -242,7 +243,7 @@ export class Runtime extends Emitter {
       for (const change of changes) this.#diagnostics.note('variable.committed', () => ({ ...change, invocationId: pending.invocationId, attempt: pending.attempt, committed: true }));
       this.#diagnostics.end(nodeKind, () => ({ ...outcome, completed: true, invocationId: pending.invocationId, attempt: pending.attempt, pending }));
       for (const change of changes) this.#emit('variable.change', { ...pending.context, ...change, invocationId: pending.invocationId });
-      this.#emit('task.completed', { ...pending.context, name: pending.name, invocationId: pending.invocationId, attempt: pending.attempt, ...(result === undefined ? {} : { result }) });
+      this.#emit('task.completed', { ...task, changes, ...(pending.use.builtin ? { result: outcome } : result === undefined ? {} : { result }) });
     } catch (error) {
       error.path ??= pending.path;
       this.#diagnostics.note(error.code === 'executionPaused' ? 'task.aborted' : 'task.failed', () => ({ invocationId: pending.invocationId, attempt: pending.attempt, code: error.code ?? 'taskFailed', path: pending.path, committed: false }));
@@ -254,7 +255,7 @@ export class Runtime extends Emitter {
   }
   #builtin(state, pending, evaluator) {
     const { use } = pending;
-    if (['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'].includes(use.builtin)) { const before = evaluator.read(pending.target); evaluator.write(pending.target, pending.value); return { target_variable_id: pending.target, before, requested: pending.value, after: evaluator.read(pending.target) }; }
+    if (['set_variable', 'increment_variable', 'toggle_variable', 'reset_variable'].includes(use.builtin)) { const before = evaluator.read(pending.target); evaluator.write(pending.target, pending.value); return { target_variable_id: pending.target, before, requested: pending.value, after: evaluator.read(pending.target), ...(pending.random ?? {}) }; }
     if (use.builtin === 'release_slot') {
       const source = state.execution.assignment;
       if (source?.type === 'event' && source.executionMode !== 'overlay' && pending.context.phase === 'slot.start' && pending.result) state.execution.released.push(source.occurrenceId);

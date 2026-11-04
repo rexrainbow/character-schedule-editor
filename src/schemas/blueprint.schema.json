@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Character Schedule Blueprint",
-  "description": "Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import creates a new project, not a merge. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
+  "description": "Declarative rebuild input/output without UUIDs, with optional display icons. Omitted collections are empty. Import rebuilds and replaces the entire project content in the current workspace, allocating new UUIDs; it does not merge or retain a separate old project. Expressions require parser and semantic validation. Execution contract: ../../docs/ENGINE_SEMANTICS.md or MCP schedule://guide/engine-semantics.",
   "$comment": "This Schema specifies structure, not the complete engine. Read ENGINE_SEMANTICS.md for selection, evaluation, priority, writes, interruption, reset and checkpoint behavior.",
   "type": "object",
   "properties": {
@@ -593,11 +593,17 @@
   "required": [],
   "additionalProperties": false,
   "$defs": {
-    "expression": {
+    "scalarExpression": {
       "type": "string",
       "minLength": 1,
       "maxLength": 16000,
-      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+      "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+    },
+    "conditionExpression": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16000,
+      "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
     },
     "action": {
       "oneOf": [
@@ -624,7 +630,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -710,7 +716,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -783,27 +789,49 @@
               "type": "object",
               "properties": {
                 "builtin": {
-                  "enum": [
-                    "set_variable",
-                    "increment_variable"
-                  ]
+                  "const": "set_variable"
                 },
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 },
                 "value": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "increment_variable"
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "random_amplitude": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -825,7 +853,7 @@
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 }
               },
               "required": [
@@ -887,7 +915,10 @@
                 "property": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "probability_percent",
+                        "cooldown_days"
+                      ]
                     },
                     {
                       "type": "object",
@@ -908,7 +939,10 @@
                 "operation": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "set",
+                        "increase"
+                      ]
                     },
                     {
                       "type": "object",
@@ -930,7 +964,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -968,7 +1002,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Numeric expression evaluated to a finite safe integer, with no rounding/truncation. Minimum is 1 for days, 0 for weeks_weekday. Literal constraints are checked on import; computed offsets are checked at runtime. The resulting date must be strictly in the future and inside the executing sequence."
                     },
                     "weekday": {
                       "enum": [
@@ -986,7 +1020,31 @@
                     "mode",
                     "offset"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "weeks_weekday"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "required": [
+                          "weekday"
+                        ]
+                      },
+                      "else": {
+                        "properties": {
+                          "weekday": false
+                        }
+                      }
+                    }
+                  ]
                 },
                 "day": {
                   "type": "string",
@@ -997,10 +1055,7 @@
                   "type": "object",
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "random",
-                        "sequential"
-                      ]
+                      "const": "random"
                     },
                     "candidates": {
                       "type": "array",
@@ -1030,7 +1085,32 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "sequential"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "candidates": {
+                            "items": {
+                              "properties": {
+                                "weight": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Reservations accept weighted random sources only; a fixed source uses day instead. Candidate selection happens on the reserved date."
                 },
                 "execution": {
                   "enum": [
@@ -1048,7 +1128,43 @@
                 "builtin",
                 "date"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "day"
+                  ]
+                },
+                {
+                  "required": [
+                    "source"
+                  ]
+                }
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "execution": {
+                        "enum": [
+                          "interrupt_main",
+                          "interrupt_lower"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "execution"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "priority": {
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }
@@ -1077,7 +1193,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                   },
                   {
                     "type": "object",
@@ -1163,7 +1279,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                   },
                   {
                     "type": "object",
@@ -1255,7 +1371,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -1344,7 +1460,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -1420,27 +1536,52 @@
               "type": "object",
               "properties": {
                 "builtin": {
-                  "enum": [
-                    "set_variable",
-                    "increment_variable"
-                  ]
+                  "const": "set_variable"
                 },
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 },
                 "value": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "increment_variable"
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "random_amplitude": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "description": {
                   "type": "string"
@@ -1465,7 +1606,7 @@
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 },
                 "description": {
                   "type": "string"
@@ -1530,7 +1671,10 @@
                 "property": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "probability_percent",
+                        "cooldown_days"
+                      ]
                     },
                     {
                       "type": "object",
@@ -1551,7 +1695,10 @@
                 "operation": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "set",
+                        "increase"
+                      ]
                     },
                     {
                       "type": "object",
@@ -1573,7 +1720,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "description": {
                   "type": "string"
@@ -1614,7 +1761,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Numeric expression evaluated to a finite safe integer, with no rounding/truncation. Minimum is 1 for days, 0 for weeks_weekday. Literal constraints are checked on import; computed offsets are checked at runtime. The resulting date must be strictly in the future and inside the executing sequence."
                     },
                     "weekday": {
                       "enum": [
@@ -1632,7 +1779,31 @@
                     "mode",
                     "offset"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "weeks_weekday"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "required": [
+                          "weekday"
+                        ]
+                      },
+                      "else": {
+                        "properties": {
+                          "weekday": false
+                        }
+                      }
+                    }
+                  ]
                 },
                 "day": {
                   "type": "string",
@@ -1643,10 +1814,7 @@
                   "type": "object",
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "random",
-                        "sequential"
-                      ]
+                      "const": "random"
                     },
                     "candidates": {
                       "type": "array",
@@ -1676,7 +1844,32 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "sequential"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "candidates": {
+                            "items": {
+                              "properties": {
+                                "weight": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Reservations accept weighted random sources only; a fixed source uses day instead. Candidate selection happens on the reserved date."
                 },
                 "execution": {
                   "enum": [
@@ -1697,193 +1890,136 @@
                 "builtin",
                 "date"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "day"
+                  ]
+                },
+                {
+                  "required": [
+                    "source"
+                  ]
+                }
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "execution": {
+                        "enum": [
+                          "interrupt_main",
+                          "interrupt_lower"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "execution"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "priority": {
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }
       ]
     },
     "candidate": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "task": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-            },
-            "arguments": {
-              "type": "object",
-              "propertyNames": {
-                "type": "string",
-                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-              },
-              "additionalProperties": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "variable": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "variable"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "event": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "event"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "current_event": {
-                        "const": true
-                      }
-                    },
-                    "required": [
-                      "current_event"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "parameter": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "parameter"
-                    ],
-                    "additionalProperties": false
-                  }
-                ]
-              }
-            },
-            "description": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "task"
-          ],
-          "additionalProperties": false
+      "type": "object",
+      "properties": {
+        "macro": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
         },
-        {
+        "arguments": {
           "type": "object",
-          "properties": {
-            "macro": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-            },
-            "arguments": {
-              "type": "object",
-              "propertyNames": {
-                "type": "string",
-                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-              },
-              "additionalProperties": {
-                "oneOf": [
-                  {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "variable": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "variable"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "event": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "event"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "current_event": {
-                        "const": true
-                      }
-                    },
-                    "required": [
-                      "current_event"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "parameter": {
-                        "type": "string",
-                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-                      }
-                    },
-                    "required": [
-                      "parameter"
-                    ],
-                    "additionalProperties": false
-                  }
-                ]
-              }
-            },
-            "description": {
-              "type": "string"
-            }
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
           },
-          "required": [
-            "macro"
-          ],
-          "additionalProperties": false
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 16000,
+                "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "variable": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  }
+                },
+                "required": [
+                  "variable"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  }
+                },
+                "required": [
+                  "event"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "current_event": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "current_event"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "parameter": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  }
+                },
+                "required": [
+                  "parameter"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "description": {
+          "type": "string"
         }
+      },
+      "required": [
+        "macro"
       ],
+      "additionalProperties": false,
       "description": "Priority candidates must call macros. Evaluate arguments then eligibility; first qualified candidate wins, including an empty macro. Later candidates are not evaluated."
     },
     "weightedCandidate": {
@@ -1911,7 +2047,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -1977,7 +2113,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -2006,7 +2142,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                       },
                       {
                         "type": "object",
@@ -2072,7 +2208,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -2088,27 +2224,18 @@
               "type": "object",
               "properties": {
                 "builtin": {
-                  "enum": [
-                    "set_variable",
-                    "increment_variable"
-                  ]
+                  "const": "set_variable"
                 },
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 },
                 "value": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
-                },
-                "random_amplitude": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "description": {
                   "type": "string"
@@ -2117,7 +2244,47 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+                }
+              },
+              "required": [
+                "builtin",
+                "target",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "builtin": {
+                  "const": "increment_variable"
+                },
+                "target": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+                },
+                "random_amplitude": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -2139,7 +2306,7 @@
                 "target": {
                   "type": "string",
                   "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                  "description": "Fixed variable leaf name only. Builtin targets cannot be parameter references; variable_reference parameters can be forwarded only to task/macro calls."
                 },
                 "description": {
                   "type": "string"
@@ -2148,7 +2315,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -2210,7 +2377,10 @@
                 "property": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "probability_percent",
+                        "cooldown_days"
+                      ]
                     },
                     {
                       "type": "object",
@@ -2231,7 +2401,10 @@
                 "operation": {
                   "oneOf": [
                     {
-                      "type": "string"
+                      "enum": [
+                        "set",
+                        "increase"
+                      ]
                     },
                     {
                       "type": "object",
@@ -2253,7 +2426,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 },
                 "description": {
                   "type": "string"
@@ -2262,7 +2435,7 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
@@ -2300,7 +2473,7 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 16000,
-                      "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                      "description": "Numeric expression evaluated to a finite safe integer, with no rounding/truncation. Minimum is 1 for days, 0 for weeks_weekday. Literal constraints are checked on import; computed offsets are checked at runtime. The resulting date must be strictly in the future and inside the executing sequence."
                     },
                     "weekday": {
                       "enum": [
@@ -2318,7 +2491,31 @@
                     "mode",
                     "offset"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "weeks_weekday"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "required": [
+                          "weekday"
+                        ]
+                      },
+                      "else": {
+                        "properties": {
+                          "weekday": false
+                        }
+                      }
+                    }
+                  ]
                 },
                 "day": {
                   "type": "string",
@@ -2329,10 +2526,7 @@
                   "type": "object",
                   "properties": {
                     "mode": {
-                      "enum": [
-                        "random",
-                        "sequential"
-                      ]
+                      "const": "random"
                     },
                     "candidates": {
                       "type": "array",
@@ -2362,7 +2556,32 @@
                     "candidates"
                   ],
                   "additionalProperties": false,
-                  "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "mode": {
+                            "const": "sequential"
+                          }
+                        },
+                        "required": [
+                          "mode"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "candidates": {
+                            "items": {
+                              "properties": {
+                                "weight": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Reservations accept weighted random sources only; a fixed source uses day instead. Candidate selection happens on the reserved date."
                 },
                 "execution": {
                   "enum": [
@@ -2382,96 +2601,218 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 16000,
-                  "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                  "description": "Scalar expression: literals, vars.name, expr.name(arguments), params.name, numeric arithmetic and event properties. Comparisons and ALL/ANY cannot be passed directly here; reference a Boolean expression macro instead. Double-quote string literals inside the expression. Parser/type validation is required."
                 }
               },
               "required": [
                 "builtin",
                 "date"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "day"
+                  ]
+                },
+                {
+                  "required": [
+                    "source"
+                  ]
+                }
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "execution": {
+                        "enum": [
+                          "interrupt_main",
+                          "interrupt_lower"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "execution"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "priority": {
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }
       ]
     },
     "parameter": {
-      "type": "object",
-      "properties": {
-        "icon": {
-          "type": "string",
-          "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
-        },
-        "description": {
-          "type": "string"
-        },
-        "display_name": {
-          "type": "string",
-          "description": "Optional human label. Blank displays the catalog key (persistent name)."
-        },
-        "type": {
-          "enum": [
-            "number",
-            "string",
-            "boolean",
-            "variable_reference",
-            "event_reference",
-            "enum"
-          ]
-        },
-        "value_type": {
-          "enum": [
-            "number",
-            "string",
-            "boolean",
-            "any"
-          ]
-        },
-        "access": {
-          "enum": [
-            "read",
-            "write",
-            "read_write"
-          ]
-        },
-        "event_kind": {
-          "enum": [
-            "any",
-            "probability"
-          ]
-        },
-        "options": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "display_name": {
-                "type": "string"
-              },
-              "icon": {
-                "type": "string",
-                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
-              },
-              "value": {
-                "type": "string"
-              }
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
             },
-            "required": [
-              "value"
-            ],
-            "additionalProperties": false
-          }
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "type": {
+              "enum": [
+                "number",
+                "string",
+                "boolean"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
         },
-        "enum": {
-          "type": "string",
-          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-          "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+        {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "type": {
+              "const": "variable_reference"
+            },
+            "value_type": {
+              "enum": [
+                "number",
+                "string",
+                "boolean",
+                "any"
+              ]
+            },
+            "access": {
+              "enum": [
+                "read",
+                "write",
+                "read_write"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "value_type",
+            "access"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "type": {
+              "const": "event_reference"
+            },
+            "event_kind": {
+              "enum": [
+                "any",
+                "probability"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "event_kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+            },
+            "description": {
+              "type": "string"
+            },
+            "display_name": {
+              "type": "string",
+              "description": "Optional human label. Blank displays the catalog key (persistent name)."
+            },
+            "type": {
+              "const": "enum"
+            },
+            "enum": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "enum"
+              ]
+            },
+            {
+              "required": [
+                "options"
+              ]
+            }
+          ]
         }
-      },
-      "required": [
-        "type"
-      ],
-      "additionalProperties": false
+      ]
     },
     "expressionParameter": {
       "type": "object",
@@ -2491,12 +2832,8 @@
           "enum": [
             "number",
             "string",
-            "boolean",
-            "any"
+            "boolean"
           ]
-        },
-        "variadic": {
-          "type": "boolean"
         }
       },
       "required": [
@@ -2572,14 +2909,123 @@
         },
         "integer": {
           "type": "boolean",
-          "description": "Writes truncate toward zero, then clamp to optional min/max. Intermediate arithmetic is not truncated. Initial values must already satisfy integer constraints."
+          "description": "Writes truncate toward zero, then clamp to optional min/max. When true, initial and any min/max must already be integers; fractional bounds are invalid definitions. Intermediate arithmetic is not truncated."
         },
         "read_only": {
           "type": "boolean"
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "group"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": false,
+              "initial": false,
+              "min": false,
+              "max": false,
+              "integer": false,
+              "read_only": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "initial": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial": {
+                "type": "string"
+              },
+              "min": false,
+              "max": false,
+              "integer": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial": {
+                "type": "boolean"
+              },
+              "min": false,
+              "max": false,
+              "integer": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "integer": {
+                "const": true
+              }
+            },
+            "required": [
+              "integer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "initial": {
+                "type": "integer"
+              },
+              "min": {
+                "type": "integer"
+              },
+              "max": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      ]
     },
     "enum": {
       "type": "object",
@@ -2648,7 +3094,36 @@
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "group"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "options": false
+            }
+          },
+          "else": {
+            "required": [
+              "options"
+            ],
+            "properties": {
+              "options": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "computed": {
       "type": "object",
@@ -2686,7 +3161,35 @@
             "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
           },
           "additionalProperties": {
-            "$ref": "#/$defs/expressionParameter"
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": "string",
+                "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+              },
+              "description": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string",
+                "description": "Optional human label. Blank displays the catalog key (persistent name)."
+              },
+              "type": {
+                "enum": [
+                  "number",
+                  "string",
+                  "boolean",
+                  "any"
+                ]
+              },
+              "variadic": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
           }
         },
         "builtin": {
@@ -2699,7 +3202,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 16000,
-          "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+          "description": "Return expression: Boolean definitions use conditionExpression; number/string definitions use scalarExpression."
         },
         "branches": {
           "type": "array",
@@ -2715,7 +3218,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
                   },
                   {
                     "type": "null"
@@ -2727,7 +3230,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 16000,
-                "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                "description": "Return expression: Boolean definitions use conditionExpression; number/string definitions use scalarExpression."
               }
             },
             "required": [
@@ -2736,14 +3239,234 @@
             ],
             "additionalProperties": false
           },
-          "minItems": 1
+          "minItems": 1,
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "when": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "when"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ],
+          "description": "An empty action branch list is valid. Every nonempty branch list requires exactly one when:null ELSE. ELSE must be last (checked semantically); expression branches cannot be empty."
         }
       },
       "required": [
         "type"
       ],
       "additionalProperties": false,
-      "description": "Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. any/variadic are reserved for randomItem. See EXPRESSION_FUNCTIONS.md."
+      "oneOf": [
+        {
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "required": [
+            "branches"
+          ]
+        },
+        {
+          "required": [
+            "builtin"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 16000,
+                "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
+              },
+              "branches": {
+                "items": {
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 16000,
+                      "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "builtin"
+            ]
+          },
+          "then": {
+            "required": [
+              "scope",
+              "parameters"
+            ],
+            "properties": {
+              "scope": {
+                "const": "environment"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "builtin": {
+                      "const": "randomItem"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "type": {
+                      "const": "any"
+                    },
+                    "parameters": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "icon": {
+                            "type": "string",
+                            "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "description": "Optional human label. Blank displays the catalog key (persistent name)."
+                          },
+                          "type": {
+                            "const": "any"
+                          },
+                          "variadic": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "variadic"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minProperties": 1,
+                      "maxProperties": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "builtin": {
+                      "const": "randomRange"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "type": {
+                      "const": "number"
+                    },
+                    "parameters": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "icon": {
+                            "type": "string",
+                            "description": "Optional offline icon: tabler:name, tabler:name|blue, tabler:name|#RRGGBB, blue or #RRGGBB. Unknown identifiers are cosmetic warnings, not import errors."
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "description": "Optional human label. Blank displays the catalog key (persistent name)."
+                          },
+                          "type": {
+                            "const": "number"
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minProperties": 2,
+                      "maxProperties": 2
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "else": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/expressionParameter"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Parameterized number/string/Boolean expression with its own local parameters. Calls use expr.name(arguments), evaluate arguments once in declaration order, then evaluate only the selected result. Environment builtins randomRange/randomItem use seeded randomness. Parameter keys may be renamed: randomRange uses the first declared parameter as lower bound and second as upper bound, independent of their names. any/variadic are reserved for randomItem. See EXPRESSION_FUNCTIONS.md."
     },
     "macro": {
       "type": "object",
@@ -2765,7 +3488,8 @@
             "branch",
             "priority",
             "random"
-          ]
+          ],
+          "default": "sequence"
         },
         "parameters": {
           "type": "object",
@@ -2784,7 +3508,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 16000,
-              "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+              "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
             },
             {
               "type": "null"
@@ -2812,7 +3536,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
                   },
                   {
                     "type": "null"
@@ -2830,7 +3554,30 @@
             ],
             "additionalProperties": false,
             "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "when": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "when"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ],
+          "description": "An empty action branch list is valid. Every nonempty branch list requires exactly one when:null ELSE. ELSE must be last (checked semantically); expression branches cannot be empty."
         },
         "candidates": {
           "type": "array",
@@ -2855,6 +3602,80 @@
       "allOf": [
         {
           "if": {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "mode"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "mode": {
+                    "const": "sequence"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "branches": false,
+              "candidates": false,
+              "fallback": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "branch"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "steps": false,
+              "candidates": false,
+              "fallback": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "priority"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "steps": false,
+              "branches": false,
+              "fallback": false,
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/candidate"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
             "properties": {
               "mode": {
                 "const": "random"
@@ -2864,16 +3685,10 @@
               "mode"
             ]
           },
-          "then": {},
-          "else": {
+          "then": {
             "properties": {
-              "candidates": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/candidate"
-                }
-              },
-              "fallback": false
+              "steps": false,
+              "branches": false
             }
           }
         }
@@ -2913,7 +3728,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16000,
-                    "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                    "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
                   },
                   {
                     "type": "null"
@@ -2931,7 +3746,30 @@
             ],
             "additionalProperties": false,
             "description": "Select the first matching branch. A selected action whose macro eligibility is false does not fall through to ELSE."
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "minItems": 1
+              },
+              "then": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "when": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "when"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          ],
+          "description": "An empty action branch list is valid. Every nonempty branch list requires exactly one when:null ELSE. ELSE must be last (checked semantically); expression branches cannot be empty."
         },
         "candidates": {
           "type": "array",
@@ -2941,7 +3779,31 @@
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "priority"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "branches": false
+            }
+          },
+          "else": {
+            "properties": {
+              "candidates": false
+            }
+          }
+        }
+      ]
     },
     "day": {
       "type": "object",
@@ -3075,7 +3937,7 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 16000,
-                        "description": "Restricted expression: vars.symbol, expr.symbol or expr.symbol(arguments), params.symbol, literals, + - * /, comparisons, and/or, ALL/ANY. Double-quote string literals inside this expression."
+                        "description": "Condition expression: scalar Boolean values, comparisons, and/or, ALL/ANY, including nested groups. Parser/type validation is required; errors are not false."
                       },
                       {
                         "type": "null"
@@ -3111,7 +3973,31 @@
         }
       },
       "required": [],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "const": "week_private"
+              }
+            },
+            "required": [
+              "scope"
+            ]
+          },
+          "then": {
+            "required": [
+              "owner"
+            ]
+          },
+          "else": {
+            "properties": {
+              "owner": false
+            }
+          }
+        }
+      ]
     },
     "week": {
       "type": "object",
@@ -3285,6 +4171,31 @@
             "candidates"
           ],
           "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "const": "sequential"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "candidates": {
+                    "items": {
+                      "properties": {
+                        "weight": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ],
           "description": "Choose one day per event occurrence, before day execution. Random uses relative positive weights; sequential advances on occurrence even if later blocked. See ENGINE_SEMANTICS.md section 6."
         },
         "start": {
@@ -3353,28 +4264,55 @@
           "description": "After occurrence, skip this many subsequent eligible dates. Ineligible dates do not consume cooldown; changes to this setting do not rewrite remaining cooldown."
         },
         "count": {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "enum": [
-                "all",
-                "day",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "all"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "day"
+                },
+                "day": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
+                }
+              },
+              "required": [
+                "kind",
+                "day"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "tag"
+                },
+                "tag": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
                 "tag"
-              ]
-            },
-            "day": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "description": "Persistent name, unique within its object type. Blueprint references and engine contracts use this name; never a UUID."
-            },
-            "tag": {
-              "type": "string"
+              ],
+              "additionalProperties": false
             }
-          },
-          "required": [
-            "kind"
-          ],
-          "additionalProperties": false
+          ]
         },
         "execution": {
           "enum": [
@@ -3393,7 +4331,108 @@
         "kind",
         "start"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "day"
+          ]
+        },
+        {
+          "required": [
+            "source"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "once"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "end": false,
+              "every": false,
+              "probability": false,
+              "cooldown_days": false,
+              "count": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "periodic"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "end",
+              "every"
+            ],
+            "properties": {
+              "probability": false,
+              "cooldown_days": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "probability"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "end",
+              "probability",
+              "cooldown_days"
+            ],
+            "properties": {
+              "every": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution": {
+                "enum": [
+                  "interrupt_main",
+                  "interrupt_lower"
+                ]
+              }
+            },
+            "required": [
+              "execution"
+            ]
+          },
+          "then": {
+            "properties": {
+              "priority": {
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
     },
     "sequence": {
       "type": "object",
@@ -3441,7 +4480,21 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Ordered sequence entry points. repeat:null is infinite and may appear only on the last row; final-position validation is semantic. At most one infinite row is allowed.",
+          "contains": {
+            "type": "object",
+            "properties": {
+              "repeat": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "repeat"
+            ]
+          },
+          "minContains": 0,
+          "maxContains": 1
         },
         "overrides": {
           "type": "array",
@@ -3482,7 +4535,8 @@
               "day"
             ],
             "additionalProperties": false
-          }
+          },
+          "description": "Within each sequence, (week, weekday) must be unique even if day values are identical. Duplicate positions are rejected semantically, never resolved by first/last entry wins."
         },
         "start_weekday": {
           "enum": [

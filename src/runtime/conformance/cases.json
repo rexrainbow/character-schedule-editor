@@ -364,7 +364,16 @@
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:1",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 20,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -386,7 +395,34 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:1",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 20,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 3,
+                "requested": 23,
+                "after": 10,
+                "increment": 20,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 3,
+                  "after": 10
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -397,7 +433,16 @@
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:2",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": -2.8,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -419,7 +464,34 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:2",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": -2.8,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 10,
+                "requested": 7.2,
+                "after": 7,
+                "increment": -2.8,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 10,
+                  "after": 7
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -430,7 +502,14 @@
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:3",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "reset_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "write"
+                }
+              }
             },
             {
               "event": "variable.change",
@@ -452,7 +531,29 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:3",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "reset_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "write"
+                }
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 7,
+                "requested": 8,
+                "after": 8
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 7,
+                  "after": 8
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -463,7 +564,16 @@
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:4",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": -3,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -485,7 +595,34 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "selection-and-writes:4",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": -3,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 8,
+                "requested": 5,
+                "after": 5,
+                "increment": -3,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 8,
+                  "after": 5
+                }
+              ]
             }
           ]
         }
@@ -819,7 +956,15 @@
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:1",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "set_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "write"
+                },
+                "value": 2.385041126718775
+              }
             },
             {
               "event": "variable.change",
@@ -841,7 +986,30 @@
               "slotRef": "roll",
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:1",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "set_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "write"
+                },
+                "value": 2.385041126718775
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 0,
+                "requested": 2.385041126718775,
+                "after": 2.385041126718775
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 0,
+                  "after": 2.385041126718775
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -852,7 +1020,15 @@
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:2",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "set_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "text",
+                  "access": "write"
+                },
+                "value": "blue"
+              }
             },
             {
               "event": "variable.change",
@@ -874,7 +1050,30 @@
               "slotRef": "roll",
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:2",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "set_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "text",
+                  "access": "write"
+                },
+                "value": "blue"
+              },
+              "result": {
+                "target_variable_id": "text",
+                "before": "",
+                "requested": "blue",
+                "after": "blue"
+              },
+              "changes": [
+                {
+                  "ref": "text",
+                  "name": "text",
+                  "before": "",
+                  "after": "blue"
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -885,7 +1084,16 @@
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:3",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 2,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -907,7 +1115,34 @@
               "slotRef": "roll",
               "occurrenceId": "slot:roll",
               "invocationId": "seeded-weighted-selection:3",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 2,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 2.385041126718775,
+                "requested": 4.385041126718775,
+                "after": 4.385041126718775,
+                "increment": 2,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 2.385041126718775,
+                  "after": 4.385041126718775
+                }
+              ]
             }
           ]
         }
@@ -1235,7 +1470,16 @@
               "occurrenceId": "days-events-and-release:life:0:bonus",
               "invocationId": "days-events-and-release:1",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1261,7 +1505,34 @@
               "slotRef": "bonus",
               "occurrenceId": "days-events-and-release:life:0:bonus",
               "invocationId": "days-events-and-release:1",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 0,
+                "requested": 100,
+                "after": 100,
+                "increment": 100,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 0,
+                  "after": 100
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -1289,7 +1560,10 @@
               "occurrenceId": "days-events-and-release:life:0:repair",
               "invocationId": "days-events-and-release:2",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              }
             },
             {
               "event": "task.completed",
@@ -1301,7 +1575,17 @@
               "slotRef": null,
               "occurrenceId": "days-events-and-release:life:0:repair",
               "invocationId": "days-events-and-release:2",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              },
+              "result": {
+                "result": true,
+                "applied": true,
+                "reason": "slotReleased"
+              },
+              "changes": []
             },
             {
               "event": "assignment.start",
@@ -1356,7 +1640,16 @@
               "occurrenceId": "days-events-and-release:life:0:main",
               "invocationId": "days-events-and-release:3",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1380,7 +1673,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:0:main",
               "invocationId": "days-events-and-release:3",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 100,
+                "requested": 101,
+                "after": 101,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 100,
+                  "after": 101
+                }
+              ]
             },
             {
               "event": "assignment.start",
@@ -1486,7 +1806,16 @@
               "occurrenceId": "days-events-and-release:life:0:repair",
               "invocationId": "days-events-and-release:4",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1512,7 +1841,34 @@
               "slotRef": "repair",
               "occurrenceId": "days-events-and-release:life:0:repair",
               "invocationId": "days-events-and-release:4",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 101,
+                "requested": 111,
+                "after": 111,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 101,
+                  "after": 111
+                }
+              ]
             },
             {
               "event": "assignment.skipped",
@@ -1683,7 +2039,16 @@
               "occurrenceId": "days-events-and-release:life:1:main",
               "invocationId": "days-events-and-release:5",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1707,7 +2072,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:1:main",
               "invocationId": "days-events-and-release:5",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 111,
+                "requested": 112,
+                "after": 112,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 111,
+                  "after": 112
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -1761,7 +2153,16 @@
               "occurrenceId": "days-events-and-release:life:1:main",
               "invocationId": "days-events-and-release:6",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1785,7 +2186,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:1:main",
               "invocationId": "days-events-and-release:6",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 112,
+                "requested": 113,
+                "after": 113,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 112,
+                  "after": 113
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -1895,7 +2323,10 @@
               "occurrenceId": "days-events-and-release:life:2:repair",
               "invocationId": "days-events-and-release:7",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              }
             },
             {
               "event": "task.completed",
@@ -1907,7 +2338,17 @@
               "slotRef": null,
               "occurrenceId": "days-events-and-release:life:2:repair",
               "invocationId": "days-events-and-release:7",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              },
+              "result": {
+                "result": true,
+                "applied": true,
+                "reason": "slotReleased"
+              },
+              "changes": []
             },
             {
               "event": "assignment.start",
@@ -1952,7 +2393,16 @@
               "occurrenceId": "days-events-and-release:life:2:main",
               "invocationId": "days-events-and-release:8",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -1976,7 +2426,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:2:main",
               "invocationId": "days-events-and-release:8",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 113,
+                "requested": 114,
+                "after": 114,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 113,
+                  "after": 114
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -2052,7 +2529,16 @@
               "occurrenceId": "days-events-and-release:life:2:repair",
               "invocationId": "days-events-and-release:9",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2078,7 +2564,34 @@
               "slotRef": "repair",
               "occurrenceId": "days-events-and-release:life:2:repair",
               "invocationId": "days-events-and-release:9",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 114,
+                "requested": 124,
+                "after": 124,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 114,
+                  "after": 124
+                }
+              ]
             },
             {
               "event": "assignment.skipped",
@@ -2202,7 +2715,16 @@
               "occurrenceId": "days-events-and-release:life:3:bonus",
               "invocationId": "days-events-and-release:10",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2228,7 +2750,34 @@
               "slotRef": "bonus",
               "occurrenceId": "days-events-and-release:life:3:bonus",
               "invocationId": "days-events-and-release:10",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 124,
+                "requested": 224,
+                "after": 224,
+                "increment": 100,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 124,
+                  "after": 224
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -2278,7 +2827,16 @@
               "occurrenceId": "days-events-and-release:life:3:main",
               "invocationId": "days-events-and-release:11",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2302,7 +2860,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:3:main",
               "invocationId": "days-events-and-release:11",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 224,
+                "requested": 225,
+                "after": 225,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 224,
+                  "after": 225
+                }
+              ]
             },
             {
               "event": "assignment.start",
@@ -2386,7 +2971,16 @@
               "occurrenceId": "days-events-and-release:life:3:main",
               "invocationId": "days-events-and-release:12",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2410,7 +3004,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:3:main",
               "invocationId": "days-events-and-release:12",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 225,
+                "requested": 226,
+                "after": 226,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 225,
+                  "after": 226
+                }
+              ]
             },
             {
               "event": "assignment.start",
@@ -2550,7 +3171,10 @@
               "occurrenceId": "days-events-and-release:life:4:repair",
               "invocationId": "days-events-and-release:13",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              }
             },
             {
               "event": "task.completed",
@@ -2562,7 +3186,17 @@
               "slotRef": null,
               "occurrenceId": "days-events-and-release:life:4:repair",
               "invocationId": "days-events-and-release:13",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              },
+              "result": {
+                "result": true,
+                "applied": true,
+                "reason": "slotReleased"
+              },
+              "changes": []
             },
             {
               "event": "assignment.start",
@@ -2607,7 +3241,16 @@
               "occurrenceId": "days-events-and-release:life:4:main",
               "invocationId": "days-events-and-release:14",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2631,7 +3274,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:4:main",
               "invocationId": "days-events-and-release:14",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 226,
+                "requested": 227,
+                "after": 227,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 226,
+                  "after": 227
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -2707,7 +3377,16 @@
               "occurrenceId": "days-events-and-release:life:4:repair",
               "invocationId": "days-events-and-release:15",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2733,7 +3412,34 @@
               "slotRef": "repair",
               "occurrenceId": "days-events-and-release:life:4:repair",
               "invocationId": "days-events-and-release:15",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 227,
+                "requested": 237,
+                "after": 237,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 227,
+                  "after": 237
+                }
+              ]
             },
             {
               "event": "assignment.skipped",
@@ -2874,7 +3580,16 @@
               "occurrenceId": "days-events-and-release:life:5:main",
               "invocationId": "days-events-and-release:16",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2898,7 +3613,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:5:main",
               "invocationId": "days-events-and-release:16",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 237,
+                "requested": 238,
+                "after": 238,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 237,
+                  "after": 238
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -2952,7 +3694,16 @@
               "occurrenceId": "days-events-and-release:life:5:main",
               "invocationId": "days-events-and-release:17",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -2976,7 +3727,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:5:main",
               "invocationId": "days-events-and-release:17",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 238,
+                "requested": 239,
+                "after": 239,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 238,
+                  "after": 239
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -3081,7 +3859,16 @@
               "occurrenceId": "days-events-and-release:life:6:bonus",
               "invocationId": "days-events-and-release:18",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3107,7 +3894,34 @@
               "slotRef": "bonus",
               "occurrenceId": "days-events-and-release:life:6:bonus",
               "invocationId": "days-events-and-release:18",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 100,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 239,
+                "requested": 339,
+                "after": 339,
+                "increment": 100,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 239,
+                  "after": 339
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -3135,7 +3949,10 @@
               "occurrenceId": "days-events-and-release:life:6:repair",
               "invocationId": "days-events-and-release:19",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              }
             },
             {
               "event": "task.completed",
@@ -3147,7 +3964,17 @@
               "slotRef": null,
               "occurrenceId": "days-events-and-release:life:6:repair",
               "invocationId": "days-events-and-release:19",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              },
+              "result": {
+                "result": true,
+                "applied": true,
+                "reason": "slotReleased"
+              },
+              "changes": []
             },
             {
               "event": "assignment.start",
@@ -3202,7 +4029,16 @@
               "occurrenceId": "days-events-and-release:life:6:main",
               "invocationId": "days-events-and-release:20",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3226,7 +4062,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:6:main",
               "invocationId": "days-events-and-release:20",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 339,
+                "requested": 340,
+                "after": 340,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 339,
+                  "after": 340
+                }
+              ]
             },
             {
               "event": "assignment.start",
@@ -3332,7 +4195,16 @@
               "occurrenceId": "days-events-and-release:life:6:repair",
               "invocationId": "days-events-and-release:21",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3358,7 +4230,34 @@
               "slotRef": "repair",
               "occurrenceId": "days-events-and-release:life:6:repair",
               "invocationId": "days-events-and-release:21",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 340,
+                "requested": 350,
+                "after": 350,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 340,
+                  "after": 350
+                }
+              ]
             },
             {
               "event": "assignment.skipped",
@@ -3529,7 +4428,16 @@
               "occurrenceId": "days-events-and-release:life:7:main",
               "invocationId": "days-events-and-release:22",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3553,7 +4461,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:7:main",
               "invocationId": "days-events-and-release:22",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 350,
+                "requested": 351,
+                "after": 351,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 350,
+                  "after": 351
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -3607,7 +4542,16 @@
               "occurrenceId": "days-events-and-release:life:7:main",
               "invocationId": "days-events-and-release:23",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3631,7 +4575,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:7:main",
               "invocationId": "days-events-and-release:23",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 351,
+                "requested": 352,
+                "after": 352,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 351,
+                  "after": 352
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -3741,7 +4712,10 @@
               "occurrenceId": "days-events-and-release:life:8:repair",
               "invocationId": "days-events-and-release:24",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              }
             },
             {
               "event": "task.completed",
@@ -3753,7 +4727,17 @@
               "slotRef": null,
               "occurrenceId": "days-events-and-release:life:8:repair",
               "invocationId": "days-events-and-release:24",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "release_slot",
+              "arguments": {
+                "condition": true
+              },
+              "result": {
+                "result": true,
+                "applied": true,
+                "reason": "slotReleased"
+              },
+              "changes": []
             },
             {
               "event": "assignment.start",
@@ -3798,7 +4782,16 @@
               "occurrenceId": "days-events-and-release:life:8:main",
               "invocationId": "days-events-and-release:25",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3822,7 +4815,34 @@
               "slotRef": "main",
               "occurrenceId": "days-events-and-release:life:8:main",
               "invocationId": "days-events-and-release:25",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 352,
+                "requested": 353,
+                "after": 353,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 352,
+                  "after": 353
+                }
+              ]
             },
             {
               "event": "phase.start",
@@ -3898,7 +4918,16 @@
               "occurrenceId": "days-events-and-release:life:8:repair",
               "invocationId": "days-events-and-release:26",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -3924,7 +4953,34 @@
               "slotRef": "repair",
               "occurrenceId": "days-events-and-release:life:8:repair",
               "invocationId": "days-events-and-release:26",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 353,
+                "requested": 363,
+                "after": 363,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 353,
+                  "after": 363
+                }
+              ]
             },
             {
               "event": "assignment.skipped",
@@ -4234,7 +5290,16 @@
               "occurrenceId": "slot:work",
               "invocationId": "pending-task-resume:1",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -4256,7 +5321,34 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "pending-task-resume:1",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 1,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 0,
+                "requested": 1,
+                "after": 1,
+                "increment": 1,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 0,
+                  "after": 1
+                }
+              ]
             }
           ]
         },
@@ -4375,7 +5467,18 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "pending-task-resume:2",
-              "attempt": 2
+              "attempt": 2,
+              "arguments": {
+                "amount": 4.495151738591691
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 1,
+                  "after": 5.495151738591691
+                }
+              ]
             },
             {
               "event": "task.start",
@@ -4386,7 +5489,16 @@
               "occurrenceId": "slot:work",
               "invocationId": "pending-task-resume:3",
               "attempt": 1,
-              "arguments": {}
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              }
             },
             {
               "event": "variable.change",
@@ -4408,7 +5520,34 @@
               "slotRef": "work",
               "occurrenceId": "slot:work",
               "invocationId": "pending-task-resume:3",
-              "attempt": 1
+              "attempt": 1,
+              "builtin": "increment_variable",
+              "arguments": {
+                "target": {
+                  "type": "variable_reference",
+                  "reference_id": "n",
+                  "access": "read_write"
+                },
+                "value": 10,
+                "random_amplitude": 0
+              },
+              "result": {
+                "target_variable_id": "n",
+                "before": 5.495151738591691,
+                "requested": 15.49515173859169,
+                "after": 15.49515173859169,
+                "increment": 10,
+                "random_amplitude": 0,
+                "random_offset": 0
+              },
+              "changes": [
+                {
+                  "ref": "n",
+                  "name": "n",
+                  "before": 5.495151738591691,
+                  "after": 15.49515173859169
+                }
+              ]
             }
           ]
         }

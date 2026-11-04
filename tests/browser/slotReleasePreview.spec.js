@@ -5,6 +5,7 @@ import { compileProject } from '../../src/core/model.js';
 import { navigate, exportProject } from './navigation.js';
 import { translator } from '../../src/i18n/index.js';
 import { createScheduleEvent } from '../../src/core/scheduledEvents.js';
+import { addExpressionFunctions } from '../../src/core/expressionFunctions.js';
 
 async function load(page, mode = 'interrupt_main', booking = false) {
   const f = sequenceEventsFixture(), { draft, eventDay, activity, sequence } = f;
@@ -17,6 +18,8 @@ async function load(page, mode = 'interrupt_main', booking = false) {
   if (booking) activity.branches = [{ condition: null, task: { ...createScheduleEvent(), day_schedule_id: day.id, execution_mode: mode } }];
   draft.weeks[0].days.mon = day.id;
   sequence.eventGroups = [{ ...rule(sequence, day.id, 0, 0, 0), display_name: 'Release examples', executionMode: mode }];
+  // Import provisions these builtins; include them so read-only comparisons use the loaded baseline.
+  draft.operandNodes = addExpressionFunctions(draft.operandNodes);
   const compiled = compileProject(draft); expect(compiled.errors).toEqual([]);
   await page.goto('/');
   await page.locator('.app-header input[type=file]').first().setInputFiles({ name: 'release-preview.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(compiled.data)) });

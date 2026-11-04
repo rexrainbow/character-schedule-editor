@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
+    "build": "vite build && vite build --config runtime-demo/vite.config.js --outDir ../dist/runtime-demo",
     "build:runtime-demo": "vite build --config runtime-demo/vite.config.js",
     "preview:runtime-demo": "vite preview --config runtime-demo/vite.config.js --host 127.0.0.1",
     "build:agent-kit": "node scripts/build-agent-kit.mjs",

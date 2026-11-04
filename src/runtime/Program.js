@@ -2,6 +2,7 @@ import { sequenceRepeatErrors } from '../core/sequenceExecution.js';
 import { compileProject, projectToDraft } from '../core/model.js';
 import { normalizeSymbols } from '../core/symbols.js';
 import { resolveDraftEnums } from '../core/enumParameters.js';
+import { variableBoundsErrors } from '../core/variableBounds.js';
 import { copy, fail, freeze, fingerprint, jsonCopy } from './utils.js';
 
 const collections = ['variables', 'expressions', 'enums', 'tasks', 'macros', 'slots', 'days', 'weeks', 'sequences'];
@@ -22,6 +23,14 @@ export class Program {
     this.referenceMode = data.referenceMode;
     this.id = fingerprint(data);
     this.settings = this.#data.settings;
+    // Direct Program JSON callers must preserve the same numeric invariants as project imports.
+    const initial = this.initialValues();
+    for (const [ref, node] of this.entries('variables')) if (node.node_type === 'value') {
+      const value = Object.hasOwn(node, 'initial_value') ? node.initial_value : initial[ref];
+      if (!['number', 'string', 'boolean'].includes(node.value_type) || typeof value !== node.value_type || typeof value === 'number' && !Number.isFinite(value)) fail('invalidRuntimeProgram', { ref, path: `/variables/${ref}/initial_value` });
+      const issues = variableBoundsErrors(node, `/variables/${ref}`, initial[ref]);
+      if (issues.length) fail('invalidRuntimeProgram', { ref, path: issues[0].path, issues });
+    }
     this.#checkReferences();
     Object.freeze(this);
   }

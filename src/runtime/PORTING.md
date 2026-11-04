@@ -39,6 +39,7 @@ runtime 不是只有此資料夾。執行邏輯還使用下列 `src/core/` 檔�
 ## 3. 最容易移植錯的界線
 
 - **數字**：JS number 對應 C# double，不能一律改為 decimal／int。寫入順序為型別與有限值檢查 → 朝零截斷 → min／max；安全整數上限為 2^53−1。禁止 NaN／Infinity，不靠夾值修正它們。
+- **定義驗證**：Program JSON 載入時先驗證初值與邊界合法；integer_only=true 時初值、min_value、max_value 必須為整數，不能接受小數邊界後再靠寫入截斷修正。初值必須已在範圍內。
 - **亂數**：照 utils.js 的 seedNumber／random 與 randomValues.js 的演算法、32-bit 溢位及抽樣消耗順序實作，不能換成 System.Random。C# 用明確 uint、unchecked 與邏輯右移；seed 的字串迭代採 Unicode code point，不是逐 UTF-16 char。
 - **順序**：優先候選取首個合格者，加權候選先篩選再抽樣；事件同優先權維持原序。不要使用不穩定排序，或重排物件／陣列後改變抽樣順序。
 - **任務交易**：handler 的變數修改先暫存，成功且 checkpoint 保存成功才提交。失敗／取消丟棄本次修改，先前完成的任務不回滾。
